@@ -44,8 +44,8 @@ jobs:
         run: |
           set -euo pipefail
           JAR="$(ls target/*.jar | grep -v 'original-' | head -n1)"
-          BASE="$(basename "$JAR")"          # bossland-2.8-v1.21.5.jar
-          NAME="bossland${BASE#bossland-}"   # bossland2.8-v1.21.5.jar
+          BASE="$(basename "$JAR")"          # bossland-<version>.jar
+          NAME="bossland${BASE#bossland-}"   # bossland<version>.jar
           mkdir -p dist
           cp "$JAR" "dist/$NAME"
           echo "JAR_PATH=dist/$NAME" >> "$GITHUB_ENV"
