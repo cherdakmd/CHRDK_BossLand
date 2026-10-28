@@ -72,7 +72,9 @@ jobs:
         if: startsWith(github.ref, 'refs/tags/v') || github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch'
         env:
           EXERCISE: '1'
-        run: bash .github/scripts/smoke-test.sh paper 1.21.5 "$JAR_PATH"
+        run: |
+          set -o pipefail
+          bash .github/scripts/smoke-test.sh paper 1.21.5 "$JAR_PATH" 2>&1 | tee smoke-paper.out
 
       - name: Set up JDK 25 (needed by Minecraft 26.x)
         if: startsWith(github.ref, 'refs/tags/v') || github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch'
@@ -98,10 +100,16 @@ jobs:
           {
             echo "smoke evidence @ $GITHUB_SHA"
             echo '```'
+            for f in smoke-paper.out smoke-purpur.out; do
+              [ -f "$f" ] || continue
+              echo "== $f (tail) =="
+              tail -n 25 "$f"
+              echo
+            done
             for d in smoke-*; do
               [ -d "$d" ] || continue
-              echo "== $d =="
-              grep -E 'САМОПРОВЕРКА|✗|Осколков|Exception|Caused by' "$d/server.log" 2>/dev/null | head -n 30 || echo '(нет строк)'
+              echo "== $d/server.log =="
+              grep -E 'САМОПРОВЕРКА|Осколков|Exception|Caused by|Done \(' "$d/server.log" 2>/dev/null | head -n 25 || echo '(нет строк)'
               echo
             done
             echo '```'
