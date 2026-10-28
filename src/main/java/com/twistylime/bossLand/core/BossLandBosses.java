@@ -167,8 +167,7 @@ public class BossLandBosses {
                 ((LivingEntity) boss).addPotionEffect(new PotionEffect(PotionEffectType.FIRE_RESISTANCE, 999 * 999, 1));
                 ((LivingEntity) boss).addPotionEffect(new PotionEffect(CompatibilityResolver.resolvePotionEffect("INCREASE_DAMAGE","STRENGTH"), 999 * 999, 5));
             } else if (bossType.equals("Devil")) {
-                ((ZombifiedPiglin) boss).setAngry(true);
-                ((ZombifiedPiglin) boss).setAnger(999 * 999);
+                MCUtility.setZombifiedPiglinAngry(boss, 999 * 999);
                 MCUtility.equipMob(boss, "DIAMOND");
                 ItemStack head = SkullCreator.getSkull(
                         "http://textures.minecraft.net/texture/9da39269ef45f825ec61bb4f8aa09bd3cf07996fb6fac338a6e91d6699ae425");

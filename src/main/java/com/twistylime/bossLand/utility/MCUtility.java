@@ -14,6 +14,27 @@ import java.util.*;
 
 public class MCUtility {
 
+    /**
+     * Makes a zombified piglin angry. Resolved reflectively on purpose: the Bukkit
+     * interface for zombified piglins was renamed across modern API versions, so a
+     * direct reference would break compilation on some of the supported servers.
+     */
+    public static void setZombifiedPiglinAngry(Entity entity, int anger) {
+        if (entity == null) return;
+        try {
+            entity.getClass().getMethod("setAngry", boolean.class).invoke(entity, true);
+        } catch (ReflectiveOperationException ignored) {
+            // not a zombified piglin on this server version - nothing to do
+        }
+        if (anger > 0) {
+            try {
+                entity.getClass().getMethod("setAnger", int.class).invoke(entity, anger);
+            } catch (ReflectiveOperationException ignored) {
+                // older/newer API without setAnger - anger level is cosmetic only
+            }
+        }
+    }
+
     public static void takeItem(Player p, int amount) {
         if (p.getInventory().getItemInMainHand().getAmount() > amount) {
             p.getInventory().getItemInMainHand().setAmount(p.getInventory().getItemInMainHand().getAmount() - amount);

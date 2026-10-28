@@ -37,6 +37,22 @@ jobs:
           java-version: '21'
           cache: maven
 
+      - name: Probe resolved API
+        continue-on-error: true
+        run: |
+          {
+            mvn -B -ntp -q dependency:copy-dependencies -DincludeScope=provided -DoutputDirectory=api-deps 2>&1 | tail -n 5
+            ls -1 api-deps 2>/dev/null || echo "no api-deps"
+            API="$(ls api-deps/spigot-api-*.jar 2>/dev/null | head -n1 || true)"
+            echo "spigot-api jar: ${API:-none}"
+            if [ -n "${API:-}" ]; then
+              echo '--- PotionEffectType SLOW/JUMP ---'
+              javap -cp "$API" org.bukkit.potion.PotionEffectType 2>&1 | grep -iE 'SLOW|JUMP' || true
+              echo '--- piglin entity classes ---'
+              jar tf "$API" | grep -iE 'entity/.*(Piglin|PigZombie)' || true
+            fi
+          } > probe.log 2>&1
+
       - name: Build with Maven
         id: build
         run: |
@@ -49,8 +65,15 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          EXCERPT="$(tail -c 20000 build.log 2>/dev/null || echo 'no build.log captured')"
-          jq -Rs '{body: .}' <<< "$(printf 'Build failure @ %s\n\n```\n%s\n```\n' "$GITHUB_SHA" "$EXCERPT")" \
+          {
+            printf 'Build failure @ %s\n\n' "$GITHUB_SHA"
+            printf '```\n## probe.log\n'
+            head -c 3000 probe.log 2>/dev/null || echo 'no probe.log'
+            printf '\n\n## build.log (errors)\n'
+            grep -E '^\[(ERROR|WARNING)\]' build.log 2>/dev/null | head -n 80 || tail -c 8000 build.log
+            printf '```\n'
+          } > report.md
+          jq -Rs '{body: .}' < report.md \
             | gh api "repos/$GITHUB_REPOSITORY/commits/$GITHUB_SHA/comments" --input - >/dev/null
 
       - name: Collect jar

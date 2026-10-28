@@ -520,14 +520,14 @@ public class BossLand extends JavaPlugin implements Listener {
         try {
             switch (type) {
                 case "ZOMBIE":
-                    boss.addPotionEffect(new PotionEffect(PotionEffectType.SLOW, 999 * 999, 1));
+                    boss.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, 999 * 999, 1));
                     break;
                 case "SKELETON":
                     boss.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 999 * 999, 1));
                     break;
                 case "SPIDER":
                     boss.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 999 * 999, 2));
-                    boss.addPotionEffect(new PotionEffect(PotionEffectType.JUMP, 999 * 999, 1));
+                    boss.addPotionEffect(new PotionEffect(PotionEffectType.JUMP_BOOST, 999 * 999, 1));
                     break;
                 case "CREEPER":
                     // Creeper will explode on death - handled in onEntityDeath
@@ -539,7 +539,7 @@ public class BossLand extends JavaPlugin implements Listener {
                     boss.addPotionEffect(new PotionEffect(PotionEffectType.RESISTANCE, 999 * 999, 2));
                     break;
                 case "RAVAGER":
-                    boss.addPotionEffect(new PotionEffect(PotionEffectType.SLOW, 999 * 999, 1));
+                    boss.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, 999 * 999, 1));
                     boss.addPotionEffect(new PotionEffect(PotionEffectType.RESISTANCE, 999 * 999, 1));
                     break;
                 case "ENDERMAN":
@@ -558,7 +558,7 @@ public class BossLand extends JavaPlugin implements Listener {
                     boss.addPotionEffect(new PotionEffect(PotionEffectType.HUNGER, 999 * 999, 1));
                     break;
                 case "STRAY":
-                    boss.addPotionEffect(new PotionEffect(PotionEffectType.SLOW, 999 * 999, 1));
+                    boss.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, 999 * 999, 1));
                     break;
                 case "CAVE_SPIDER":
                     boss.addPotionEffect(new PotionEffect(PotionEffectType.POISON, 999 * 999, 1));
@@ -688,8 +688,9 @@ public class BossLand extends JavaPlugin implements Listener {
                 String bossType = config.getDataFrom("save","bosses." + e.getTarget().getUniqueId());
                 if (bossType != null) {
                     e.setCancelled(true);
-                } else if (e.getEntity() instanceof ZombifiedPiglin) {
-                    if ((!(e.getTarget() instanceof Player)) && Objects.requireNonNull(Objects.requireNonNull(((ZombifiedPiglin) e.getEntity()).getEquipment()).getHelmet())
+                } else if (e.getEntity().getType() == EntityType.ZOMBIFIED_PIGLIN) {
+                    if ((!(e.getTarget() instanceof Player)) && e.getEntity() instanceof LivingEntity
+                            && Objects.requireNonNull(Objects.requireNonNull(((LivingEntity) e.getEntity()).getEquipment()).getHelmet())
                             .getType().equals(Material.PLAYER_HEAD))
                         e.setCancelled(true);
                 }
@@ -2081,9 +2082,7 @@ public class BossLand extends JavaPlugin implements Listener {
                 }
                 // Pigmen
                 if (minion.getType().equals(EntityType.ZOMBIFIED_PIGLIN)) {
-                    assert minion instanceof ZombifiedPiglin;
-                    ((ZombifiedPiglin) minion).setAngry(true);
-                    ((ZombifiedPiglin) minion).setAnger(999 * 999);
+                    MCUtility.setZombifiedPiglinAngry(minion, 999 * 999);
                 }
                 // Mount
                 if (mountType != null) {
@@ -3017,7 +3016,7 @@ public class BossLand extends JavaPlugin implements Listener {
         int amount = isElite ? UtilityCalc.rand(1, 3) : 1;
 
         ItemStack item = new ItemStack(mat, amount);
-        org.bukkit.inventory.ItemMeta meta = item.getItemMeta();
+        org.bukkit.inventory.meta.ItemMeta meta = item.getItemMeta();
         if (meta != null) {
             meta.setDisplayName(name);
             java.util.List<String> lore = new java.util.ArrayList<>();
