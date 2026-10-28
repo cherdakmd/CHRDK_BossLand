@@ -112,7 +112,7 @@ jobs:
             ls -l dist 2>/dev/null || echo 'no dist yet'
             sha256sum dist/*.jar 2>/dev/null || true
             printf '\n--- smoke ---\n'
-            tail -c 3000 smoke-report/smoke.log 2>/dev/null || echo 'no smoke report'
+            grep -E '^\[smoke\]|::error::' smoke-report/smoke.log 2>/dev/null | grep -vE 'ChunkHolder|chunk' | tail -n 45 || echo 'no smoke report'
             printf '```\n'
           } > summary.md
           jq -Rs '{body: .}' < summary.md \

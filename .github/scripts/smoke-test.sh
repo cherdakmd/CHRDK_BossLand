@@ -62,11 +62,13 @@ curl -fsSL --retry 3 -o paper.jar "$PAPER_URL"
 ls -lh paper.jar
 
 log "starting server"
-( sleep 90; echo "version"; echo "plugins"; echo "stop" ) \
+( sleep 60; echo "plugins"; echo "stop" ) \
   | timeout 330 java -Xms512M -Xmx1024M -Dcom.mojang.eula.agree=true -jar paper.jar --nogui > server.log 2>&1 || true
 
 log "plugin / lifecycle log lines"
-grep -iE 'bossland|Enabling|Disabling|Done \(|Exception|Could not load' server.log | tail -n 60 || tail -n 100 server.log
+{ grep -iE 'bossland|Done \(' server.log | tail -n 40 || true; } | sed 's/^/[smoke]   /'
+log "plugins command output"
+{ sed -n '/Plugins (/,$p' server.log | head -n 10 || true; } | sed 's/^/[smoke]   /' 
 
 status=0
 grep -q 'Done (' server.log || { echo '::error::server never finished starting'; status=1; }
@@ -81,6 +83,7 @@ if [ "$status" -eq 0 ]; then
   log "smoke test passed"
 else
   log "smoke test FAILED"
-  tail -n 120 server.log
+  { grep -iE 'bossland|exception|error' server.log | tail -n 60 || true; } | sed 's/^/[smoke]   /'
+  { tail -n 60 server.log || true; } | sed 's/^/[smoke]   /' 
 fi
 exit "$status"
