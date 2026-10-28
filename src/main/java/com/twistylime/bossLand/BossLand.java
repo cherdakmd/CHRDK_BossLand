@@ -737,6 +737,7 @@ public class BossLand extends JavaPlugin implements Listener {
      * @return сколько мини-боссов задето
      */
     public int killMiniBosses(World world) {
+        plugin.getLogger().log(Level.INFO, "Мини-боссов на учёте: " + miniBossBars.size());
         int killed = 0;
         for (Entity miniBoss : new ArrayList<>(miniBossBars.keySet())) {
             if (world != null && !world.equals(miniBoss.getWorld())) continue;
@@ -760,8 +761,13 @@ public class BossLand extends JavaPlugin implements Listener {
 
     private void updateMiniBossBar(Entity boss) {
         BossBar bar = miniBossBars.get(boss);
-        if (bar == null || boss.isDead() || !boss.isValid()) {
+        if (bar == null) return;
+        if (boss.isDead() || !boss.isValid()) {
             miniBossBars.remove(boss);
+            plugin.getLogger().log(Level.INFO, "Мини-босс снят с учёта: " + boss.getType()
+                    + " dead=" + boss.isDead() + " valid=" + boss.isValid()
+                    + " loc=" + boss.getLocation().getBlockX() + "," + boss.getLocation().getBlockY()
+                    + "," + boss.getLocation().getBlockZ() + " world=" + boss.getWorld().getName());
             return;
         }
         try {
