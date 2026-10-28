@@ -1,4 +1,4 @@
-# BossLand v3.0 - v1.21.5 / 26.3
+# BossLand v3.1 - v1.21.5 / 26.3
 
 ## Обзор
 
@@ -14,21 +14,22 @@ BossLand — это всеобъемлющий плагин для Minecraft, к
 
 ## Загрузки
 
+Актуальные сборки публикуются в этом репозитории: [Releases](https://github.com/cherdakmd/CHRDK_BossLand/releases).
+
 | Версия Minecraft | Версия BossLand | Ссылка на скачивание | Примечания |
 |------------------|-----------------|----------------------|------------|
-| 1.21.5 – 26.3 | 3.0 | [Скачать v3.0](https://github.com/cherdakmd/CHRDK_BossLand/releases/download/v3.0-v1.21.5/bossland3.0-v1.21.5.jar) | Полный русский конфиг, отдельная графа настроек мини-боссов, мини-боссы появляются в ~35 раз чаще |
-| 1.21.5 – 26.3 | 2.9 | [Скачать v2.9](https://github.com/cherdakmd/CHRDK_BossLand/releases/download/v2.9-v1.21.5/bossland2.9-v1.21.5.jar) | Сборка под современные версии: фиксы компиляции, совместимость с Minecraft 26.x (Purpur 26.3), исправление частиц |
-| 1.21.5 | 2.8 | [Скачать v2.8](https://github.com/cherdakmd/CHRDK_BossLand/releases/download/v2.8-v1.21.5/bossland2.8-v1.21.5.jar) | Полная progresstion-цепочка: крафт предметов призыва из осколков, нет циклических рецептов |
-| 1.21.5 | 2.6 | [Скачать v2.6](https://github.com/TwistyLime/BossLand/releases/download/v2.6-v1.21.5/bossland2.6-v1.21.5.jar) | Элитные мини-боссы, разные уровни, уникальные способности |
-| 1.21.5 | 2.5 | [Скачать v2.5](https://github.com/TwistyLime/BossLand/releases/download/v2.5-v1.21.5/bossland2.5-v1.21.5.jar) | Мини-боссы при копании, новые боссы и предметы |
-| 1.21.5 | 2.4 | [Скачать v2.4](https://github.com/TwistyLime/BossLand/releases/download/v2.4-v1.21.5/bossland2.4-v1.21.5.jar) | Руководство, эффекты осколков и исправления ошибок |
-| 1.16.1 - 1.21.5 | 2.3 | [Скачать v2.3](https://github.com/TwistyLime/BossLand/releases/download/v2.3-v1.16.1-v1.21.5/bossland2.3-v1.16.1-v1.21.5.jar) | Добавлено руководство и эффекты осколков, исправлены ошибки |
-| 1.16.1 - 1.21.5 | 2.2 | [Скачать v2.2](https://github.com/TwistyLime/BossLand/releases/download/v2.2-v1.16.1-v1.21.5/bossland2.2-v1.16.1-v1.21.5.jar) | Совместимость с 1.16.1 по 1.21.5, исправления ошибок |
-| 1.21.3 | 2.1 | [Скачать v2.1](https://github.com/TwistyLime/BossLand/releases/download/v2.1-1.21.3/bossland2-0-2.1.jar) | Обновлено для 1.21.3 с новым API и поддержкой |
-| 1.19.x | 0.8 (Финал от Eliminator) | [Скачать v0.8](https://www.spigotmc.org/resources/boss-land.68320/) | Оригинальная 중단ённая версия |
-| 1.18.x | 0.7 | [Скачать v0.7](https://www.spigotmc.org/resources/boss-land.68320/) | Последняя версия до 1.19 |
-| 1.16 – 1.17 | 0.5 – 0.6 | [Релизы](https://www.spigotmc.org/resources/boss-land.68320/) | Ограниченный набор функций |
-| 1.13 – 1.15 | 0.1 – 0.4 | [Релизы](https://www.spigotmc.org/resources/boss-land.68320/) | Устаревшие сборки, минимальная поддержка |
+| 1.21.5 – 26.3 | 3.1 | [Скачать v3.1](https://github.com/cherdakmd/CHRDK_BossLand/releases/download/v3.1-v1.21.5/bossland3.1-v1.21.5.jar) | Полная русская локализация консоли, починен крафт предметов призыва, команда `/bl-admin selftest` |
+| 1.21.5 – 26.3 | 3.0 | [Скачать v3.0](https://github.com/cherdakmd/CHRDK_BossLand/releases/download/v3.0-v1.21.5/bossland3.0-v1.21.5.jar) | Полный русский конфиг, отдельная графа настроек мини-боссов, мини-боссы появляются ~в 35 раз чаще |
+| 1.21.5 – 26.3 | 2.9 | [Скачать v2.9](https://github.com/cherdakmd/CHRDK_BossLand/releases/download/v2.9-v1.21.5/bossland2.9-v1.21.5.jar) | Фиксы компиляции, совместимость с Minecraft 26.x (Purpur 26.3), исправление частиц |
+| 1.21.5 | 2.8 | [Скачать v2.8](https://github.com/cherdakmd/CHRDK_BossLand/releases/download/v2.8-v1.21.5/bossland2.8-v1.21.5.jar) ⚠️ устарело | Первая собираемая версия; используйте 3.0 |
+| 1.21.5 | 2.6 / 2.5 / 2.4 | — (не опубликованы) | Сборки существовали только в исходниках, jar не сохранился |
+| 1.16.1 – 1.21.5 | 2.3 | [Скачать v2.3](https://github.com/TwistyLime/BossLand/releases/download/v2.3-v1.16.1-v1.21.5/bossland2.3-v1.16.1-v1.21.5.jar) | Оригинальный апстрим TwistyLime |
+| 1.16.1 – 1.21.5 | 2.2 | [Скачать v2.2](https://github.com/TwistyLime/BossLand/releases/download/v2.2-v1.16.1-v1.21.5/bossland2.2-v1.16.1-v1.21.5.jar) | Оригинальный апстрим TwistyLime |
+| 1.21.3 | 2.1 | [Скачать v2.1](https://github.com/TwistyLime/BossLand/releases/download/v2.1-1.21.3/bossland2-0-2.1.jar) | Оригинальный апстрим TwistyLime |
+| 1.19.x | 0.8 (Финал от Eliminator) | [Оригинальный ресурс](https://www.spigotmc.org/resources/boss-land.68320/) | Оригинальная прекращённая версия |
+| 1.18.x | 0.7 | [Оригинальный ресурс](https://www.spigotmc.org/resources/boss-land.68320/) | Последняя версия до 1.19 |
+| 1.16 – 1.17 | 0.5 – 0.6 | [Оригинальный ресурс](https://www.spigotmc.org/resources/boss-land.68320/) | Ограниченный набор функций |
+| 1.13 – 1.15 | 0.1 – 0.4 | [Оригинальный ресурс](https://www.spigotmc.org/resources/boss-land.68320/) | Устаревшие сборки, минимальная поддержка |
 
 ## Особенности
 
@@ -200,6 +201,9 @@ miniboss:
 - `/bl-admin addLoot <босс>` — добавить лут для босса
 - `/bl-admin killBosses <мир>` — удалить всех боссов в мире
 - `/bl-admin reload` — перезагрузить конфигурацию плагина
+- `/bl-admin selftest` — самопроверка установки: сверяет названия осколков из дропа боссов с `lang.yml`
+  и проверяет, что каждый предмет призыва собирается из осколков в сетке крафта. Полезна после правки
+  `config.yml`/`recipes.yml` — сразу показывает, какое имя или рецепт разошлись
 
 ## Установка
 
@@ -268,6 +272,7 @@ mvn clean package
 - **v2.5–v2.6:** Мини-боссы при копании, элитные мини-боссы с уникальными способностями
 - **v2.8:** Progresstion-цепочка призывающих предметов (осколки T1 → T2 → T3 → T4)
 - **v2.9:** Фиксы компиляции против Spigot API 1.21.5, совместимость с Minecraft 26.x (проверено на Purpur 26.3), исправление частиц (устаревшие имена и обязательные данные), CI со smoke-тестами на Paper 1.21.5 и Purpur 26.3
+- **v3.1:** Русская локализация консоли и комментариев `config.yml`, исправлены ссылки на загрузку в README, добавлена самопроверка `/bl-admin selftest` (34 проверки) в CI. Починен крафт предметов призыва: проверка ингредиентов строится из `recipes.yml` и больше не сдвинута относительно сетки, обычные материалы вместо осколков больше не проходят
 - **v3.0:** Полный русский перевод конфига (21 босс, 70 предметов, 173 строки лора, названия и лор памятников боссов), имена осколков синхронизированы с `lang.yml` (починен крафт), отдельная графа `miniboss` с 22 настройками, мини-боссы появляются ~в 35 раз чаще, команда `/bl-admin miniboss`
 
 ## Участие

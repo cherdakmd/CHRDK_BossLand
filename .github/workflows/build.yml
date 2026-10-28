@@ -72,7 +72,15 @@ jobs:
         if: startsWith(github.ref, 'refs/tags/v') || github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch'
         env:
           EXERCISE: '1'
-        run: bash .github/scripts/smoke-test.sh paper 1.21.5 "$JAR_PATH"
+        run: |
+          set +e
+          out=$(bash .github/scripts/smoke-test.sh paper 1.21.5 "$JAR_PATH" 2>&1); rc=$?
+          echo "$out" | tail -n 30
+          if [ "$rc" -ne 0 ]; then
+            # строки самопроверки и ошибок должны быть видны в аннотациях: полный лог Actions недоступен
+            { echo "$out" | grep -E '::error::|САМОПРОВЕРКА|✗|Осколков|mini-bosses|self-test' || true; } | head -n 40 | while IFS= read -r line; do echo "::error::SMOKE-PAPER: $line"; done
+            exit 1
+          fi
 
       - name: Set up JDK 25 (needed by Minecraft 26.x)
         if: startsWith(github.ref, 'refs/tags/v') || github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch'
@@ -86,8 +94,14 @@ jobs:
         env:
           EXERCISE: '1'
         run: |
-          set -o pipefail
-          bash .github/scripts/smoke-test.sh purpur 26.3 "$JAR_PATH" 2>&1 | tee smoke-purpur.out
+          set +e
+          out=$(bash .github/scripts/smoke-test.sh purpur 26.3 "$JAR_PATH" 2>&1); rc=$?
+          echo "$out" | tail -n 30
+          if [ "$rc" -ne 0 ]; then
+            # строки самопроверки и ошибок должны быть видны в аннотациях: полный лог Actions недоступен
+            { echo "$out" | grep -E '::error::|САМОПРОВЕРКА|✗|Осколков|mini-bosses|self-test' || true; } | head -n 40 | while IFS= read -r line; do echo "::error::SMOKE-PURPUR: $line"; done
+            exit 1
+          fi
 
       - name: Attach jar to GitHub release
         if: startsWith(github.ref, 'refs/tags/v') || inputs.release_tag != ''

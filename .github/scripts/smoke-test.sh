@@ -108,6 +108,9 @@ PY
       sleep 2
       echo "bl-admin miniboss"
       sleep 3
+      # самопроверка: дроп осколков + сборка предметов призыва в сетке крафта
+      echo "bl-admin selftest"
+      sleep 3
       echo "bl-admin killBosses world"
       sleep 4
     fi
@@ -149,13 +152,22 @@ if [ "$EXERCISE" = "1" ]; then
     log "no runtime exceptions during the boss exercise"
   fi
   log "spawned bosses seen in log"
-  { grep -icE 'spawned|boss' server.log || true; } | sed 's/^/[smoke]   lines matching: /'
+  { grep -icE 'Спавн босса|Спавн|спавн' server.log || true; } | sed 's/^/[smoke]   lines matching: /'
 
   # мини-боссы должны реально появиться (3 вызова команды в feed_commands)
-  MINI_COUNT="$(grep -c 'Mini-boss spawned' server.log || true)"
+  MINI_COUNT="$(grep -c 'Мини-босс заспавнен' server.log || true)"
   log "mini-bosses spawned: ${MINI_COUNT}"
   if [ "${MINI_COUNT:-0}" -lt 2 ]; then
     echo '::error::mini-bosses were not spawned by bl-admin miniboss'
+    status=1
+  fi
+
+  # самопроверка должна завершиться без ошибок
+  if grep -q 'САМОПРОВЕРКА: OK' server.log; then
+    log "self-test passed: $(grep -o 'САМОПРОВЕРКА: OK ([0-9]* проверок)' server.log | tail -1)"
+  else
+    echo '::error::BossLand self-test failed (shard names / crafting)'
+    grep -E 'САМОПРОВЕРКА|✗' server.log | tail -n 20 | sed 's/^/[smoke]   /'
     status=1
   fi
 

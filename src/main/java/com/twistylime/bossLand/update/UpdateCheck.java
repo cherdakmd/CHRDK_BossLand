@@ -33,16 +33,16 @@ public class UpdateCheck {
                 String current = plugin.getDescription().getVersion().trim();
 
                 if (!latest.equalsIgnoreCase(current)) {
-                    Bukkit.getConsoleSender().sendMessage("§e[BossLand] New version available: §a" + latest + "§e (current: §c" + current + "§e)");
+                    Bukkit.getConsoleSender().sendMessage("§e[BossLand] Доступна новая версия: §a" + latest + "§e (установлена: §c" + current + "§e)");
                     if (data.has("changelog")) {
-                        Bukkit.getConsoleSender().sendMessage("§6Changelog: " + data.getString("changelog"));
+                        Bukkit.getConsoleSender().sendMessage("§6Что нового: " + data.getString("changelog"));
                     }
                 } else {
-                    Bukkit.getConsoleSender().sendMessage("§a[BossLand] You are using the latest version of the plugin (" + current + ").");
+                    Bukkit.getConsoleSender().sendMessage("§a[BossLand] Установлена последняя версия плагина (" + current + ").");
                 }
 
             } catch (Exception e) {
-                Bukkit.getConsoleSender().sendMessage("§c[BossLand] Failed to check for updates: " + e.getMessage());
+                Bukkit.getConsoleSender().sendMessage("§c[BossLand] Не удалось проверить обновления: " + e.getMessage());
             }
         });
     }

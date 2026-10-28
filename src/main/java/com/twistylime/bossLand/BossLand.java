@@ -161,11 +161,14 @@ public class BossLand extends JavaPlugin implements Listener {
 
     public static BossLandLoot getLootManager(){ return lootManager; }
 
+    /** Доступ к менеджеру конфигов (нужен самопроверке и админ-командам). */
+    public BossLandConfiguration getBossConfig(){ return config; }
+
     public static boolean isLowBossHealthIndicator(){ return lowBossHealthIndicator; }
 
     @Override
     public void onEnable() {
-        this.getLogger().log(Level.INFO, "The Server version is: "+ this.mc_version);
+        this.getLogger().log(Level.INFO, "Версия сервера: "+ this.mc_version);
         plugin = this;
         getServer().getPluginManager().registerEvents(this, this);
 
@@ -203,7 +206,7 @@ public class BossLand extends JavaPlugin implements Listener {
             if (maxHealthAttr != null) {
                 File spigotFile = new File("spigot.yml");
                 if (!spigotFile.exists()) {
-                    getLogger().warning("spigot.yml not found! Cannot check max health limits.");
+                    getLogger().warning("spigot.yml не найден! Не удаётся проверить лимит здоровья.");
                     return;
                 }
 
@@ -214,18 +217,18 @@ public class BossLand extends JavaPlugin implements Listener {
                 if (serverMaxHealth < 2048) {
                     lowBossHealthIndicator = true;
                     getLogger().warning("=======================================");
-                    getLogger().warning("STARTUP WARNING: HIGH HEALTH BOSSES DETECTED");
-                    getLogger().warning("Server max health limit: " + serverMaxHealth);
-                    getLogger().warning("Some bosses have health values exceeding this limit!");
-                    getLogger().warning("They will lower the boss health unless spigot.yml is updated.");
-                    getLogger().warning("Change the maxHealth in spigot.yml from "+serverMaxHealth+" to 2048.0");
+                    getLogger().warning("ВНИМАНИЕ: ОБНАРУЖЕНЫ БОССЫ С ВЫСОКИМ ЗДОРОВЬЕМ");
+                    getLogger().warning("Лимит здоровья сервера: " + serverMaxHealth);
+                    getLogger().warning("У некоторых боссов здоровье превышает этот лимит!");
+                    getLogger().warning("Их здоровье будет урезано, пока не обновлён spigot.yml.");
+                    getLogger().warning("Измените maxHealth в spigot.yml с "+serverMaxHealth+" на 2048.0");
                     getLogger().warning("=======================================");
                 }
             }
 
             testEntity.remove();
         } catch (Exception e) {
-            getLogger().warning("Could not check server health limits: " + e.getMessage());
+            getLogger().warning("Не удалось проверить лимиты здоровья сервера: " + e.getMessage());
         }
     }
 
@@ -575,7 +578,7 @@ public class BossLand extends JavaPlugin implements Listener {
             try {
                 bossType = EntityType.valueOf(type);
             } catch (IllegalArgumentException badType) {
-                plugin.getLogger().log(Level.WARNING, "Unknown mini-boss type: " + type);
+                plugin.getLogger().log(Level.WARNING, "Неизвестный тип мини-босса: " + type);
                 return false;
             }
 
@@ -652,10 +655,10 @@ public class BossLand extends JavaPlugin implements Listener {
                 }
             }, 5L);
 
-            plugin.getLogger().log(Level.INFO, "Mini-boss spawned: " + (isElite ? "ELITE " : "") + type + " at " + l.getBlockX() + "," + l.getBlockY() + "," + l.getBlockZ());
+            plugin.getLogger().log(Level.INFO, "Мини-босс заспавнен: " + (isElite ? "ЭЛИТНЫЙ " : "") + type + " at " + l.getBlockX() + "," + l.getBlockY() + "," + l.getBlockZ());
             return true;
         } catch (Exception x) {
-            plugin.getLogger().log(Level.SEVERE, "Failed to spawn mini-boss", x);
+            plugin.getLogger().log(Level.SEVERE, "Не удалось заспавнить мини-босса", x);
             return false;
         }
     }
@@ -718,7 +721,7 @@ public class BossLand extends JavaPlugin implements Listener {
                 boss.addPotionEffect(new PotionEffect(PotionEffectType.RESISTANCE, 999 * 999, 1));
             }
         } catch (Exception x) {
-            plugin.getLogger().log(Level.WARNING, "Failed to apply mini-boss abilities: " + x.getMessage());
+            plugin.getLogger().log(Level.WARNING, "Не удалось применить способности мини-босса: " + x.getMessage());
         }
     }
 
@@ -750,7 +753,7 @@ public class BossLand extends JavaPlugin implements Listener {
     }
 
     private void enterDeath(final Player p) {
-        this.getLogger().log(Level.INFO, "Enter Death");
+        this.getLogger().log(Level.INFO, "Игрок входит в испытание Смерти");
         if (p.getWorld().getEnvironment().equals(Environment.NORMAL)) {
             World end = getServer().getWorld(p.getWorld().getName() + "_the_end");
             assert end != null;
@@ -804,7 +807,7 @@ public class BossLand extends JavaPlugin implements Listener {
                         e.setCancelled(true);
                         // Died
                         // Check for Death Item
-                        this.getLogger().log(Level.INFO, p.getName() + " should have died.");
+                        this.getLogger().log(Level.INFO, p.getName() + " должен был умереть.");
                     }
                 }
             } catch (Exception x) {
@@ -813,7 +816,7 @@ public class BossLand extends JavaPlugin implements Listener {
                     || p.getInventory().getItemInMainHand().getType().equals(Material.TOTEM_OF_UNDYING))) {
                 if (p.getHealth() - e.getFinalDamage() <= 0) {
                     // Died
-                    this.getLogger().log(Level.INFO, p.getName() + " should have died.");
+                    this.getLogger().log(Level.INFO, p.getName() + " должен был умереть.");
                     // System.out.println("canEnterDeath = " +
                     // canEnterDeath.contains(p.getUniqueId()));
                     // System.out.println("hasDeathNote = " + hasDeathNote(p));
@@ -1173,7 +1176,7 @@ public class BossLand extends JavaPlugin implements Listener {
                                 length += space;
                             }
                         } else
-                            this.getLogger().log(Level.SEVERE, "Lines cannot be in different worlds!");
+                            this.getLogger().log(Level.SEVERE, "Линия не может соединять разные миры!");
                     }
                     if (UtilityCalc.rand(1, 100) <= c && ent.getHealth() <= maxHealth / 3) {
                         // Phase 3
@@ -1398,7 +1401,7 @@ public class BossLand extends JavaPlugin implements Listener {
                             // Damage
                             dmgr.damage(getConfig().getInt("bosses." + bossType + ".specialDamage2"), ent);
                         } else
-                            this.getLogger().log(Level.SEVERE, "Lines cannot be in different worlds!");
+                            this.getLogger().log(Level.SEVERE, "Линия не может соединять разные миры!");
                     }
                     if ((UtilityCalc.rand(1, 100) <= c) && ent.getHealth() <= ((maxHealth / 5) * 3)) {
                         // Phase 3
@@ -1595,7 +1598,7 @@ public class BossLand extends JavaPlugin implements Listener {
                         .getDisplayName().equals("§e§lThe Cursed Skull")) {
                     // System.out.println("D2: " + p.getHealth() + " : " + e.getFinalDamage());
                     if (checkDeath(p, e.getFinalDamage())) {
-                        this.getLogger().log(Level.INFO, p.getName() + " should have died.");
+                        this.getLogger().log(Level.INFO, p.getName() + " должен был умереть.");
                         e.setCancelled(true);
                     }
                 }
@@ -1865,7 +1868,7 @@ public class BossLand extends JavaPlugin implements Listener {
             Location l4 = sl.clone();
             l4.setX(l4.getX() + distance);
             l4.setZ(l4.getZ() - distance);
-            this.getLogger().log(Level.INFO, "Spawn Minions: " + minType);
+            this.getLogger().log(Level.INFO, "Спавн приспешников: " + minType);
             for (Location l : Arrays.asList(l1, l2, l3, l4)) {
                 LivingEntity minion = (LivingEntity) ent.getWorld().spawnEntity(l, minType);
                 switch (bossType) {
@@ -2408,7 +2411,7 @@ public class BossLand extends JavaPlugin implements Listener {
             ItemStack s = getLoot(e.getEntity().getKiller(), bossType);
             c.getInventory().addItem(s);
 
-            this.getLogger().log(Level.INFO, "Boss " + bossType + " has died!");
+            this.getLogger().log(Level.INFO, "Босс " + bossType + " погиб!");
             // ent.getWorld().dropItemNaturally(ent.getLocation(),s);
             // ParticleEffects_1_9.sendToLocation(ParticleEffects_1_9.CLOUD,
             // ent.getLocation(), 0, 0, 0, 1, 50);
@@ -2445,7 +2448,7 @@ public class BossLand extends JavaPlugin implements Listener {
             }
             ent.getWorld().playSound(ent.getLocation(), Sound.ENTITY_WITHER_DEATH, 1, 1);
             MCUtility.displayParticle("DRAGON_BREATH:1:25:0", ent.getLocation());
-            this.getLogger().log(Level.INFO, "Mini-boss " + miniType + " defeated!");
+            this.getLogger().log(Level.INFO, "Мини-босс " + miniType + " повержен!");
         }
 
         // Fire List Remove

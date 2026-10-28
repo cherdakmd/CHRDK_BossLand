@@ -7,6 +7,7 @@ import com.twistylime.bossLand.core.BossLandItems;
 import com.twistylime.bossLand.core.BossLandLoot;
 import com.twistylime.bossLand.guidebook.menuutility.PlayerMenuUtilityManager;
 import com.twistylime.bossLand.guidebook.pages.GuideMainMenu;
+import com.twistylime.bossLand.selftest.BossLandSelftest;
 import org.bukkit.*;
 import org.bukkit.boss.BossBar;
 import org.bukkit.command.Command;
@@ -152,6 +153,14 @@ public class BossLandCommandHandler implements CommandExecutor {
                         }
                     sender.sendMessage("§eBossLand: Все боссы удалены из мира.");
                     return true;
+                } else if (args[0].equalsIgnoreCase("selftest")) {
+                    sender.sendMessage("§6§lBossLand — самопроверка");
+                    BossLandSelftest.Outcome outcome = BossLandSelftest.run(plugin);
+                    for (String line : outcome.lines()) {
+                        sender.sendMessage(line);
+                        plugin.getLogger().info(line.replaceAll("§.", ""));
+                    }
+                    return true;
                 } else if (args[0].equalsIgnoreCase("miniboss") && (args.length == 1 || args.length == 2)) {
                     String requested = args.length == 2 ? args[1] : null;
                     boolean spawned;
@@ -188,6 +197,7 @@ public class BossLandCommandHandler implements CommandExecutor {
                     sender.sendMessage("§8■ §e/bl-admin addLoot <босс> §7→ §fДобавить лут для босса");
                     sender.sendMessage("§8■ §e/bl-admin killBosses <мир> §7→ §fУдалить боссов в мире");
                     sender.sendMessage("§8■ §e/bl-admin miniboss [тип] §7→ §fЗаспавнить мини-босса");
+                    sender.sendMessage("§8■ §e/bl-admin selftest §7→ §fПроверить дроп осколков и крафт");
                     sender.sendMessage("§8■ §e/bl-admin reload §7→ §fПерезагрузить конфиг");
                     return true;
                 }

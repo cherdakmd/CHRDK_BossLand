@@ -32,13 +32,13 @@ public class BossLandShrines {
 
     public Map<String, Object> getShrineRecipe(String bossName){
         if (recipesSection == null) {
-            plugin.getLogger().warning("No shrine_recipes section found in config!");
+            plugin.getLogger().warning("В конфиге нет секции shrine_recipes!");
             return null;
         }
 
         ConfigurationSection requiredBossShrineRecipe = (ConfigurationSection) recipesSection.get(bossName);
         if (requiredBossShrineRecipe == null) {
-            plugin.getLogger().warning("No shrine recipe for boss found in config!");
+            plugin.getLogger().warning("В конфиге нет рецепта святилища для босса!");
             return null;
         }
 

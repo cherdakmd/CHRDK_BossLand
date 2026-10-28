@@ -38,7 +38,7 @@ public class BossLandRecipes {
 
     public void addRecipes(ConfigurationSection recipesSection) {
         if (recipesSection == null) {
-            plugin.getLogger().warning("No item_recipes section found in config!");
+            plugin.getLogger().warning("В конфиге нет секции item_recipes!");
             return;
         }
 
@@ -52,7 +52,7 @@ public class BossLandRecipes {
             if(resultItemName == null) return;
             ItemStack resultItem = getResultItem(resultItemName, false);
             if (resultItem == null) {
-                plugin.getLogger().warning("Could not find custom item: " + resultItemName);
+                plugin.getLogger().warning("Не найден кастомный предмет: " + resultItemName);
                 continue;
             }
             resultItem.setAmount(resultAmount);
@@ -60,7 +60,7 @@ public class BossLandRecipes {
             // ===== Shape =====
             java.util.List<String> shapeList = recipeData.getStringList("shape");
             if (shapeList.size() != 3) {
-                plugin.getLogger().warning("Invalid shape for recipe: " + recipeName);
+                plugin.getLogger().warning("Неверная форма рецепта: " + recipeName);
                 continue;
             }
             String[] shape = shapeList.toArray(new String[0]);
@@ -89,13 +89,13 @@ public class BossLandRecipes {
 
     public Map<String, Object> getRecipes(String itemName){
         if (recipesSection == null) {
-            plugin.getLogger().warning("No item_recipes section found in config!");
+            plugin.getLogger().warning("В конфиге нет секции item_recipes!");
             return null;
         }
 
         ConfigurationSection requiredItemRecipe = (ConfigurationSection) recipesSection.get(itemName);
         if (requiredItemRecipe == null) {
-            plugin.getLogger().warning("No recipe for item found in config!");
+            plugin.getLogger().warning("В конфиге не найден рецепт для предмета!");
             return null;
         }
 
@@ -147,97 +147,116 @@ public class BossLandRecipes {
         return recipeMap;
     }
 
-    public void restrictCraftingForBossLandItems(CraftingInventory ci) {
-        try {
-            ItemStack craftingResult = ci.getResult();
-            if (craftingResult != null && craftingResult.getItemMeta() != null) {
-                ItemMeta craftingResultMeta = craftingResult.getItemMeta();
-                if (craftingResultMeta.getDisplayName().contains(config.getLang("items.bell"))) {
-                    // Bell of Doom
-                    if (!ci.getItem(4).getItemMeta().getDisplayName().equals(config.getLang("items.whiteshard"))) {
-                        ci.setResult(null);
-                    } else if (!ci.getItem(5).getItemMeta().getDisplayName().equals(config.getLang("items.greenshard"))) {
-                        ci.setResult(null);
-                    } else if (!ci.getItem(6).getItemMeta().getDisplayName().equals(config.getLang("items.greyshard"))) {
-                        ci.setResult(null);
-                    }
-                } else if (craftingResultMeta.getDisplayName().contains(config.getLang("items.spellbook"))) {
-                    // Wizard Book
-                    if (!ci.getItem(4).getItemMeta().getDisplayName().equals(config.getLang("items.blackshard")))
-                        ci.setResult(null);
-                    if (!ci.getItem(6).getItemMeta().getDisplayName().equals(config.getLang("items.redshard")))
-                        ci.setResult(null);
-                } else if (craftingResultMeta.getDisplayName().contains(config.getLang("items.giantpotion"))) {
-                    // Giant Potion
-                    if (!ci.getItem(4).getItemMeta().getDisplayName().equals(config.getLang("items.greenshard")))
-                        ci.setResult(null);
-                    if (!ci.getItem(5).getItemMeta().getDisplayName().equals(config.getLang("items.redshard")))
-                        ci.setResult(null);
-                    if (!ci.getItem(6).getItemMeta().getDisplayName().equals(config.getLang("items.brownshard")))
-                        ci.setResult(null);
-                } else if (craftingResultMeta.getDisplayName().contains(config.getLang("items.elderegg"))) {
-                    // Dragon Egg
-                    if (!ci.getItem(5).getItemMeta().getDisplayName().equals(config.getLang("items.whiteshard")))
-                        ci.setResult(null);
-                    if (!ci.getItem(8).getItemMeta().getDisplayName().equals(config.getLang("items.blackshard")))
-                        ci.setResult(null);
-                } else if (craftingResultMeta.getDisplayName().contains(config.getLang("items.forbiddenfruit"))) {
-                    // Forbidden Fruit
-                    if (!ci.getItem(7).getItemMeta().getDisplayName().equals(config.getLang("items.emeraldshard")))
-                        ci.setResult(null);
-                    if (!ci.getItem(8).getItemMeta().getDisplayName().equals(config.getLang("items.goldshard")))
-                        ci.setResult(null);
-                    if (!ci.getItem(9).getItemMeta().getDisplayName().equals(config.getLang("items.blueshard")))
-                        ci.setResult(null);
-                } else if (craftingResultMeta.getDisplayName().contains(config.getLang("items.abhorrentfruit"))) {
-                    // Abhorrent Fruit
-                    for (ItemStack s : Arrays.asList(ci.getItem(2), ci.getItem(4), ci.getItem(6), ci.getItem(8)))
-                        if (!s.getItemMeta().getDisplayName().equals(config.getLang("items.demonicshard")))
-                            ci.setResult(null);
-                    if (!ci.getItem(5).getItemMeta().getDisplayName().equals(config.getLang("items.forbiddenfruit")))
-                        ci.setResult(null);
-                } else if (craftingResultMeta.getDisplayName().contains(config.getLang("items.deathnote"))) {
-                    // Death Note
-                    if (!ci.getItem(5).getItemMeta().getDisplayName().equals(config.getLang("items.knowledgebook"))) {
-                        ci.setResult(null);
-                    }
-                } else if (craftingResultMeta.getDisplayName().contains(config.getLang("items.frostcore"))) {
-                    // Frost Core - requires Blue Shard and Emerald Shard
-                    if (!ci.getItem(4).getItemMeta().getDisplayName().equals(config.getLang("items.blueshard")))
-                        ci.setResult(null);
-                    if (!ci.getItem(5).getItemMeta().getDisplayName().equals(config.getLang("items.emeraldshard")))
-                        ci.setResult(null);
-                } else if (craftingResultMeta.getDisplayName().contains(config.getLang("items.abyssalscale"))) {
-                    // Abyssal Scale - requires Black Shard and Red Shard
-                    if (!ci.getItem(4).getItemMeta().getDisplayName().equals(config.getLang("items.blackshard")))
-                        ci.setResult(null);
-                    if (!ci.getItem(5).getItemMeta().getDisplayName().equals(config.getLang("items.redshard")))
-                        ci.setResult(null);
-                } else if (craftingResultMeta.getDisplayName().contains(config.getLang("items.infernalcore"))) {
-                    // Infernal Core - requires Frost Core and Abyssal Scale
-                    if (!ci.getItem(4).getItemMeta().getDisplayName().equals(config.getLang("items.frostcore")))
-                        ci.setResult(null);
-                    if (!ci.getItem(5).getItemMeta().getDisplayName().equals(config.getLang("items.abyssalscale")))
-                        ci.setResult(null);
-                } else if (craftingResultMeta.getDisplayName().contains(config.getLang("items.endercrystalshard"))) {
-                    // Ender Crystal Shard - requires Infernal Core and Frost Core
-                    if (!ci.getItem(4).getItemMeta().getDisplayName().equals(config.getLang("items.infernalcore")))
-                        ci.setResult(null);
-                    if (!ci.getItem(5).getItemMeta().getDisplayName().equals(config.getLang("items.frostcore")))
-                        ci.setResult(null);
-                } else if (craftingResultMeta.getDisplayName().contains(config.getLang("items.naturesessence"))) {
-                    // Nature's Essence - requires Green, Brown and Red shards
-                    if (!ci.getItem(4).getItemMeta().getDisplayName().equals(config.getLang("items.greenshard")))
-                        ci.setResult(null);
-                    if (!ci.getItem(5).getItemMeta().getDisplayName().equals(config.getLang("items.brownshard")))
-                        ci.setResult(null);
-                    if (!ci.getItem(6).getItemMeta().getDisplayName().equals(config.getLang("items.redshard")))
-                        ci.setResult(null);
+    // ------------------------------------------------------------------
+    //  Ограничение крафта: предметы призыва собираются только из осколков
+    // ------------------------------------------------------------------
+
+    /**
+     * Материалы, которые в recipes.yml означают кастомный предмет BossLand, а не ванильный:
+     * осколки боссов и составные предметы (ядро льда, чешуя бездны и т.д.).
+     */
+    private static final Set<String> CUSTOM_INGREDIENT_MATERIALS = Set.of(
+            "QUARTZ", "GREEN_DYE", "CLAY_BALL", "COAL", "RED_DYE",
+            "LAPIS_LAZULI", "YELLOW_DYE", "EMERALD", "BROWN_DYE", "FIRE_CORAL",
+            "ENCHANTED_BOOK", "ENCHANTED_GOLDEN_APPLE",
+            "ICE", "PRISMARINE_SHARD", "MAGMA_CREAM", "ENDER_PEARL");
+
+    /**
+     * Правило крафта: что должно получиться и какие кастомные предметы обязаны лежать в сетке.
+     * Строится из recipes.yml, поэтому правка рецепта автоматически правит и проверку.
+     */
+    public record CraftGuard(String name, ItemStack result, Map<Integer, ItemStack> ingredients) {
+    }
+
+    private List<CraftGuard> craftGuards;
+
+    /** @return правила крафта, собранные из recipes.yml (слоты 0–8 — сетка верстака) */
+    public List<CraftGuard> craftGuards() {
+        if (craftGuards != null) return craftGuards;
+        List<CraftGuard> guards = new ArrayList<>();
+        if (recipesSection == null) return craftGuards = guards;
+
+        for (String recipeName : recipesSection.getKeys(false)) {
+            ConfigurationSection recipe = recipesSection.getConfigurationSection(recipeName);
+            if (recipe == null) continue;
+            ConfigurationSection resultSection = recipe.getConfigurationSection("result");
+            ConfigurationSection ingredients = recipe.getConfigurationSection("ingredients");
+            List<String> shape = recipe.getStringList("shape");
+            if (resultSection == null || ingredients == null || shape.size() != 3) continue;
+
+            String resultItemName = resultSection.getString("item", "");
+            if (resultItemName.isBlank()) continue;
+            ItemStack result = getResultItem(resultItemName, false);
+            String resultName = displayName(result);
+            if (resultName == null) continue;
+
+            Map<Integer, ItemStack> required = new LinkedHashMap<>();
+            for (int row = 0; row < 3; row++) {
+                String line = shape.get(row);
+                for (int column = 0; column < 3 && column < line.length(); column++) {
+                    String material = ingredients.getString(String.valueOf(line.charAt(column)));
+                    if (material == null || material.equalsIgnoreCase("AIR")) continue;
+                    ItemStack custom = customIngredientFor(material);
+                    if (custom == null || displayName(custom) == null) continue;
+                    required.put(row * 3 + column, custom);
                 }
             }
-        } catch (Exception localException) {
-            plugin.getLogger().log(Level.WARNING, "Error while restricting crafting of items using normal dyes instead of shards.");
+            if (!required.isEmpty()) {
+                guards.add(new CraftGuard(recipeName, result, Map.copyOf(required)));
+            }
         }
+        return craftGuards = guards;
+    }
+
+    /** Кастомный предмет BossLand, который должен лежать вместо материала рецепта, либо {@code null}. */
+    private ItemStack customIngredientFor(String materialName) {
+        Material material = CompatibilityResolver.resolveMaterial(materialName);
+        if (material == null || !CUSTOM_INGREDIENT_MATERIALS.contains(material.name())) return null;
+        return getResultItem(material.name(), true);
+    }
+
+    /**
+     * Проверяет результат крафта по правилам из recipes.yml. Обычные предметы не ограничиваются.
+     *
+     * @param result итоговый предмет
+     * @param grid   содержимое сетки 3×3 (индексы 0–8, как в верстаке)
+     * @return {@code true}, если крафт разрешён
+     */
+    public boolean isValidCraft(ItemStack result, ItemStack[] grid) {
+        String resultName = displayName(result);
+        if (resultName == null) return true;
+
+        for (CraftGuard guard : craftGuards()) {
+            if (!resultName.equals(displayName(guard.result()))) continue;
+            for (Map.Entry<Integer, ItemStack> required : guard.ingredients().entrySet()) {
+                int slot = required.getKey();
+                ItemStack item = slot < grid.length ? grid[slot] : null;
+                if (isInvalidShard(item, displayName(required.getValue()))) return false;
+            }
+            return true;
+        }
+        return true;
+    }
+
+    public void restrictCraftingForBossLandItems(CraftingInventory ci) {
+        try {
+            ItemStack result = ci.getResult();
+            if (result == null) return;
+
+            ItemStack[] grid = new ItemStack[9];
+            int size = Math.min(9, ci.getSize());
+            for (int slot = 0; slot < size; slot++) {
+                grid[slot] = ci.getItem(slot);
+            }
+            if (!isValidCraft(result, grid)) ci.setResult(null);
+        } catch (Exception localException) {
+            plugin.getLogger().log(Level.WARNING, "Ошибка при ограничении крафта предметами-заменителями вместо осколков.");
+        }
+    }
+
+    private static String displayName(ItemStack stack) {
+        if (stack == null || stack.getItemMeta() == null) return null;
+        return stack.getItemMeta().getDisplayName();
     }
 
     public void disableCrafterRecipes() {
@@ -271,7 +290,7 @@ public class BossLandRecipes {
                         }
                     }
                 } catch (Exception e) {
-                    plugin.getLogger().log(Level.WARNING, "Error in crafter event handler: " + e.getMessage());
+                    plugin.getLogger().log(Level.WARNING, "Ошибка в обработчике события Crafter: " + e.getMessage());
                 }
             };
 
@@ -284,103 +303,26 @@ public class BossLandRecipes {
             );
 
         } catch (ClassNotFoundException e) {
-            plugin.getLogger().info("Crafter events not supported in this version");
+            plugin.getLogger().info("События Crafter не поддерживаются в этой версии сервера");
         }
     }
 
     private void validateCrafterRecipe(Inventory inv, ItemStack result, Method setCancelledMethod, Object event) throws Exception {
-        ItemMeta craftingResultMeta = result.getItemMeta();
-        String displayName = craftingResultMeta.getDisplayName();
-
-        if (displayName.contains(config.getLang("items.bell"))) {
-            // Bell of Doom
-            if (isInvalidShard(inv.getItem(3), config.getLang("items.whiteshard")) ||
-                    isInvalidShard(inv.getItem(4), config.getLang("items.greenshard")) ||
-                    isInvalidShard(inv.getItem(5), config.getLang("items.greyshard"))) {
-                setCancelledMethod.invoke(event, true);
-            }
-        } else if (displayName.contains(config.getLang("items.spellbook"))) {
-            // Wizard Book
-            if (isInvalidShard(inv.getItem(3), config.getLang("items.blackshard")) ||
-                    isInvalidShard(inv.getItem(5), config.getLang("items.redshard"))) {
-                setCancelledMethod.invoke(event, true);
-            }
-        } else if (displayName.contains(config.getLang("items.giantpotion"))) {
-            // Giant Potion
-            if (isInvalidShard(inv.getItem(3), config.getLang("items.greenshard")) ||
-                    isInvalidShard(inv.getItem(4), config.getLang("items.redshard")) ||
-                    isInvalidShard(inv.getItem(5), config.getLang("items.brownshard"))) {
-                setCancelledMethod.invoke(event, true);
-            }
-        } else if (displayName.contains(config.getLang("items.elderegg"))) {
-            // Dragon Egg
-            if (isInvalidShard(inv.getItem(4), config.getLang("items.whiteshard")) ||
-                    isInvalidShard(inv.getItem(7), config.getLang("items.blackshard"))) {
-                setCancelledMethod.invoke(event, true);
-            }
-        } else if (displayName.contains(config.getLang("items.forbiddenfruit"))) {
-            // Forbidden Fruit
-            if (isInvalidShard(inv.getItem(6), config.getLang("items.emeraldshard")) ||
-                    isInvalidShard(inv.getItem(7), config.getLang("items.goldshard")) ||
-                    isInvalidShard(inv.getItem(8), config.getLang("items.blueshard"))) {
-                setCancelledMethod.invoke(event, true);
-            }
-        } else if (displayName.contains(config.getLang("items.abhorrentfruit"))) {
-            // Abhorrent Fruit
-            if (isInvalidShard(inv.getItem(1), config.getLang("items.demonicshard")) ||
-                    isInvalidShard(inv.getItem(3), config.getLang("items.demonicshard")) ||
-                    isInvalidShard(inv.getItem(5), config.getLang("items.demonicshard")) ||
-                    isInvalidShard(inv.getItem(7), config.getLang("items.demonicshard")) ||
-                    isInvalidShard(inv.getItem(4), config.getLang("items.forbiddenfruit"))) {
-                setCancelledMethod.invoke(event, true);
-            }
-        } else if (displayName.contains(config.getLang("items.deathnote"))) {
-            // Death Note
-            if (isInvalidShard(inv.getItem(4), config.getLang("items.knowledgebook"))) {
-                setCancelledMethod.invoke(event, true);
-            }
-        } else if (displayName.contains(config.getLang("items.frostcore"))) {
-            // Frost Core
-            if (isInvalidShard(inv.getItem(3), config.getLang("items.blueshard")) ||
-                    isInvalidShard(inv.getItem(4), config.getLang("items.emeraldshard")) ||
-                    isInvalidShard(inv.getItem(5), config.getLang("items.blueshard"))) {
-                setCancelledMethod.invoke(event, true);
-            }
-        } else if (displayName.contains(config.getLang("items.abyssalscale"))) {
-            // Abyssal Scale
-            if (isInvalidShard(inv.getItem(3), config.getLang("items.blackshard")) ||
-                    isInvalidShard(inv.getItem(4), config.getLang("items.redshard")) ||
-                    isInvalidShard(inv.getItem(5), config.getLang("items.blackshard"))) {
-                setCancelledMethod.invoke(event, true);
-            }
-        } else if (displayName.contains(config.getLang("items.infernalcore"))) {
-            // Infernal Core
-            if (isInvalidShard(inv.getItem(3), config.getLang("items.frostcore")) ||
-                    isInvalidShard(inv.getItem(4), config.getLang("items.abyssalscale")) ||
-                    isInvalidShard(inv.getItem(5), config.getLang("items.frostcore"))) {
-                setCancelledMethod.invoke(event, true);
-            }
-        } else if (displayName.contains(config.getLang("items.endercrystalshard"))) {
-            // Ender Crystal Shard
-            if (isInvalidShard(inv.getItem(3), config.getLang("items.infernalcore")) ||
-                    isInvalidShard(inv.getItem(4), config.getLang("items.frostcore")) ||
-                    isInvalidShard(inv.getItem(5), config.getLang("items.infernalcore"))) {
-                setCancelledMethod.invoke(event, true);
-            }
-        } else if (displayName.contains(config.getLang("items.naturesessence"))) {
-            // Nature's Essence
-            if (isInvalidShard(inv.getItem(3), config.getLang("items.greenshard")) ||
-                    isInvalidShard(inv.getItem(4), config.getLang("items.brownshard")) ||
-                    isInvalidShard(inv.getItem(5), config.getLang("items.redshard"))) {
-                setCancelledMethod.invoke(event, true);
-            }
+        ItemStack[] grid = new ItemStack[9];
+        int size = Math.min(9, inv.getSize());
+        for (int slot = 0; slot < size; slot++) {
+            grid[slot] = inv.getItem(slot);
+        }
+        if (!isValidCraft(result, grid)) {
+            setCancelledMethod.invoke(event, true);
         }
     }
 
     private boolean isInvalidShard(ItemStack item, String expectedName) {
-        if (item == null || item.getItemMeta() == null) return true;
-        String displayName = item.getItemMeta().getDisplayName();
-        return !displayName.equals(expectedName);
+        if (item == null || item.getType() == Material.AIR) return true;
+        if (expectedName == null) return false;
+        String actual = displayName(item);
+        return actual == null || !actual.equals(expectedName);
     }
 
     private ItemStack getResultItem(String name, boolean isGuideRecipe) {
@@ -410,6 +352,10 @@ public class BossLandRecipes {
                 case "RED_DYE" -> lootManager.getLootFromName("RED_BOSS_SHARD","ZombieKing"); // return RED_BOSS_SHARD only in getRecipes
                 case "COAL" -> lootManager.getLootFromName("BLACK_BOSS_SHARD","WitherSkeletonKing"); // return BLACK_BOSS_SHARD only in getRecipes
                 case "BROWN_DYE" -> lootManager.getLootFromName("BROWN_BOSS_SHARD","PapaPanda"); // return BROWN_BOSS_SHARD only in getRecipes
+                case "ICE" -> itemManager.getFrostCore();
+                case "PRISMARINE_SHARD" -> itemManager.getAbyssalScale();
+                case "MAGMA_CREAM" -> itemManager.getInfernalCore();
+                case "ENDER_PEARL" -> itemManager.getEnderCrystalShard();
                 default -> new ItemStack(CompatibilityResolver.resolveMaterial(name), 1);
             };
         }
