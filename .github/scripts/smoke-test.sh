@@ -110,6 +110,9 @@ print('\n'.join(keys))
 PY
       )
       sleep 8
+      # без игроков чанк со спавном может выгрузиться, и тогда мини-босс «исчезает» вместе с ним
+      echo "forceload add 0 0"
+      sleep 2
       # mini-bosses: explicit type, elite-tier type and a random one
       echo "bl-admin miniboss ZOMBIE"
       sleep 2
@@ -121,6 +124,7 @@ PY
       # (раньше он падал с NullPointerException и лут не выдавался)
       echo "bl-admin killMiniBosses world"
       sleep 3
+      echo "forceload remove 0 0"
       # самопроверка: дроп осколков + сборка предметов призыва в сетке крафта
       echo "bl-admin selftest"
       sleep 3
