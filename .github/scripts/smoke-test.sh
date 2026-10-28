@@ -186,7 +186,8 @@ if [ "$EXERCISE" = "1" ]; then
     log "mini-boss death handled: $(grep -o 'Мини-босс WITCH повержен' server.log | tail -1)"
   else
     echo '::error::mini-boss death handler did not run (see NullPointerException in onEntityDeath)'
-    grep -iE 'Мини-босс|NullPointer|Could not pass' server.log | tail -n 10 | sed 's/^/[smoke]   /'
+    grep -inE 'Мини-босс|[Ww]itch|Killed|Unknown|Invalid|NullPointer|Could not pass|kill' server.log \
+      | tail -n 6 | while IFS= read -r line; do echo "::error::MINI: $line"; done
     status=1
   fi
 
