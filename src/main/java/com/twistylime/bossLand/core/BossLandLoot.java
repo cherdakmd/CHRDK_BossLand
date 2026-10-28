@@ -96,7 +96,6 @@ public class BossLandLoot {
 
     public ItemStack getLootFromName(String name, String bossType){
         String id = getLootIdFromName(name.toUpperCase().replace(" ","_"));
-        System.out.println(id+" "+bossType);
         return getLoot(bossType,id);
     }
 

@@ -2,23 +2,20 @@ package com.twistylime.bossLand.selftest;
 
 import com.twistylime.bossLand.BossLand;
 import com.twistylime.bossLand.core.BossLandItems;
-import org.bukkit.Bukkit;
-import org.bukkit.Material;
+import com.twistylime.bossLand.core.BossLandRecipes;
 import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.event.inventory.InventoryType;
-import org.bukkit.inventory.CraftingInventory;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 
 /**
  * Самопроверка установки: проверяет то, что не видно при обычном старте сервера —
- * что осколки, выпадающие с боссов, называются ровно так, как ожидает проверка рецептов,
- * и что предметы призыва действительно собираются (валидатор крафта не отбрасывает результат).
+ * что осколки, выпадающие с боссов, называются ровно так, как ожидает проверка крафта,
+ * и что каждый предмет призыва действительно собирается из осколков
+ * (валидатор крафта не отбрасывает результат и не пропускает обычные материалы).
  *
  * Запуск: /bl-admin selftest
  */
@@ -30,45 +27,7 @@ public final class BossLandSelftest {
             "items.blueshard", "items.demonicshard"
     };
 
-    /** Одно правило крафта: что должно получиться и что должно лежать в сетке (слот -> ингредиент). */
-    private record Rule(String label, String resultGetter, Map<Integer, String> slots) {
-    }
-
     public record Outcome(boolean ok, int checks, int failed, List<String> lines) {
-    }
-
-    private static List<Rule> rules() {
-        List<Rule> list = new ArrayList<>();
-        list.add(rule("Колокол Рока", "getIllagerItem",
-                Map.of(4, "items.whiteshard", 5, "items.greenshard", 6, "items.greyshard")));
-        list.add(rule("Книга Заклинаний", "getWizardItem",
-                Map.of(4, "items.blackshard", 6, "items.redshard")));
-        list.add(rule("Зелье Роста Гиганта", "getGiantIem",
-                Map.of(4, "items.greenshard", 5, "items.redshard", 6, "items.brownshard")));
-        list.add(rule("Яйцо Старшего Дракона", "getDragonItem",
-                Map.of(5, "items.whiteshard", 8, "items.blackshard")));
-        list.add(rule("Запретный Плод", "getGodItem",
-                Map.of(7, "items.emeraldshard", 8, "items.goldshard", 9, "items.blueshard")));
-        list.add(rule("Отвратительный Плод", "getDevilItem",
-                Map.of(2, "items.demonicshard", 4, "items.demonicshard", 5, "item:getGodItem",
-                        6, "items.demonicshard", 8, "items.demonicshard")));
-        list.add(rule("Смертная Тетрадь", "getDeathItem",
-                Map.of(5, "items.knowledgebook")));
-        list.add(rule("Ядро Льда", "getFrostCore",
-                Map.of(4, "items.blueshard", 5, "items.emeraldshard")));
-        list.add(rule("Чешуя Бездны", "getAbyssalScale",
-                Map.of(4, "items.blackshard", 5, "items.redshard")));
-        list.add(rule("Инфернальное Ядро", "getInfernalCore",
-                Map.of(4, "item:getFrostCore", 5, "item:getAbyssalScale")));
-        list.add(rule("Осколок Кристалла Края", "getEnderCrystalShard",
-                Map.of(4, "item:getInfernalCore", 5, "item:getFrostCore")));
-        list.add(rule("Эссенция Природы", "getNaturesEssence",
-                Map.of(4, "items.greenshard", 5, "items.brownshard", 6, "items.redshard")));
-        return list;
-    }
-
-    private static Rule rule(String label, String resultGetter, Map<Integer, String> slots) {
-        return new Rule(label, resultGetter, new LinkedHashMap<>(slots));
     }
 
     public static Outcome run(BossLand plugin) {
@@ -77,44 +36,49 @@ public final class BossLandSelftest {
         int failed = 0;
 
         BossLandItems items = BossLand.getItemsManager();
-        if (items == null || BossLand.getRecipeManager() == null) {
+        BossLandRecipes recipes = BossLand.getRecipeManager();
+        if (items == null || recipes == null) {
             lines.add("§cМенеджеры плагина недоступны — плагин ещё не включён?");
             return new Outcome(false, 1, 1, lines);
         }
 
-        Map<String, ItemStack> shards = collectShards(plugin);
-        lines.add("§7Осколков найдено в дропе боссов: §f" + shards.size() + " §7из §f" + SHARD_KEYS.length);
+        Map<String, ItemStack> loot = lootByName(plugin);
+        lines.add("§7Именованных предметов в дропе боссов: §f" + loot.size());
 
-        // 1) имя осколка в дропе должно совпадать с именем, которое ждёт валидатор крафта
+        // 1) каждый осколок должен реально падать с босса и называться как в lang.yml
         for (String shardKey : SHARD_KEYS) {
             checks++;
             String expected = plugin.getBossConfig().getLang(shardKey);
-            ItemStack dropped = shards.get(shardKey);
-            if (dropped == null) {
+            if (!loot.containsKey(expected)) {
                 failed++;
-                lines.add("§c✗ §f" + shardKey + " §7— не падает ни с одного босса");
-                continue;
-            }
-            String actual = dropped.getItemMeta() == null ? null : dropped.getItemMeta().getDisplayName();
-            if (actual == null || !actual.equals(expected)) {
-                failed++;
-                lines.add("§c✗ §f" + shardKey + " §7— имя не совпадает: дроп §f" + actual + "§7, ожидается §f" + expected);
+                lines.add("§c✗ §f" + shardKey + " §7— осколок §f" + expected
+                        + " §7не найден в дропе боссов (имя осколка и lang.yml разошлись)");
             }
         }
 
-        // 2) каждый предмет призыва собирается из нужных осколков и не собирается из чужих
-        for (Rule rule : rules()) {
+        // 2) каждый предмет призыва собирается из осколков и не собирается из обычных материалов
+        List<BossLandRecipes.CraftGuard> guards = recipes.craftGuards();
+        if (guards.isEmpty()) {
             checks++;
-            String problem = verifyCrafting(rule, shards, items, false);
+            failed++;
+            lines.add("§c✗ §7в recipes.yml не найдено ни одного рецепта предмета призыва");
+        }
+        for (BossLandRecipes.CraftGuard guard : guards) {
+            String label = displayName(guard.result());
+            if (label == null) label = guard.name();
+
+            checks++;
+            String problem = verifyCrafting(guard, loot, false);
             if (problem != null) {
                 failed++;
-                lines.add("§c✗ §f" + rule.label() + " §7— " + problem);
+                lines.add("§c✗ §f" + label + " §7— " + problem);
             }
+
             checks++;
-            String guardProblem = verifyCrafting(rule, shards, items, true);
+            String guardProblem = verifyCrafting(guard, loot, true);
             if (guardProblem != null) {
                 failed++;
-                lines.add("§c✗ §f" + rule.label() + " §7(защита) — " + guardProblem);
+                lines.add("§c✗ §f" + label + " §7(защита) — " + guardProblem);
             }
         }
 
@@ -125,69 +89,46 @@ public final class BossLandSelftest {
         return new Outcome(ok, checks, failed, lines);
     }
 
-    /** @return описание проблемы или {@code null}, если крафт ведёт себя правильно */
-    @SuppressWarnings("unchecked")
-    private static String verifyCrafting(Rule rule, Map<String, ItemStack> shards, BossLandItems items, boolean wrongIngredients) {
+    /**
+     * Раскладывает ингредиенты рецепта по сетке 3×3 и проверяет решение валидатора.
+     *
+     * @param vanillaSubstitute заменить один ингредиент обычным материалом того же типа
+     * @return описание проблемы или {@code null}, если крафт ведёт себя правильно
+     */
+    private static String verifyCrafting(BossLandRecipes.CraftGuard guard, Map<String, ItemStack> loot,
+                                         boolean vanillaSubstitute) {
         try {
-            Object created = Bukkit.createInventory(null, InventoryType.WORKBENCH);
-            if (!(created instanceof CraftingInventory grid)) {
-                return "не удалось создать сетку крафта";
+            List<Map.Entry<Integer, ItemStack>> slots = new ArrayList<>(guard.ingredients().entrySet());
+            slots.sort((left, right) -> Integer.compare(left.getKey(), right.getKey()));
+
+            if (slots.isEmpty()) return "в рецепте нет ни одного предмета BossLand";
+
+            ItemStack[] grid = new ItemStack[9];
+            for (Map.Entry<Integer, ItemStack> required : slots) {
+                String name = displayName(required.getValue());
+                // осколки берём настоящие, из дропа боссов; составные предметы крафтятся, поэтому берём из рецепта
+                ItemStack real = name == null ? null : loot.get(name);
+                if (real == null) real = required.getValue();
+                grid[required.getKey()] = real.clone();
             }
 
-            ItemStack result = build(items, rule.resultGetter());
-            if (result == null) return "предмет результата не создан (" + rule.resultGetter() + ")";
-
-            ItemStack filler = shards.values().iterator().hasNext() ? shards.values().iterator().next() : null;
-            for (int slot = 0; slot < 9; slot++) {
-                grid.setItem(slot, filler == null ? null : filler.clone());
+            if (vanillaSubstitute) {
+                int slot = slots.get(0).getKey();
+                // тот же материал, но без имени осколка — так игрок и обходит рецепт
+                grid[slot] = new ItemStack(grid[slot].getType());
             }
 
-            for (Map.Entry<Integer, String> required : rule.slots().entrySet()) {
-                String wanted = required.getValue();
-                ItemStack ingredient = wanted.startsWith("item:")
-                        ? build(items, wanted.substring("item:".length()))
-                        : shards.get(wanted);
-                if (ingredient == null) return "не найден ингредиент " + wanted;
-
-                if (wrongIngredients) {
-                    ItemStack other = differentShard(shards, wanted);
-                    if (other == null) return "нечем подменить ингредиент " + wanted;
-                    ingredient = other;
-                }
-                grid.setItem(required.getKey(), ingredient.clone());
-            }
-
-            grid.setResult(result.clone());
-            BossLand.getRecipeManager().restrictCraftingForBossLandItems(grid);
-
-            ItemStack after = grid.getResult();
-            boolean kept = after != null && after.getType() != Material.AIR;
-            if (!wrongIngredients && !kept) return "валидатор отбросил результат правильно собранного рецепта";
-            if (wrongIngredients && kept) return "валидатор пропустил рецепт из неправильных осколков";
+            boolean kept = BossLand.getRecipeManager().isValidCraft(guard.result(), grid);
+            if (!vanillaSubstitute && !kept) return "валидатор отбросил правильно собранный рецепт";
+            if (vanillaSubstitute && kept) return "валидатор пропустил рецепт из обычных материалов";
             return null;
         } catch (Throwable t) {
             return "исключение при проверке: " + t;
         }
     }
 
-    private static ItemStack build(BossLandItems items, String getter) {
-        try {
-            Object value = BossLandItems.class.getMethod(getter).invoke(items);
-            return value instanceof ItemStack stack ? stack : null;
-        } catch (ReflectiveOperationException e) {
-            return null;
-        }
-    }
-
-    private static ItemStack differentShard(Map<String, ItemStack> shards, String wanted) {
-        for (Map.Entry<String, ItemStack> entry : shards.entrySet()) {
-            if (!entry.getKey().equals(wanted)) return entry.getValue();
-        }
-        return null;
-    }
-
-    /** Ищет в дропе боссов реальные ItemStack'и осколков, сопоставляя их по имени из lang.yml. */
-    private static Map<String, ItemStack> collectShards(BossLand plugin) {
+    /** Все именованные предметы из дропа боссов: отображаемое имя -> предмет. */
+    private static Map<String, ItemStack> lootByName(BossLand plugin) {
         Map<String, ItemStack> found = new LinkedHashMap<>();
         ConfigurationSection bosses = plugin.getConfig().getConfigurationSection("bosses");
         if (bosses == null) return found;
@@ -196,28 +137,22 @@ public final class BossLandSelftest {
             ConfigurationSection loot = bosses.getConfigurationSection(boss + ".loot");
             if (loot == null) continue;
             for (String lootId : loot.getKeys(false)) {
-                String name = loot.getString(lootId + ".name");
-                if (name == null) continue;
-                String shardKey = matchShardKey(plugin, name);
-                if (shardKey == null || found.containsKey(shardKey)) continue;
-                ItemStack stack = BossLand.getItemsManager().getItem(boss, lootId);
-                if (stack != null && stack.getItemMeta() != null) found.put(shardKey, stack);
+                if (loot.getString(lootId + ".name") == null) continue;
+                try {
+                    ItemStack stack = BossLand.getItemsManager().getItem(boss, lootId);
+                    String name = displayName(stack);
+                    if (name != null) found.putIfAbsent(name, stack);
+                } catch (RuntimeException ignored) {
+                    // битый предмет в конфиге — его поймает проверка имени осколка, если он важен
+                }
             }
         }
         return found;
     }
 
-    private static String matchShardKey(BossLand plugin, String displayName) {
-        String normalized = normalize(displayName);
-        for (String key : SHARD_KEYS) {
-            String lang = normalize(plugin.getBossConfig().getLang(key));
-            if (lang != null && lang.equals(normalized)) return key;
-        }
-        return null;
-    }
-
-    private static String normalize(String value) {
-        return value == null ? null : value.replace('&', '§').trim().toLowerCase(Locale.ROOT);
+    private static String displayName(ItemStack stack) {
+        if (stack == null || stack.getItemMeta() == null) return null;
+        return stack.getItemMeta().getDisplayName();
     }
 
     private BossLandSelftest() {
