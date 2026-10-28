@@ -206,6 +206,8 @@ public class BossLandBosses {
                         EntityType.valueOf(plugin.getConfig().getString("bosses." + bossType + ".mount").toUpperCase()));
                 mount.addPassenger(boss);
                 int h = plugin.getConfig().getInt("bosses." + bossType + ".health");
+                double healthMultiplier = plugin.getConfig().getDouble("bossHealthMultiplier", 1.0);
+                h = (int) (h * healthMultiplier);
 
                 if(BossLand.isLowBossHealthIndicator() && h > 1024){
                     h = 1024;
@@ -244,6 +246,8 @@ public class BossLandBosses {
         bar.setVisible(true);
         bossMap.put(ent, bar);
         int maxHP = plugin.getConfig().getInt("bosses." + bossType + ".health");
+        double healthMultiplier = plugin.getConfig().getDouble("bossHealthMultiplier", 1.0);
+        maxHP = (int) (maxHP * healthMultiplier);
 
         // Check if max health is
 
