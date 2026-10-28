@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       release_tag:
-        description: 'Тег существующего релиза, к которому прикрепить jar (пусто — не публиковать)'
+        description: 'Тег релиза, к которому прикрепить собранный jar (пусто — только собрать)'
         required: false
         default: ''
   push:
@@ -37,44 +37,8 @@ jobs:
           java-version: '21'
           cache: maven
 
-      - name: Probe resolved API
-        continue-on-error: true
-        run: |
-          {
-            mvn -B -ntp -q dependency:copy-dependencies -DincludeScope=provided -DoutputDirectory=api-deps 2>&1 | tail -n 5
-            ls -1 api-deps 2>/dev/null || echo "no api-deps"
-            API="$(ls api-deps/spigot-api-*.jar 2>/dev/null | head -n1 || true)"
-            echo "spigot-api jar: ${API:-none}"
-            if [ -n "${API:-}" ]; then
-              echo '--- PotionEffectType SLOW/JUMP ---'
-              javap -cp "$API" org.bukkit.potion.PotionEffectType 2>&1 | grep -iE 'SLOW|JUMP' || true
-              echo '--- piglin entity classes ---'
-              jar tf "$API" | grep -iE 'entity/.*(Piglin|PigZombie)' || true
-            fi
-          } > probe.log 2>&1
-
       - name: Build with Maven
-        id: build
-        run: |
-          set -o pipefail
-          mvn -B -ntp clean package 2>&1 | tee build.log
-
-      - name: Publish log excerpt on failure
-        if: failure()
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          set -euo pipefail
-          {
-            printf 'Build failure @ %s\n\n' "$GITHUB_SHA"
-            printf '```\n## probe.log\n'
-            head -c 3000 probe.log 2>/dev/null || echo 'no probe.log'
-            printf '\n\n## build.log (errors)\n'
-            grep -E '^\[(ERROR|WARNING)\]' build.log 2>/dev/null | head -n 80 || tail -c 8000 build.log
-            printf '```\n'
-          } > report.md
-          jq -Rs '{body: .}' < report.md \
-            | gh api "repos/$GITHUB_REPOSITORY/commits/$GITHUB_SHA/comments" --input - >/dev/null
+        run: mvn -B -ntp clean package
 
       - name: Collect jar
         run: |
@@ -95,28 +59,10 @@ jobs:
           jar tf "$JAR_PATH" | grep -E '^org/bstats/' | head -n1
           unzip -p "$JAR_PATH" plugin.yml | sed -n '1,5p'
 
+      # Loading the jar in a real server catches runtime problems that a plain compile cannot.
       - name: Smoke test on Paper 1.21.5
-        run: |
-          set -o pipefail
-          mkdir -p smoke-report
-          bash .github/scripts/smoke-test.sh "$JAR_PATH" 1.21.5 2>&1 | tee smoke-report/smoke.log
-
-      - name: Publish build summary
-        if: always()
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          set -euo pipefail
-          {
-            printf 'Build summary @ %s\n\n```\n' "$GITHUB_SHA"
-            ls -l dist 2>/dev/null || echo 'no dist yet'
-            sha256sum dist/*.jar 2>/dev/null || true
-            printf '\n--- smoke ---\n'
-            grep -E '^\[smoke\]|::error::' smoke-report/smoke.log 2>/dev/null | grep -vE 'ChunkHolder|chunk' | tail -n 45 || echo 'no smoke report'
-            printf '```\n'
-          } > summary.md
-          jq -Rs '{body: .}' < summary.md \
-            | gh api "repos/$GITHUB_REPOSITORY/commits/$GITHUB_SHA/comments" --input - >/dev/null
+        if: startsWith(github.ref, 'refs/tags/v') || github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch'
+        run: bash .github/scripts/smoke-test.sh "$JAR_PATH" 1.21.5
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
@@ -130,11 +76,10 @@ jobs:
         if: startsWith(github.ref, 'refs/tags/v') || inputs.release_tag != ''
         env:
           GH_TOKEN: ${{ github.token }}
-          RELEASE_TARGET: 'v2.8-v1.21.5'
+          INPUT_TAG: ${{ inputs.release_tag }}
         run: |
           set -euo pipefail
-          TAG="${RELEASE_TARGET:-${{ inputs.release_tag }}}"
-          if [ -z "$TAG" ]; then TAG="${GITHUB_REF_NAME}"; fi
+          TAG="${INPUT_TAG:-$GITHUB_REF_NAME}"
           if ! gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
             gh release create "$TAG" --repo "$GITHUB_REPOSITORY" \
               --title "BossLand $TAG" --notes "Собрано автоматически из $GITHUB_SHA"
