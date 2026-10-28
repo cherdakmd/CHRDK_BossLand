@@ -95,6 +95,50 @@ jobs:
           jar tf "$JAR_PATH" | grep -E '^org/bstats/' | head -n1
           unzip -p "$JAR_PATH" plugin.yml | sed -n '1,5p'
 
+      - name: Smoke test on Paper 1.21.5
+        run: |
+          set -euo pipefail
+          mkdir -p smoke/plugins
+          cp "$JAR_PATH" smoke/plugins/
+          cd smoke
+          echo "eula=true" > eula.txt
+          printf 'online-mode=false\nlevel-type=minecraft\\:flat\nview-distance=4\nspawn-protection=0\nmax-players=2\n' > server.properties
+
+          BUILD="$(curl -fsSL https://api.papermc.io/v2/projects/paper/versions/1.21.5/builds | jq -r '.builds[-1].build')"
+          echo "Paper 1.21.5 build ${BUILD}"
+          curl -fsSL -o paper.jar \
+            "https://api.papermc.io/v2/projects/paper/versions/1.21.5/builds/${BUILD}/downloads/paper-1.21.5-${BUILD}.jar"
+
+          ( sleep 75; echo "stop" ) | timeout 300 java -Xms512M -Xmx1024M -jar paper.jar --nogui > server.log 2>&1 || true
+
+          echo '--- plugin related log lines ---'
+          grep -iE 'bossland|Enabling|Disabling|Done \(' server.log | tail -n 40 || tail -n 80 server.log
+
+          grep -q 'Done (' server.log || { echo '::error::server never finished starting'; exit 1; }
+          grep -q 'Enabling BossLand' server.log || { echo '::error::BossLand was not enabled'; exit 1; }
+          if grep -q 'Disabling BossLand' server.log; then echo '::error::BossLand disabled itself (runtime error)'; exit 1; fi
+          if grep -qE 'Could not load .*BossLand|Error occurred while enabling BossLand' server.log; then
+            echo '::error::BossLand failed to load'; exit 1
+          fi
+          echo "smoke test passed"
+
+      - name: Publish build summary
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          {
+            printf 'Build summary @ %s\n\n```\n' "$GITHUB_SHA"
+            ls -l dist 2>/dev/null || echo 'no dist yet'
+            sha256sum dist/*.jar 2>/dev/null || true
+            printf '\n--- smoke ---\n'
+            grep -iE 'bossland|Done \(|what went wrong' smoke/server.log 2>/dev/null | tail -n 30 || echo 'no smoke log'
+            printf '```\n'
+          } > summary.md
+          jq -Rs '{body: .}' < summary.md \
+            | gh api "repos/$GITHUB_REPOSITORY/commits/$GITHUB_SHA/comments" --input - >/dev/null
+
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
