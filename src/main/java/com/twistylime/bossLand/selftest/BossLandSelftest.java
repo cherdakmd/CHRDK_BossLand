@@ -58,10 +58,13 @@ public final class BossLandSelftest {
 
         // 2) каждый предмет призыва собирается из осколков и не собирается из обычных материалов
         List<BossLandRecipes.CraftGuard> guards = recipes.craftGuards();
-        if (guards.isEmpty()) {
-            checks++;
+        int recipeCount = recipes.recipeCount();
+        lines.add("§7Правил крафта: §f" + guards.size() + " §7из §f" + recipeCount + " §7рецептов");
+        checks++;
+        if (guards.size() < recipeCount) {
             failed++;
-            lines.add("§c✗ §7в recipes.yml не найдено ни одного рецепта предмета призыва");
+            lines.add("§c✗ §7проверено только §f" + guards.size() + " §7из §f" + recipeCount
+                    + " §7рецептов: у остальных не нашлись ингредиенты в дропе боссов");
         }
         for (BossLandRecipes.CraftGuard guard : guards) {
             String label = displayName(guard.result());

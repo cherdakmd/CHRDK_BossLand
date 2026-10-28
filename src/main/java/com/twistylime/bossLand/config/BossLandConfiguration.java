@@ -7,10 +7,15 @@ import org.bukkit.plugin.Plugin;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.logging.Level;
 
 public class BossLandConfiguration {
@@ -21,6 +26,8 @@ public class BossLandConfiguration {
     private YamlConfiguration saveFile;
     private YamlConfiguration langFile;
     private YamlConfiguration recipesFile;
+    /** ключи, о которых уже предупредили, чтобы не заливать лог одним и тем же */
+    private final Set<String> missingLangWarned = new HashSet<>();
 
     public void loadConfig(Plugin plugin){
         this.plugin = plugin;
@@ -34,6 +41,8 @@ public class BossLandConfiguration {
         recipesFile = YamlConfiguration.loadConfiguration(recipesYML);
 
         saveConfig();
+        reloadLang();
+        reloadRecipes();
     }
 
     private void saveConfig(){
@@ -78,8 +87,21 @@ public class BossLandConfiguration {
         }
         this.langFile = YamlConfiguration.loadConfiguration(this.langYML);
 
-        YamlConfiguration defConfig = YamlConfiguration.loadConfiguration(langYML);
-        this.langFile.setDefaults(defConfig);
+        // Дефолты берём из lang.yml внутри jar: файл сервера может остаться от старой версии,
+        // и тогда новых ключей в нём просто нет.
+        YamlConfiguration defaults = bundledDefaults("lang.yml");
+        if (defaults == null) return;
+
+        if (fillMissingKeys(this.langFile, defaults, true)) {
+            try {
+                this.langFile.save(this.langYML);
+                plugin.getLogger().log(Level.INFO, "lang.yml дополнен ключами из версии плагина.");
+            } catch (IOException e) {
+                plugin.getLogger().log(Level.WARNING, "Не удалось сохранить lang.yml: " + e.getMessage());
+            }
+        }
+        this.langFile.setDefaults(defaults);
+        this.missingLangWarned.clear();
     }
 
     private void reloadRecipes() {
@@ -88,23 +110,63 @@ public class BossLandConfiguration {
         }
         this.recipesFile = YamlConfiguration.loadConfiguration(this.recipesYML);
 
-        YamlConfiguration defConfig = YamlConfiguration.loadConfiguration(recipesYML);
-        this.recipesFile.setDefaults(defConfig);
+        // recipes.yml не перезаписываем (в нём есть комментарии), но недостающие ключи
+        // всё равно будут читаться из версии в jar.
+        YamlConfiguration defaults = bundledDefaults("recipes.yml");
+        if (defaults != null) {
+            this.recipesFile.setDefaults(defaults);
+        }
+    }
+
+    /** Читает файл по умолчанию из jar, чтобы у пользователя всегда были актуальные ключи. */
+    private YamlConfiguration bundledDefaults(String resource) {
+        try (InputStream stream = plugin.getResource(resource)) {
+            if (stream == null) return null;
+            return YamlConfiguration.loadConfiguration(new InputStreamReader(stream, StandardCharsets.UTF_8));
+        } catch (IOException e) {
+            plugin.getLogger().log(Level.WARNING, "Не удалось прочитать " + resource + " из jar: " + e.getMessage());
+            return null;
+        }
+    }
+
+    /**
+     * Дописывает в файл сервера ключи, которых в нём нет.
+     *
+     * @param repairPlaceholders заменить значения "Missing!", которые старые версии плагина записали в файл
+     * @return {@code true}, если файл изменился
+     */
+    private boolean fillMissingKeys(YamlConfiguration file, YamlConfiguration defaults, boolean repairPlaceholders) {
+        boolean changed = false;
+        for (String key : defaults.getKeys(true)) {
+            if (defaults.isConfigurationSection(key)) continue;
+            boolean absent = !file.contains(key, true);
+            boolean broken = repairPlaceholders && "Missing!".equals(file.getString(key));
+            if (!absent && !broken) continue;
+            file.set(key, defaults.get(key));
+            changed = true;
+        }
+        return changed;
     }
 
     public String getLang(String s) {
-        if (langFile.getString(s) == null) {
-            plugin.getLogger().log(Level.SEVERE, "Ошибка в файле lang.yml!");
-            System.out.print("Looking for path: " + s);
-            System.out.print("Found: " + langFile.getString(s));
-            langFile.set(s, "Missing!");
-            try {
-                langFile.save(langYML);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+        String value = langFile.getString(s);
+        if (value == null) {
+            value = missingLangFallback(s);
         }
-        return Objects.requireNonNull(langFile.getString(s)).replace("&", "§");
+        return value.replace("&", "§");
+    }
+
+    /**
+     * Значение для ключа, которого нет ни в файле, ни в jar.
+     * Файл не трогаем: раньше сюда записывалось "Missing!", и оно оставалось в игре навсегда.
+     */
+    private String missingLangFallback(String s) {
+        if (missingLangWarned.add(s)) {
+            plugin.getLogger().log(Level.WARNING,
+                    "В lang.yml нет ключа «" + s + "» — показываю значение по умолчанию.");
+        }
+        int dot = s.lastIndexOf('.');
+        return dot >= 0 && dot + 1 < s.length() ? s.substring(dot + 1).replace('_', ' ') : s;
     }
 
     public ConfigurationSection getRecipeConfiguration(String section){
@@ -114,16 +176,17 @@ public class BossLandConfiguration {
     @SuppressWarnings("unchecked")
     public ArrayList<String> getLangList(String s) {
         ArrayList<String> list = (ArrayList<String>) langFile.getList(s);
-        if (list == null || list.isEmpty()) {
-            plugin.getLogger().log(Level.SEVERE, "Ошибка в файле lang.yml!");
-            System.out.print("Looking for list path: " + s);
-            System.out.print("Found: " + langFile.getString(s));
+        ArrayList<String> colored = new ArrayList<>();
+        if (list == null) {
+            if (missingLangWarned.add(s)) {
+                plugin.getLogger().log(Level.WARNING, "В lang.yml нет списка «" + s + "».");
+            }
+            return colored;
         }
-        ArrayList<String> list2 = new ArrayList<>();
-        assert list != null;
-        for (String l : list)
-            list2.add(l.replace("&", "§"));
-        return list2;
+        for (String line : list) {
+            if (line != null) colored.add(line.replace("&", "§"));
+        }
+        return colored;
     }
 
     public void saveBossData() {

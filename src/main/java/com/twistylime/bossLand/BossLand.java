@@ -136,6 +136,10 @@ public class BossLand extends JavaPlugin implements Listener {
 
     // Default values (overridden by config.yml -> miniboss.*)
     private static final int DEFAULT_DUG_BLOCKS_THRESHOLD = 200;
+    /** Префикс записи в save.yml: мини-босс помечается отдельно и не попадает в логику боссов. */
+    private static final String MINI_BOSS_PREFIX = "MINI_BOSS:";
+    private static final String ELITE_SUFFIX = ":ELITE";
+
     private static final int DEFAULT_MINI_BOSS_SPAWN_CHANCE = 35;
     private static final int DEFAULT_ELITE_MINI_BOSS_CHANCE = 12;
     private static final int DEFAULT_MINI_BOSS_COOLDOWN_SECONDS = 120;
@@ -644,7 +648,7 @@ public class BossLand extends JavaPlugin implements Listener {
             miniBossBars.put(boss, bar);
 
             // Save as boss so damage events recognize it
-            config.setSaveData("bosses." + boss.getUniqueId().toString(), "MINI_BOSS:" + type + (isElite ? ":ELITE" : ""));
+            config.setSaveData("bosses." + boss.getUniqueId().toString(), MINI_BOSS_PREFIX + type + (isElite ? ELITE_SUFFIX : ""));
             config.saveBossData();
 
             // Start health update task
@@ -725,10 +729,46 @@ public class BossLand extends JavaPlugin implements Listener {
         }
     }
 
+    /**
+     * Убивает мини-боссов обычной смертью: срабатывает {@link #handleMiniBossDeath},
+     * поэтому выдаётся награда и убирается полоса здоровья.
+     *
+     * @param world мир, в котором убиваем, либо {@code null} для всех миров
+     * @return сколько мини-боссов задето
+     */
+    public int killMiniBosses(World world) {
+        int killed = 0;
+        for (Entity miniBoss : new ArrayList<>(miniBossBars.keySet())) {
+            if (world != null && !world.equals(miniBoss.getWorld())) continue;
+            if (!(miniBoss instanceof LivingEntity living)) continue;
+            living.damage(1_000_000.0);
+            killed++;
+        }
+        return killed;
+    }
+
+    /** Обновляет полоску мини-босса без запуска новой цепочки задач: её уже ведёт {@link #updateMiniBossBar(Entity)}. */
+    private void refreshMiniBossBar(Entity boss) {
+        BossBar bar = miniBossBars.get(boss);
+        if (bar == null || !(boss instanceof LivingEntity living) || boss.isDead()) return;
+        AttributeInstance healthAttribute = living.getAttribute(
+                CompatibilityResolver.resolveAttribute("MAX_HEALTH", "GENERIC_MAX_HEALTH"));
+        if (healthAttribute == null || healthAttribute.getBaseValue() <= 0) return;
+        float progress = (float) (living.getHealth() / healthAttribute.getBaseValue());
+        bar.setProgress(Math.max(0F, Math.min(1F, progress)));
+    }
+
     private void updateMiniBossBar(Entity boss) {
         BossBar bar = miniBossBars.get(boss);
-        if (bar == null || boss.isDead() || !boss.isValid()) {
+        if (bar == null) return;
+        if (boss.isDead() || !boss.isValid()) {
             miniBossBars.remove(boss);
+            // мини-босс выгрузился вместе с чанком: запись в save.yml ему больше не нужна,
+            // иначе файл растёт с каждым заспавненным и брошенным мини-боссом
+            config.setSaveData("bosses." + boss.getUniqueId(), null);
+            config.saveBossData();
+            boss.remove();
+            plugin.getLogger().log(Level.FINE, "Мини-босс снят с учёта: " + boss.getType());
             return;
         }
         try {
@@ -851,6 +891,14 @@ public class BossLand extends JavaPlugin implements Listener {
     public void onEntityDamagedByEntity(EntityDamageByEntityEvent e) {
         // Check if is Boss
         final String bossType = config.getDataFrom("save","bosses." + e.getEntity().getUniqueId());
+
+        // Мини-босс: у него своя полоса здоровья и в bossMap его нет.
+        // Раньше он попадал в makeBoss(...), падал на bosses.MINI_BOSS:<тип>.name и сыпал ошибками на каждый удар.
+        if (bossType != null && bossType.startsWith(MINI_BOSS_PREFIX)) {
+            refreshMiniBossBar(e.getEntity());
+            return;
+        }
+
         if (bossType != null && (e.getEntity() instanceof LivingEntity )) {
             LivingEntity ent = (LivingEntity) e.getEntity();
             // Make Sure Real Boss
@@ -2380,12 +2428,22 @@ public class BossLand extends JavaPlugin implements Listener {
         Entity ent = e.getEntity();
         // Boss Death
         final String bossType = config.getDataFrom("save","bosses." + ent.getUniqueId());
+
+        // Мини-босс обрабатывается отдельно и до боссов: в bossMap его нет,
+        // из-за чего раньше здесь падал NullPointerException и не выдавался лут.
+        if (bossType != null && bossType.startsWith(MINI_BOSS_PREFIX)) {
+            Player miniBossKiller = ent instanceof LivingEntity living ? living.getKiller() : null;
+            handleMiniBossDeath(ent, bossType.substring(MINI_BOSS_PREFIX.length()), miniBossKiller);
+            return;
+        }
+
         if (bossType != null) {
-            // ArrayList<ItemStack> loot = new ArrayList<ItemStack>();
             // Boss Death
-            for (Player p : bossManager.getBossMapActual().get(ent).getPlayers())
-                bossManager.getBossMapActual().get(ent).removePlayer(p);
-            bossManager.getBossMapActual().remove(ent);
+            BossBar bossBar = bossManager.getBossMapActual().get(ent);
+            if (bossBar != null) {
+                for (Player p : bossBar.getPlayers()) bossBar.removePlayer(p);
+                bossManager.getBossMapActual().remove(ent);
+            }
             // Mount Removal
             LivingEntity m = (LivingEntity) getMount(ent);
             if (m != null) {
@@ -2432,29 +2490,44 @@ public class BossLand extends JavaPlugin implements Listener {
                 }
             }
         }
-        // Mini-boss death handling
-        if (bossType != null && bossType.startsWith("MINI_BOSS:")) {
-            miniBossBars.remove(ent);
-            String miniType = bossType.substring("MINI_BOSS:".length());
+        // Fire List Remove
+        noFireList.remove(e.getEntity().getUniqueId());
+        // Material.DIAMOND_BLOCK
+        // Material.SLIME_BLOCK
+    }
 
-            // Creeper mini-boss explodes on death
-            if (ent instanceof LivingEntity) {
-                handleCreeperMiniBossDeath((LivingEntity) ent);
-            }
+    /** Смерть мини-босса: награда, взрыв крипера, звук, частицы и уборка полосы здоровья. */
+    private void handleMiniBossDeath(Entity ent, String miniBossType, Player killer) {
+        BossBar bar = miniBossBars.remove(ent);
+        if (bar != null) {
+            for (Player p : new ArrayList<>(bar.getPlayers())) bar.removePlayer(p);
+        }
 
-            ItemStack loot = getMiniBossLoot(e.getEntity().getKiller(), miniType);
+        String displayType = miniBossType.endsWith(ELITE_SUFFIX)
+                ? miniBossType.substring(0, miniBossType.length() - ELITE_SUFFIX.length())
+                : miniBossType;
+
+        if (ent instanceof LivingEntity living) {
+            handleCreeperMiniBossDeath(living);
+        }
+
+        try {
+            ItemStack loot = getMiniBossLoot(killer, miniBossType);
             if (loot != null && loot.getType() != Material.AIR) {
                 ent.getWorld().dropItemNaturally(ent.getLocation(), loot);
             }
             ent.getWorld().playSound(ent.getLocation(), Sound.ENTITY_WITHER_DEATH, 1, 1);
             MCUtility.displayParticle("DRAGON_BREATH:1:25:0", ent.getLocation());
-            this.getLogger().log(Level.INFO, "Мини-босс " + miniType + " повержен!");
+        } catch (Exception x) {
+            plugin.getLogger().log(Level.WARNING, "Не удалось выдать награду мини-босса: " + x.getMessage());
         }
 
-        // Fire List Remove
-        noFireList.remove(e.getEntity().getUniqueId());
-        // Material.DIAMOND_BLOCK
-        // Material.SLIME_BLOCK
+        noFireList.remove(ent.getUniqueId());
+        // запись в save.yml больше не нужна: иначе файл растёт с каждым убитым мини-боссом
+        config.setSaveData("bosses." + ent.getUniqueId(), null);
+        config.saveBossData();
+
+        plugin.getLogger().log(Level.INFO, "Мини-босс " + displayType + " повержен!");
     }
 
     @EventHandler(priority = EventPriority.LOW)

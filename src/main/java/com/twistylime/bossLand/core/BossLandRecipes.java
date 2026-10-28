@@ -152,14 +152,27 @@ public class BossLandRecipes {
     // ------------------------------------------------------------------
 
     /**
-     * Материалы, которые в recipes.yml означают кастомный предмет BossLand, а не ванильный:
-     * осколки боссов и составные предметы (ядро льда, чешуя бездны и т.д.).
+     * Материал рецепта -> ключ lang.yml с именем кастомного предмета, который обязан лежать в слоте.
+     * Раньше осколки искались по внутренним именам лута (WHITE_BOSS_SHARD и т.п.), которых в конфиге
+     * уже нет: ингредиенты в книге-руководстве оставались пустыми, а проверка крафта пропускала слоты.
      */
-    private static final Set<String> CUSTOM_INGREDIENT_MATERIALS = Set.of(
-            "QUARTZ", "GREEN_DYE", "CLAY_BALL", "COAL", "RED_DYE",
-            "LAPIS_LAZULI", "YELLOW_DYE", "EMERALD", "BROWN_DYE", "FIRE_CORAL",
-            "ENCHANTED_BOOK", "ENCHANTED_GOLDEN_APPLE",
-            "ICE", "PRISMARINE_SHARD", "MAGMA_CREAM", "ENDER_PEARL");
+    private static final Map<String, String> CUSTOM_INGREDIENTS = Map.ofEntries(
+            Map.entry("QUARTZ", "items.whiteshard"),
+            Map.entry("GREEN_DYE", "items.greenshard"),
+            Map.entry("CLAY_BALL", "items.greyshard"),
+            Map.entry("COAL", "items.blackshard"),
+            Map.entry("RED_DYE", "items.redshard"),
+            Map.entry("BROWN_DYE", "items.brownshard"),
+            Map.entry("EMERALD", "items.emeraldshard"),
+            Map.entry("YELLOW_DYE", "items.goldshard"),
+            Map.entry("LAPIS_LAZULI", "items.blueshard"),
+            Map.entry("FIRE_CORAL", "items.demonicshard"),
+            Map.entry("ENCHANTED_BOOK", "items.knowledgebook"),
+            Map.entry("ENCHANTED_GOLDEN_APPLE", "items.forbiddenfruit"),
+            Map.entry("ICE", "items.frostcore"),
+            Map.entry("PRISMARINE_SHARD", "items.abyssalscale"),
+            Map.entry("MAGMA_CREAM", "items.infernalcore"),
+            Map.entry("ENDER_PEARL", "items.endercrystalshard"));
 
     /**
      * Правило крафта: что должно получиться и какие кастомные предметы обязаны лежать в сетке.
@@ -169,6 +182,11 @@ public class BossLandRecipes {
     }
 
     private List<CraftGuard> craftGuards;
+
+    /** @return сколько рецептов предметов призыва описано в recipes.yml */
+    public int recipeCount() {
+        return recipesSection == null ? 0 : recipesSection.getKeys(false).size();
+    }
 
     /** @return правила крафта, собранные из recipes.yml (слоты 0–8 — сетка верстака) */
     public List<CraftGuard> craftGuards() {
@@ -208,11 +226,54 @@ public class BossLandRecipes {
         return craftGuards = guards;
     }
 
+    /** Кэш: имя предмета в игре -> предмет из дропа боссов. */
+    private Map<String, ItemStack> itemsByDisplayName;
+
+    /** Все именованные предметы из дропа боссов: имя в игре -> предмет. */
+    private Map<String, ItemStack> lootByDisplayName() {
+        if (itemsByDisplayName != null) return itemsByDisplayName;
+
+        Map<String, ItemStack> found = new LinkedHashMap<>();
+        ConfigurationSection bosses = plugin.getConfig().getConfigurationSection("bosses");
+        if (bosses != null) {
+            for (String boss : bosses.getKeys(false)) {
+                ConfigurationSection loot = bosses.getConfigurationSection(boss + ".loot");
+                if (loot == null) continue;
+                for (String lootId : loot.getKeys(false)) {
+                    if (loot.getString(lootId + ".name") == null) continue;
+                    ItemStack stack = itemManager.getItem(boss, lootId);
+                    String display = displayName(stack);
+                    if (display != null) found.putIfAbsent(display, stack);
+                }
+            }
+        }
+        return itemsByDisplayName = found;
+    }
+
     /** Кастомный предмет BossLand, который должен лежать вместо материала рецепта, либо {@code null}. */
     private ItemStack customIngredientFor(String materialName) {
-        Material material = CompatibilityResolver.resolveMaterial(materialName);
-        if (material == null || !CUSTOM_INGREDIENT_MATERIALS.contains(material.name())) return null;
-        return getResultItem(material.name(), true);
+        if (materialName == null) return null;
+        Material material = CompatibilityResolver.resolveMaterial(materialName.toUpperCase(Locale.ROOT));
+        if (material == null) return null;
+
+        String langKey = CUSTOM_INGREDIENTS.get(material.name());
+        if (langKey == null) return null;
+
+        // осколки и книгу знаний ищем среди настоящего дропа боссов
+        ItemStack dropped = lootByDisplayName().get(config.getLang(langKey));
+        return dropped != null ? dropped : craftedIngredient(langKey);
+    }
+
+    /** Составные предметы (ядро льда, чешуя бездны и т.п.) крафтятся, а не падают с боссов. */
+    private ItemStack craftedIngredient(String langKey) {
+        return switch (langKey) {
+            case "items.frostcore" -> itemManager.getFrostCore();
+            case "items.abyssalscale" -> itemManager.getAbyssalScale();
+            case "items.infernalcore" -> itemManager.getInfernalCore();
+            case "items.endercrystalshard" -> itemManager.getEnderCrystalShard();
+            case "items.forbiddenfruit" -> itemManager.getGodItem();
+            default -> null;
+        };
     }
 
     /**
@@ -326,41 +387,22 @@ public class BossLandRecipes {
     }
 
     private ItemStack getResultItem(String name, boolean isGuideRecipe) {
+        ItemStack crafted = craftedItemById(name);
+        if (crafted != null) return crafted;
 
-        if(isGuideRecipe){
-            return switch (name) {
-                case "DEATH_NOTE" -> itemManager.getDeathItem();
-                case "FORBIDDEN_FRUIT", "ENCHANTED_GOLDEN_APPLE" -> itemManager.getGodItem();
-                case "ABHORRENT_FRUIT" -> itemManager.getDevilItem();
-                case "BELL_OF_DOOM" -> itemManager.getIllagerItem();
-                case "BOOK_OF_SPELLS" -> itemManager.getWizardItem();
-                case "POTION_OF_GIANT_GROWTH" -> itemManager.getGiantIem();
-                case "ELDER_EGG" -> itemManager.getDragonItem();
-                case "NATURES_ESSENCE" -> itemManager.getNaturesEssence();
-                case "FROST_CORE" -> itemManager.getFrostCore();
-                case "ABYSSAL_SCALE" -> itemManager.getAbyssalScale();
-                case "INFERNAL_CORE" -> itemManager.getInfernalCore();
-                case "ENDER_CRYSTAL_SHARD" -> itemManager.getEnderCrystalShard();
-                case "ENCHANTED_BOOK" -> lootManager.getLootFromName("BOOK_OF_KNOWLEDGE","Devil"); // return BOOK_OF_KNOWLEDGE only in getRecipes
-                case "EMERALD" -> lootManager.getLootFromName("EMERALD_BOSS_SHARD","Giant"); // return EMERALD_BOSS_SHARD only in getRecipes
-                case "YELLOW_DYE" -> lootManager.getLootFromName("GOLD_BOSS_SHARD","IllagerKing"); // return GOLD_BOSS_SHARD only in getRecipes
-                case "LAPIS_LAZULI" -> lootManager.getLootFromName("BLUE_BOSS_SHARD","EvilWizard"); // return BLUE_BOSS_SHARD only in getRecipes
-                case "QUARTZ" -> lootManager.getLootFromName("WHITE_BOSS_SHARD","GhastLord"); // return WHITE_BOSS_SHARD only in getRecipes
-                case "GREEN_DYE" -> lootManager.getLootFromName("GREEN_BOSS_SHARD","KingSlime"); // return GREEN_BOSS_SHARD only in getRecipes
-                case "FIRE_CORAL" -> lootManager.getLootFromName("DEMONIC_SHARD","Demon"); // return DEMONIC_SHARD only in getRecipes
-                case "CLAY_BALL" -> lootManager.getLootFromName("GREY_BOSS_SHARD","KillerBunny"); // return GRAY_BOSS_SHARD only in getRecipes
-                case "RED_DYE" -> lootManager.getLootFromName("RED_BOSS_SHARD","ZombieKing"); // return RED_BOSS_SHARD only in getRecipes
-                case "COAL" -> lootManager.getLootFromName("BLACK_BOSS_SHARD","WitherSkeletonKing"); // return BLACK_BOSS_SHARD only in getRecipes
-                case "BROWN_DYE" -> lootManager.getLootFromName("BROWN_BOSS_SHARD","PapaPanda"); // return BROWN_BOSS_SHARD only in getRecipes
-                case "ICE" -> itemManager.getFrostCore();
-                case "PRISMARINE_SHARD" -> itemManager.getAbyssalScale();
-                case "MAGMA_CREAM" -> itemManager.getInfernalCore();
-                case "ENDER_PEARL" -> itemManager.getEnderCrystalShard();
-                default -> new ItemStack(CompatibilityResolver.resolveMaterial(name), 1);
-            };
+        if (isGuideRecipe) {
+            // в рецептах материал означает кастомный предмет BossLand (осколок, ядро, книгу знаний)
+            ItemStack ingredient = customIngredientFor(name);
+            if (ingredient != null) return ingredient;
         }
 
-        return switch (name) {
+        return new ItemStack(CompatibilityResolver.resolveMaterial(name), 1);
+    }
+
+    /** Предметы BossLand, которые создаёт сам плагин. */
+    private ItemStack craftedItemById(String id) {
+        if (id == null) return null;
+        return switch (id) {
             case "DEATH_NOTE" -> itemManager.getDeathItem();
             case "FORBIDDEN_FRUIT" -> itemManager.getGodItem();
             case "ABHORRENT_FRUIT" -> itemManager.getDevilItem();
@@ -373,7 +415,7 @@ public class BossLandRecipes {
             case "ABYSSAL_SCALE" -> itemManager.getAbyssalScale();
             case "INFERNAL_CORE" -> itemManager.getInfernalCore();
             case "ENDER_CRYSTAL_SHARD" -> itemManager.getEnderCrystalShard();
-            default -> new ItemStack(CompatibilityResolver.resolveMaterial(name), 1);
+            default -> null;
         };
     }
 }

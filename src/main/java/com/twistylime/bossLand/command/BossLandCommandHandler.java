@@ -140,6 +140,15 @@ public class BossLandCommandHandler implements CommandExecutor {
                             plugin.bossError(sender);
                     }
                     return true;
+                } else if (args[0].equals("killMiniBosses") && args.length <= 2) {
+                    World w = args.length == 2 ? plugin.getServer().getWorld(args[1]) : null;
+                    if (args.length == 2 && w == null) {
+                        sender.sendMessage("§cМир не найден!");
+                        return true;
+                    }
+                    int killed = plugin.killMiniBosses(w);
+                    sender.sendMessage("§eBossLand: мини-боссов убито: §f" + killed);
+                    return true;
                 } else if (args[0].equals("killBosses") && args.length == 2) {
                     World w = plugin.getServer().getWorld(args[1]);
                     if (w == null) {
@@ -197,6 +206,7 @@ public class BossLandCommandHandler implements CommandExecutor {
                     sender.sendMessage("§8■ §e/bl-admin addLoot <босс> §7→ §fДобавить лут для босса");
                     sender.sendMessage("§8■ §e/bl-admin killBosses <мир> §7→ §fУдалить боссов в мире");
                     sender.sendMessage("§8■ §e/bl-admin miniboss [тип] §7→ §fЗаспавнить мини-босса");
+                    sender.sendMessage("§8■ §e/bl-admin killMiniBosses [мир] §7→ §fУбить мини-боссов (с наградой)");
                     sender.sendMessage("§8■ §e/bl-admin selftest §7→ §fПроверить дроп осколков и крафт");
                     sender.sendMessage("§8■ §e/bl-admin reload §7→ §fПерезагрузить конфиг");
                     return true;
