@@ -116,8 +116,10 @@ PY
       sleep 3
       # настоящая смерть мини-босса: проверяет обработчик onEntityDeath
       # (раньше он падал с NullPointerException и лут не выдавался)
+      echo "say MINI-KILL-BEGIN"
       echo "kill @e[type=witch]"
       sleep 2
+      echo "say MINI-KILL-END"
       # самопроверка: дроп осколков + сборка предметов призыва в сетке крафта
       echo "bl-admin selftest"
       sleep 3
@@ -186,8 +188,8 @@ if [ "$EXERCISE" = "1" ]; then
     log "mini-boss death handled: $(grep -o 'Мини-босс WITCH повержен' server.log | tail -1)"
   else
     echo '::error::mini-boss death handler did not run (see NullPointerException in onEntityDeath)'
-    grep -inE 'Мини-босс|[Ww]itch|Killed|Unknown|Invalid|NullPointer|Could not pass|kill' server.log \
-      | tail -n 6 | while IFS= read -r line; do echo "::error::MINI: $line"; done
+    sed -n '/MINI-KILL-BEGIN/,/MINI-KILL-END/p' server.log | head -n 8 \
+      | while IFS= read -r line; do echo "::error::MINI: $line"; done
     status=1
   fi
 
