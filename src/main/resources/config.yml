@@ -603,7 +603,7 @@ bosses:
     minion2: Zombie
     minion2Mount: ZOMBIE_HORSE
     minion3: Skeleton
-    minion3Mount: SKELETONE_HORSE
+    minion3Mount: SKELETON_HORSE
     dropedXP: 10000
     name: "§2§lGiant"
     health: 2000

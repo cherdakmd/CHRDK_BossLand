@@ -195,7 +195,7 @@ public class BossLandItems {
                 String owner = plugin.getConfig().getString("bosses." + bossType + ".loot." + loot + ".owner");
                 if (owner != null) {
                     SkullMeta sm = (SkullMeta) stack.getItemMeta();
-                    sm.setOwningPlayer(Bukkit.getOfflinePlayer(UUID.fromString(owner)));
+                    sm.setOwningPlayer(UUID.fromString(owner));
                     stack.setItemMeta(sm);
                 }
             }
