@@ -52,7 +52,7 @@ public class BossLandShrines {
             int amount = resultSec.getInt("amount", 1);
             String displayName = resultSec.getString("display_name", null);
             List<String> lore = resultSec.getStringList("lore");
-            Material material = Material.getMaterial(item);
+            Material material = CompatibilityResolver.resolveMaterial(item);
             resultItem = new ItemStack(material, amount);
             ItemMeta meta = resultItem.getItemMeta();
             if (meta != null) {
@@ -169,6 +169,11 @@ public class BossLandShrines {
             case "FORBIDDEN_FRUIT" -> itemManager.getGodItem();
             case "ABHORRENT_FRUIT" -> itemManager.getDevilItem();
             case "DEATH_NOTE" -> itemManager.getDeathItem();
+            case "FROST_CORE" -> itemManager.getFrostCore();
+            case "ABYSSAL_SCALE" -> itemManager.getAbyssalScale();
+            case "INFERNAL_CORE" -> itemManager.getInfernalCore();
+            case "ENDER_CRYSTAL_SHARD" -> itemManager.getEnderCrystalShard();
+            case "NATURES_ESSENCE" -> itemManager.getNaturesEssence();
             case "FIRE" -> representFireItem();
             default -> new ItemStack(CompatibilityResolver.resolveMaterial(name), amount);
         };
@@ -197,7 +202,7 @@ public class BossLandShrines {
         try {
             assert e.getClickedBlock() != null;
             Location l = e.getClickedBlock().getLocation();
-            String biome = Objects.requireNonNull(l.getWorld()).getBiome((int) l.getX(), (int) l.getY(), (int) l.getZ()).toString();
+            String biome = Objects.requireNonNull(l.getWorld()).getBiome(l).toString().toUpperCase();
             // Boss Rituals
             if (p.getInventory().getItemInMainHand().getType().equals(Material.ENDER_EYE)
                     && Objects.requireNonNull(l.getWorld()).getEnvironment().equals(World.Environment.NORMAL) && biome.contains("SWAMP")) {
@@ -279,7 +284,7 @@ public class BossLandShrines {
                 }
             } else if (p.getInventory().getItemInMainHand().getItemMeta().getDisplayName()
                     .equals("§2§lPotion of Giant Growth") && Objects.requireNonNull(l.getWorld()).getEnvironment().equals(World.Environment.NORMAL)
-                    && (l.getWorld().getBiome((int) l.getX(), (int) l.getY(), (int) l.getZ()).toString()
+                    && (l.getWorld().getBiome(l).toString().toUpperCase()
                     .contains("PLAINS"))) {
                 if (checkBlockRecipe(l, "REDSTONE_TORCH:REDSTONE_WIRE:REDSTONE_TORCH",
                         "REDSTONE_WIRE:CAMPFIRE:REDSTONE_WIRE", "REDSTONE_TORCH:REDSTONE_WIRE:REDSTONE_TORCH", true)) {
@@ -325,7 +330,7 @@ public class BossLandShrines {
                     && p.getInventory().getItemInMainHand().getAmount() >= 16) {
                 // this.getLogger().log(Level.WARNING, "Gold Consumed!");
                 // l.setY(l.getY()+1);
-                if (Objects.requireNonNull(l.getWorld()).getBiome((int) l.getX(), (int) l.getY(), (int) l.getZ()).toString().contains("DESERT"))
+                if (Objects.requireNonNull(l.getWorld()).getBiome(l).toString().toUpperCase().contains("DESERT"))
                     if (l.getWorld().getEnvironment().equals(World.Environment.NORMAL)
                             && checkBlockRecipe(l, "CARROTS:CARROTS:CARROTS", "CARROTS:MAGMA_BLOCK:CARROTS",
                             "CARROTS:CARROTS:CARROTS", false)) {

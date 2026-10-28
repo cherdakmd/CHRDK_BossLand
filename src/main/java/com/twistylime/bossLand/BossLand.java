@@ -43,7 +43,6 @@ import org.bukkit.entity.LargeFireball;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Panda;
 import org.bukkit.entity.Panda.Gene;
-import org.bukkit.entity.PigZombie;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Projectile;
 import org.bukkit.entity.Rabbit;
@@ -399,7 +398,7 @@ public class BossLand extends JavaPlugin implements Listener {
             World end = getServer().getWorld(p.getWorld().getName() + "_the_end");
             assert end != null;
             p.teleport(end.getSpawnLocation());
-            p.sendMessage("§5§lPrepare to die!");
+            p.sendMessage("§5§lПриготовься умереть!");
             final Location l = new Location(end, 0, end.getHighestBlockYAt(0, 0) + 3, 0);
             p.getWorld().createExplosion(l, 4);
             Bukkit.getServer().getScheduler().scheduleSyncDelayedTask(this, () -> bossManager.spawnBoss(p, l, "Death"), (10));
@@ -476,8 +475,8 @@ public class BossLand extends JavaPlugin implements Listener {
                 String bossType = config.getDataFrom("save","bosses." + e.getTarget().getUniqueId());
                 if (bossType != null) {
                     e.setCancelled(true);
-                } else if (e.getEntity() instanceof PigZombie) {
-                    if ((!(e.getTarget() instanceof Player)) && Objects.requireNonNull(Objects.requireNonNull(((PigZombie) e.getEntity()).getEquipment()).getHelmet())
+                } else if (e.getEntity() instanceof ZombifiedPiglin) {
+                    if ((!(e.getTarget() instanceof Player)) && Objects.requireNonNull(Objects.requireNonNull(((ZombifiedPiglin) e.getEntity()).getEquipment()).getHelmet())
                             .getType().equals(Material.PLAYER_HEAD))
                         e.setCancelled(true);
                 }
@@ -1868,10 +1867,10 @@ public class BossLand extends JavaPlugin implements Listener {
                     }
                 }
                 // Pigmen
-                if (minion.getType().equals(EntityType.PIGLIN)) {
-                    assert minion instanceof PigZombie;
-                    ((PigZombie) minion).setAngry(true);
-                    ((PigZombie) minion).setAnger(999 * 999);
+                if (minion.getType().equals(EntityType.ZOMBIFIED_PIGLIN)) {
+                    assert minion instanceof ZombifiedPiglin;
+                    ((ZombifiedPiglin) minion).setAngry(true);
+                    ((ZombifiedPiglin) minion).setAnger(999 * 999);
                 }
                 // Mount
                 if (mountType != null) {
@@ -2551,7 +2550,7 @@ public class BossLand extends JavaPlugin implements Listener {
                 p.getWorld().strikeLightning(p.getLocation());
                 // Biome
                 final Location l = p.getLocation();
-                if (Objects.requireNonNull(l.getWorld()).getBiome((int) l.getX(), (int) l.getY(), (int) l.getZ()).toString().contains("OCEAN")
+                if (Objects.requireNonNull(l.getWorld()).getBiome(l).toString().toUpperCase().contains("OCEAN")
                         && l.getBlockY() <= getConfig().getInt("waterLevel")) {
                     MCUtility.takeItem(p, 1);
                     MCUtility.boom(this,l, 3, false);
@@ -2565,8 +2564,7 @@ public class BossLand extends JavaPlugin implements Listener {
                     l.setY(l.getY() + 5);
                     p.sendMessage(config.getLang("aetherSpawn"));
                     Bukkit.getServer().getScheduler().scheduleSyncDelayedTask(this, () -> bossManager.spawnBoss(p, l, "AetherGod"), (40));
-                } else if (l.getWorld().getBiome((int) l.getX(), (int) l.getY(), (int) l.getZ()).toString()
-                        .contains("DESERT")) {
+                } else if (l.getWorld().getBiome(l).toString().toUpperCase().contains("DESERT")) {
                     MCUtility.takeItem(p, 1);
                     // boom(l,2,false);
                     MCUtility.lightningShow(plugin,l, 4);
@@ -2895,8 +2893,8 @@ public class BossLand extends JavaPlugin implements Listener {
     // }
 
     public void bossError(CommandSender sender) {
-        sender.sendMessage("§cInvalid Boss Type!");
-        sender.sendMessage("§eValid Bosses are: ");
+        sender.sendMessage("§cНеверный тип босса!");
+        sender.sendMessage("§eДоступные боссы: ");
         for (String b : getConfig().getConfigurationSection("bosses").getKeys(false))
             sender.sendMessage(b);
     }

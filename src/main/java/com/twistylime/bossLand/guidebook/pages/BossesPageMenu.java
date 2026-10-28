@@ -22,7 +22,7 @@ public class BossesPageMenu extends PaginatedMenu {
 
     @Override
     public String getMenuName() {
-        return "BossLand | Boss Menu";
+        return "BossLand | Боссы";
     }
 
     @Override
@@ -39,7 +39,7 @@ public class BossesPageMenu extends PaginatedMenu {
                     e.getWhoClicked().closeInventory();
                     break;
                 case NAME_TAG:
-                    e.getWhoClicked().sendMessage("This feature is work in progress and will be available in the upcoming updates.");
+                    e.getWhoClicked().sendMessage("Эта функция находится в разработке и будет доступна в ближайших обновлениях.");
                     e.getWhoClicked().closeInventory();
                     break;
                 case BAMBOO:
@@ -93,7 +93,12 @@ public class BossesPageMenu extends PaginatedMenu {
                 "pharaoh_god",
                 "drowned_god",
                 "the_devil",
-                "death"
+                "death",
+                "frost_titan",
+                "ocean_leviathan",
+                "nether_overlord",
+                "end_colossus",
+                "forest_guardian"
         ));
         ArrayList<ItemStack> bosses = new ArrayList<>();
 

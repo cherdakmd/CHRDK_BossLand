@@ -1,5 +1,6 @@
 bossRange: 35
 bossLimit: 99
+bossHealthMultiplier: 1.0
 waterLevel: 40
 skyLevel: 200
 maxKBEnchantLevel: 10
@@ -603,7 +604,7 @@ bosses:
     minion2: Zombie
     minion2Mount: ZOMBIE_HORSE
     minion3: Skeleton
-    minion3Mount: SKELETONE_HORSE
+    minion3Mount: SKELETON_HORSE
     dropedXP: 10000
     name: "§2§lGiant"
     health: 2000
@@ -1170,4 +1171,244 @@ bosses:
         enchantments: 
           1:
             enchantment: LOYALTY
+            level: 1
+  "FrostTitan":
+    entity: SNIFFER
+    minion: ZOMBIE
+    minion2: SKELETON
+    dropedXP: 15000
+    name: "§3§lFrost Titan"
+    health: 2500
+    specialChance: 25
+    potionChance: 30
+    maxSpecial: 15
+    deathParticle: "SNOWFLAKE:1:25:0"
+    attackParticle: "SNOWFLAKE:0:4:0.2"
+    barColor: "WHITE"
+    barStyle: "SEGMENTED_10"
+    hurtPotions:
+      - "SLOW:2:30"
+      - "WEAKNESS:1:15"
+    loot:
+      0:
+        item: ICE
+        amount: 64
+        name: "&f&lFrost Core"
+        lore1: "&bHeart of the eternal winter"
+        lore2: "&eUsed to craft summoning items"
+        lore3: "&8Dropped by Frost Titan"
+        enchantments:
+          1:
+            enchantment: LOYALTY
+            level: 1
+      1:
+        item: DIAMOND_SWORD
+        amount: 1
+        name: "&f&lFrostbrand"
+        lore1: "&bFreezes enemies on hit"
+        lore2: "&8Dropped by Frost Titan"
+        enchantments:
+          1:
+            enchantment: sharpness
+            level: 15-25
+          2:
+            enchantment: unbreaking
+            level: 10-20
+          3:
+            enchantment: fire_aspect
+            level: 1
+          4:
+            enchantment: mending
+            level: 1
+  "OceanLeviathan":
+    entity: GUARDIAN
+    minion: GUARDIAN
+    minion2: DROWNED
+    dropedXP: 20000
+    name: "§b§lOcean Leviathan"
+    health: 3000
+    specialChance: 20
+    potionChance: 35
+    maxSpecial: 20
+    deathParticle: "BUBBLE_COLUMN_UP:1:25:0"
+    attackParticle: "BUBBLE_COLUMN_UP:0:4:0.2"
+    barColor: "BLUE"
+    barStyle: "SEGMENTED_20"
+    hurtPotions:
+      - "SLOW:3:20"
+      - "BLINDNESS:1:10"
+    loot:
+      0:
+        item: PRISMARINE_SHARD
+        amount: 64
+        name: "&b&lAbyssal Scale"
+        lore1: "&bScale from the deep ocean beast"
+        lore2: "&eUsed to craft summoning items"
+        lore3: "&8Dropped by Ocean Leviathan"
+        enchantments:
+          1:
+            enchantment: LOYALTY
+            level: 1
+      1:
+        item: TRIDENT
+        amount: 1
+        name: "&b&lTide Caller"
+        lore1: "&bCommands the ocean itself"
+        lore2: "&8Dropped by Ocean Leviathan"
+        enchantments:
+          1:
+            enchantment: loyalty
+            level: 10
+          2:
+            enchantment: unbreaking
+            level: 10-20
+          3:
+            enchantment: impaling
+            level: 10
+          4:
+            enchantment: mending
+            level: 1
+  "NetherOverlord":
+    entity: MAGMA_CUBE
+    minion: BLAZE
+    minion2: GHAST
+    dropedXP: 25000
+    name: "§4§lNether Overlord"
+    health: 3500
+    specialChance: 30
+    potionChance: 30
+    maxSpecial: 20
+    deathParticle: "FLAME:1:25:0"
+    attackParticle: "FLAME:0:3:0.2"
+    barColor: "RED"
+    barStyle: "SEGMENTED_20"
+    hurtPotions:
+      - "FIRE:1:60"
+      - "WEAKNESS:2:20"
+    loot:
+      0:
+        item: MAGMA_CREAM
+        amount: 64
+        name: "&c&lInfernal Core"
+        lore1: "&cCore of the nether ruler"
+        lore2: "&eUsed to craft summoning items"
+        lore3: "&8Dropped by Nether Overlord"
+        enchantments:
+          1:
+            enchantment: LOYALTY
+            level: 1
+      1:
+        item: DIAMOND_AXE
+        amount: 1
+        name: "&c&lInferno Cleaver"
+        lore1: "&cBurns everything it touches"
+        lore2: "&8Dropped by Nether Overlord"
+        enchantments:
+          1:
+            enchantment: sharpness
+            level: 15-25
+          2:
+            enchantment: unbreaking
+            level: 10-20
+          3:
+            enchantment: fire_aspect
+            level: 5-10
+          4:
+            enchantment: mending
+            level: 1
+  "EndColossus":
+    entity: ENDERMAN
+    minion: ENDERMITE
+    minion2: SHULKER
+    dropedXP: 30000
+    name: "§5§lEnd Colossus"
+    health: 4000
+    specialChance: 35
+    potionChance: 25
+    maxSpecial: 25
+    deathParticle: "DRAGON_BREATH:1:25:0"
+    attackParticle: "DRAGON_BREATH:0:3:0.2"
+    barColor: "PURPLE"
+    barStyle: "SEGMENTED_20"
+    hurtPotions:
+      - "BLINDNESS:1:10"
+      - "SLOW:2:30"
+    loot:
+      0:
+        item: ENDER_PEARL
+        amount: 64
+        name: "&d&lEnder Crystal Shard"
+        lore1: "&dFragment of the end dimension"
+        lore2: "&eUsed to craft summoning items"
+        lore3: "&8Dropped by End Colossus"
+        enchantments:
+          1:
+            enchantment: LOYALTY
+            level: 1
+      1:
+        item: NETHERITE_SWORD
+        amount: 1
+        name: "&d&lVoid Blade"
+        lore1: "&dCuts through dimensions"
+        lore2: "&8Dropped by End Colossus"
+        enchantments:
+          1:
+            enchantment: sharpness
+            level: 20-30
+          2:
+            enchantment: unbreaking
+            level: 15-25
+          3:
+            enchantment: looting
+            level: 15-25
+          4:
+            enchantment: mending
+            level: 1
+  "ForestGuardian":
+    entity: IRON_GOLEM
+    minion: WOLF
+    minion2: BEE
+    dropedXP: 10000
+    name: "§a§lForest Guardian"
+    health: 1500
+    specialChance: 20
+    potionChance: 20
+    maxSpecial: 10
+    deathParticle: "HAPPY_VILLAGER:1:25:0"
+    attackParticle: "HAPPY_VILLAGER:0:4:0.2"
+    barColor: "GREEN"
+    barStyle: "SEGMENTED_10"
+    hurtPotions:
+      - "SLOW:1:15"
+      - "WEAKNESS:1:10"
+    loot:
+      0:
+        item: OAK_SAPLING
+        amount: 64
+        name: "&2&lNature's Essence"
+        lore1: "&aEssence of the living forest"
+        lore2: "&eUsed to craft summoning items"
+        lore3: "&8Dropped by Forest Guardian"
+        enchantments:
+          1:
+            enchantment: LOYALTY
+            level: 1
+      1:
+        item: DIAMOND_PICKAXE
+        amount: 1
+        name: "&2&lGreenwarden"
+        lore1: "&aBlessed by the forest itself"
+        lore2: "&8Dropped by Forest Guardian"
+        enchantments:
+          1:
+            enchantment: unbreaking
+            level: 10-20
+          2:
+            enchantment: efficiency
+            level: 5-15
+          3:
+            enchantment: fortune
+            level: 5-15
+          4:
+            enchantment: mending
             level: 1

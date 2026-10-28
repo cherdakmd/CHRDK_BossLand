@@ -20,7 +20,7 @@ public class CreditsPageMenu extends PaginatedMenu {
 
     @Override
     public String getMenuName() {
-        return "BossLand | Credits";
+        return "BossLand | Авторы";
     }
 
     @Override
@@ -39,7 +39,7 @@ public class CreditsPageMenu extends PaginatedMenu {
                 case BARRIER:
                     e.getWhoClicked().closeInventory();
                 case NAME_TAG:
-                    e.getWhoClicked().sendMessage("This feature is work in progress and will be available in the upcoming updates.");
+                    e.getWhoClicked().sendMessage("Эта функция находится в разработке и будет доступна в ближайших обновлениях.");
                     e.getWhoClicked().closeInventory();
                     break;
                 default:
@@ -55,11 +55,11 @@ public class CreditsPageMenu extends PaginatedMenu {
         List<ItemStack> credits = new ArrayList<>();
 
         Map<String, List<String>> creditData = new LinkedHashMap<>();
-        creditData.put(ChatColor.GOLD + "" + ChatColor.BOLD + "Original Developer",
+        creditData.put(ChatColor.GOLD + "" + ChatColor.BOLD + "Оригинальный разработчик",
                 List.of(ChatColor.YELLOW + "Eliminator"));
-        creditData.put(ChatColor.AQUA + "" + ChatColor.BOLD + "Current Developer",
+        creditData.put(ChatColor.AQUA + "" + ChatColor.BOLD + "Текущий разработчик",
                 List.of(ChatColor.GREEN + "TwistyLime"));
-        creditData.put(ChatColor.LIGHT_PURPLE + "" + ChatColor.BOLD + "License",
+        creditData.put(ChatColor.LIGHT_PURPLE + "" + ChatColor.BOLD + "Лицензия",
                 List.of(ChatColor.WHITE + "MIT License"));
 
         int[] slots = {11, 13, 15};

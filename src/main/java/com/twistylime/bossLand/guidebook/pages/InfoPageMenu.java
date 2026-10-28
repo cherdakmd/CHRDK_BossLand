@@ -24,7 +24,7 @@ public class InfoPageMenu extends PaginatedMenu {
 
     @Override
     public String getMenuName() {
-        return "BossLand | Plugin Info";
+        return "BossLand | Информация о плагине";
     }
 
     @Override
@@ -43,11 +43,11 @@ public class InfoPageMenu extends PaginatedMenu {
                 case BARRIER:
                     e.getWhoClicked().closeInventory();
                 case NAME_TAG:
-                    e.getWhoClicked().sendMessage("This feature is work in progress and will be available in the upcoming updates.");
+                    e.getWhoClicked().sendMessage("Эта функция находится в разработке и будет доступна в ближайших обновлениях.");
                     e.getWhoClicked().closeInventory();
                     break;
                 case NETHER_STAR:
-                    TextComponent message = new TextComponent("§a§lClick here to open the plugin page!");
+                    TextComponent message = new TextComponent("§a§lНажмите, чтобы открыть страницу плагина!");
                     message.setClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, "https://www.spigotmc.org/resources/boss-land.127099/"));
                     e.getWhoClicked().spigot().sendMessage(message);
                     e.getWhoClicked().closeInventory();
@@ -65,11 +65,11 @@ public class InfoPageMenu extends PaginatedMenu {
         List<ItemStack> credits = new ArrayList<>();
 
         Map<String, List<String>> creditData = new LinkedHashMap<>();
-        creditData.put(ChatColor.GOLD + "" + ChatColor.BOLD + "Plugin Version",
-                List.of(ChatColor.YELLOW + "BossLand v2.3"));
-        creditData.put(ChatColor.AQUA + "" + ChatColor.BOLD + "Supported Minecraft Versions",
+        creditData.put(ChatColor.GOLD + "" + ChatColor.BOLD + "Версия плагина",
+                List.of(ChatColor.YELLOW + "BossLand v2.4"));
+        creditData.put(ChatColor.AQUA + "" + ChatColor.BOLD + "Поддерживаемые версии Minecraft",
                 List.of(ChatColor.GREEN + "v1.16.1 - v1.21.5"));
-        creditData.put(ChatColor.LIGHT_PURPLE + "" + ChatColor.BOLD + "Visit Plugin Page",
+        creditData.put(ChatColor.LIGHT_PURPLE + "" + ChatColor.BOLD + "Страница плагина",
                 List.of(ChatColor.WHITE + "MIT License"));
 
         int[] slots = {11, 13, 15};

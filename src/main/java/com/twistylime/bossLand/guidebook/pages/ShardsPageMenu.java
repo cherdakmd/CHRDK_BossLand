@@ -22,7 +22,7 @@ public class ShardsPageMenu extends PaginatedMenu {
 
     @Override
     public String getMenuName() {
-        return "BossLand | Shards Menu";
+        return "BossLand | Осколки";
     }
 
     @Override
@@ -40,7 +40,7 @@ public class ShardsPageMenu extends PaginatedMenu {
                     playerWhoClicked.closeInventory();
                     break;
                 case NAME_TAG:
-                    playerWhoClicked.sendMessage("This feature is work in progress and will be available in the upcoming updates.");
+                    playerWhoClicked.sendMessage("Эта функция находится в разработке и будет доступна в ближайших обновлениях.");
                     playerWhoClicked.closeInventory();
                     break;
                 case ARROW:

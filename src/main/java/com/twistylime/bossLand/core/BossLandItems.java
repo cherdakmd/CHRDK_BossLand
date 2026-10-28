@@ -195,7 +195,7 @@ public class BossLandItems {
                 String owner = plugin.getConfig().getString("bosses." + bossType + ".loot." + loot + ".owner");
                 if (owner != null) {
                     SkullMeta sm = (SkullMeta) stack.getItemMeta();
-                    sm.setOwningPlayer(Bukkit.getOfflinePlayer(UUID.fromString(owner)));
+                    sm.setOwningPlayer(UUID.fromString(owner));
                     stack.setItemMeta(sm);
                 }
             }
@@ -387,6 +387,51 @@ public class BossLandItems {
         // m.addEnchant(Enchantment.BINDING_CURSE, 1, true);
         m.setDisplayName(config.getLang("items.deathnote"));
         m.setLore(config.getLangList("items.deathnotelore"));
+        s.setItemMeta(m);
+        return s;
+    }
+
+    public ItemStack getFrostCore() {
+        ItemStack s = getItem(Material.ICE, config.getLang("items.frostcore"), 1,
+                config.getLangList("items.frostcorelore"));
+        ItemMeta m = s.getItemMeta();
+        m.addEnchant(Enchantment.VANISHING_CURSE, 1, true);
+        s.setItemMeta(m);
+        return s;
+    }
+
+    public ItemStack getAbyssalScale() {
+        ItemStack s = getItem(Material.PRISMARINE_SHARD, config.getLang("items.abyssalscale"), 1,
+                config.getLangList("items.abyssalscalelore"));
+        ItemMeta m = s.getItemMeta();
+        m.addEnchant(Enchantment.VANISHING_CURSE, 1, true);
+        s.setItemMeta(m);
+        return s;
+    }
+
+    public ItemStack getInfernalCore() {
+        ItemStack s = getItem(Material.MAGMA_CREAM, config.getLang("items.infernalcore"), 1,
+                config.getLangList("items.infernalcorelore"));
+        ItemMeta m = s.getItemMeta();
+        m.addEnchant(Enchantment.VANISHING_CURSE, 1, true);
+        s.setItemMeta(m);
+        return s;
+    }
+
+    public ItemStack getEnderCrystalShard() {
+        ItemStack s = getItem(Material.ENDER_PEARL, config.getLang("items.endercrystalshard"), 1,
+                config.getLangList("items.endercrystalshardlore"));
+        ItemMeta m = s.getItemMeta();
+        m.addEnchant(Enchantment.VANISHING_CURSE, 1, true);
+        s.setItemMeta(m);
+        return s;
+    }
+
+    public ItemStack getNaturesEssence() {
+        ItemStack s = getItem(Material.OAK_SAPLING, config.getLang("items.naturesessence"), 1,
+                config.getLangList("items.naturesessencelore"));
+        ItemMeta m = s.getItemMeta();
+        m.addEnchant(Enchantment.VANISHING_CURSE, 1, true);
         s.setItemMeta(m);
         return s;
     }

@@ -23,7 +23,7 @@ public class GuideMainMenu extends PaginatedMenu {
 
     @Override
     public String getMenuName() {
-        return "BossLand Guide Book";
+        return "BossLand | Руководство";
     }
 
     @Override
@@ -41,7 +41,7 @@ public class GuideMainMenu extends PaginatedMenu {
                 p.closeInventory();
                 break;
             case NAME_TAG:
-                p.sendMessage("This feature is work in progress and will be available in the upcoming updates.");
+                p.sendMessage("Эта функция находится в разработке и будет доступна в ближайших обновлениях.");
                 p.closeInventory();
                 break;
             case FIRE_CORAL:
@@ -74,13 +74,13 @@ public class GuideMainMenu extends PaginatedMenu {
     public void setMenuItems() {
         addSmallMenuBorder();
 
-        inventory.setItem(10, decorateItem(Material.FIRE_CORAL, "Bosses", true, "Summon and fight", "Powerful custom bosses"));
-        inventory.setItem(11, decorateItem(Material.BLAZE_ROD, "Items", false, "Unique drops", "Craft legendary gear"));
-        inventory.setItem(12, decorateItem(Material.LAPIS_LAZULI, "Shards", true, "Boss shards", "Used for crafting recipes"));
-        inventory.setItem(13, decorateItem(Material.ENCHANTED_GOLDEN_APPLE, "Recipes", false, "Learn how to craft", "Powerful items"));
-        inventory.setItem(14, decorateItem(Material.NETHERITE_CHESTPLATE, "Armors", true, "Custom armor sets", "With special abilities"));
-        inventory.setItem(15, decorateItem(Material.PAPER, "Credits", false, "Developed by", "§eTwistyLime"));
-        inventory.setItem(16, decorateItem(Material.NETHER_STAR, "About Plugin", false, "§7BossLand plugin", "§7Version 2.3"));
+        inventory.setItem(10, decorateItem(Material.FIRE_CORAL, "Боссы", true, "Призвать и сражаться", "Мощные кастомные боссы"));
+        inventory.setItem(11, decorateItem(Material.BLAZE_ROD, "Предметы", false, "Уникальные дропы", "Создайте легендарное снаряжение"));
+        inventory.setItem(12, decorateItem(Material.LAPIS_LAZULI, "Осколки", true, "Осколки боссов", "Используются для крафта"));
+        inventory.setItem(13, decorateItem(Material.ENCHANTED_GOLDEN_APPLE, "Рецепты", false, "Узнайте как крафтить", "Мощные предметы"));
+        inventory.setItem(14, decorateItem(Material.NETHERITE_CHESTPLATE, "Броня", true, "Наборы брони", "С особыми способностями"));
+        inventory.setItem(15, decorateItem(Material.PAPER, "Авторы", false, "Разработано", "§eTwistyLime"));
+        inventory.setItem(16, decorateItem(Material.NETHER_STAR, "О плагине", false, "§7BossLand", "§7Версия 2.4"));
     }
 
 

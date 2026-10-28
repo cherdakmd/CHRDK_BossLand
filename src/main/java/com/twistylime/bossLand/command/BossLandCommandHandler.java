@@ -45,7 +45,7 @@ public class BossLandCommandHandler implements CommandExecutor {
             try {
                 if (args[0].equals("reload")) {
                     config.reloadConfigs();
-                    sender.sendMessage("§eBossLand: Reloaded config!");
+                    sender.sendMessage("§eBossLand: Конфигурация перезагружена!");
                     return true;
                 }
                 else if (args[0].equals("guide")) {
@@ -57,7 +57,7 @@ public class BossLandCommandHandler implements CommandExecutor {
                         Player p = (Player) sender;
                         if (plugin.getConfig().getString("bosses." + args[1]) != null) {
                             bossManager.spawnBoss(p, p.getLocation(), args[1]);
-                            sender.sendMessage("§eBossLand: Spawned a " + args[1] + " boss!");
+                            sender.sendMessage("§eBossLand: Босс §a" + args[1] + " §fспавнен!");
                         } else
                             plugin.bossError(sender);
                     }
@@ -66,13 +66,13 @@ public class BossLandCommandHandler implements CommandExecutor {
                     if (plugin.getConfig().getString("bosses." + args[1]) != null) {
                         World w = plugin.getServer().getWorld(args[5]);
                         if (w == null) {
-                            sender.sendMessage("§cWorld not found!");
+                            sender.sendMessage("§cМир не найден!");
                             return true;
                         }
                         Location l = new Location(w, Integer.parseInt(args[2]), Integer.parseInt(args[3]),
                                 Integer.parseInt(args[4]));
                         bossManager.spawnBoss(null, l, args[1]);
-                        sender.sendMessage("§eBossLand: Spawned a " + args[1] + " boss at the coords!");
+                            sender.sendMessage("§eBossLand: Босс §a" + args[1] + " §fспавнен по координатам!");
                     } else
                         plugin.bossError(sender);
                     return true;
@@ -84,9 +84,9 @@ public class BossLandCommandHandler implements CommandExecutor {
                             ItemStack s = plugin.getLoot(p, bossType);
                             if (s != null && (!s.getType().equals(Material.AIR))) {
                                 p.getInventory().addItem(s);
-                                sender.sendMessage("§eBossLand: Dropped " + bossType + " boss loot!");
+                                sender.sendMessage("§eBossLand: Дроп босса §a" + bossType + " §fвыдан!");
                             } else
-                                sender.sendMessage("§eBossLand: Loot Error!");
+                                sender.sendMessage("§eBossLand: Ошибка лута!");
                         } else
                             plugin.bossError(sender);
                     }
@@ -100,11 +100,11 @@ public class BossLandCommandHandler implements CommandExecutor {
                                 ItemStack s = lootManager.getLootFromName(args[2],bossType);
                                 if (s != null && (!s.getType().equals(Material.AIR))) {
                                     p.getInventory().addItem(s);
-                                    sender.sendMessage("§eBossLand: Dropped " + bossType + " boss loot!");
+                                    sender.sendMessage("§eBossLand: Дроп босса §a" + bossType + " §fвыдан!");
                                 } else
-                                    sender.sendMessage("§eBossLand: A drop does not exsist for that ID.");
+                                    sender.sendMessage("§eBossLand: Дроп с таким ID не существует.");
                             } catch (Exception x) {
-                                sender.sendMessage("§eBossLand: Loot Error!");
+                                sender.sendMessage("§eBossLand: Ошибка лута!");
                             }
                         } else
                             plugin.bossError(sender);
@@ -132,9 +132,9 @@ public class BossLandCommandHandler implements CommandExecutor {
                             ItemStack s = p.getInventory().getItemInMainHand();
                             if (!s.getType().equals(Material.AIR)) {
                                 plugin.setItem(s, "bosses." + bossType + ".loot." + id, plugin.getConfig());
-                                sender.sendMessage("§eBossLand: Loot at " + id + " for boss " + bossType + " set!");
+                                sender.sendMessage("§eBossLand: Лут в слоте §a" + id + " §fдля босса §a" + bossType + " §fустановлен!");
                             } else
-                                sender.sendMessage("§eBossLand: No item is in your hand!");
+                                sender.sendMessage("§eBossLand: В руке нет предмета!");
                         } else
                             plugin.bossError(sender);
                     }
@@ -150,25 +150,25 @@ public class BossLandCommandHandler implements CommandExecutor {
                         if (Objects.equals(i.getKey().getLocation().getWorld(), w)) {
                             ((LivingEntity) i.getKey()).damage(999 * 999);
                         }
-                    sender.sendMessage("§eBossLand: Removed all bosses from the world.");
+                    sender.sendMessage("§eBossLand: Все боссы удалены из мира.");
                     return true;
                 } else if (args[0].equals("help") && args.length == 1){
                     sender.sendMessage("§6§lBoss Land §r§bv"+version);
                     sender.sendMessage("§3===============");
-                    sender.sendMessage("§8■ §e/bl-admin help §7→ §fShows list of available commands");
-                    sender.sendMessage("§8■ §e/bl-admin spawn <boss> §7→ §fSpawns a Boss");
-                    sender.sendMessage("§8■ §e/bl-admin cspawn <boss> <x> <y> <z> <world> §7→ §fSpawns a Boss at coords in a world.");
-                    sender.sendMessage("§8■ §e/bl-admin loot <boss> §7→ §fDrops a random loot");
-                    sender.sendMessage("§8■ §e/bl-admin sloot <boss> <id> §7→ §fDrops specific loot");
-                    sender.sendMessage("§8■ §e/bl-admin setLoot <boss> <id> §7→ §fSet loot for boss");
-                    sender.sendMessage("§8■ §e/bl-admin addLoot <boss> §7→ §fAdd loot for boss");
-                    sender.sendMessage("§8■ §e/bl-admin killBosses <world> §7→ §fRemove bosses");
-                    sender.sendMessage("§8■ §e/bl-admin reload §7→ §fRe-loads the config");
+                    sender.sendMessage("§8■ §e/bl-admin help §7→ §fПоказать список команд");
+                    sender.sendMessage("§8■ §e/bl-admin spawn <босс> §7→ §fЗаспавнить босса");
+                    sender.sendMessage("§8■ §e/bl-admin cspawn <босс> <x> <y> <z> <мир> §7→ §fЗаспавнить босса по координатам");
+                    sender.sendMessage("§8■ §e/bl-admin loot <босс> §7→ §fВыдать случайный лут");
+                    sender.sendMessage("§8■ §e/bl-admin sloot <босс> <id> §7→ §fВыдать конкретный лут");
+                    sender.sendMessage("§8■ §e/bl-admin setLoot <босс> <id> §7→ §fУстановить лут для босса");
+                    sender.sendMessage("§8■ §e/bl-admin addLoot <босс> §7→ §fДобавить лут для босса");
+                    sender.sendMessage("§8■ §e/bl-admin killBosses <мир> §7→ §fУдалить боссов в мире");
+                    sender.sendMessage("§8■ §e/bl-admin reload §7→ §fПерезагрузить конфиг");
                     return true;
                 }
             } catch (Exception e) {
             }
-            sender.sendMessage("§cInvalid Command! Use /bl-admin help to see the list of available commands.");
+            sender.sendMessage("§cНеверная команда! Используйте /bl-admin help для списка команд.");
         }
         if ((cmd.getName().equals("bossland")) || (cmd.getName().equals("bl"))){
             if (args[0].equals("guide") && args.length == 1) {
@@ -178,7 +178,7 @@ public class BossLandCommandHandler implements CommandExecutor {
                     ItemMeta guideBookMeta = guideBook.getItemMeta();
                     if(guideBookMeta != null){
                         guideBookMeta.setDisplayName(config.getLang("items.guidebook"));
-                        guideBookMeta.setLore(List.of(ChatColor.GRAY+"by TwistyLime, plugin by Eliminator"));
+                        guideBookMeta.setLore(List.of(ChatColor.GRAY+"by TwistyLime, плагин от Eliminator"));
                     }
                     guideBook.setItemMeta(guideBookMeta);
                     p.getInventory().addItem(guideBook);
@@ -188,9 +188,9 @@ public class BossLandCommandHandler implements CommandExecutor {
                 if(sender instanceof Player){
                     sender.sendMessage("§6§lBoss Land §r§bv"+version);
                     sender.sendMessage("§3===============");
-                    sender.sendMessage("§8■ §e/bl guide §7→ §fProvides Guide book");
-                    sender.sendMessage("§8■ §e/bl help §7→ §fShows list of available commands");
-                    sender.sendMessage("§8■ §e/bl info §7→ §fShows information about plugin.");
+                    sender.sendMessage("§8■ §e/bl guide §7→ §fВыдать книгу руководства");
+                    sender.sendMessage("§8■ §e/bl help §7→ §fПоказать список команд");
+                    sender.sendMessage("§8■ §e/bl info §7→ §fИнформация о плагине.");
                 }
                 return true;
             } else if (args[0].equals("info") && args.length == 1) {
@@ -199,12 +199,12 @@ public class BossLandCommandHandler implements CommandExecutor {
                     sender.sendMessage("§6§lBoss Land §r§bv"+version);
                     sender.sendMessage("§3===============");
                     sender.sendMessage("§e"+desc);
-                    sender.sendMessage("§8■ §3Former Author §7→ §fEliminator");
-                    sender.sendMessage("§8■ §3Current Author §7→ §fTwistyLime");
+                    sender.sendMessage("§8■ §3Бывший автор §7→ §fEliminator");
+                    sender.sendMessage("§8■ §3Текущий автор §7→ §fTwistyLime");
                 }
                 return true;
             }
-            sender.sendMessage("§cInvalid Command! Use /bl help to see the list of available commands.");
+            sender.sendMessage("§cНеверная команда! Используйте /bl help для списка команд.");
         }
         return true;
     }

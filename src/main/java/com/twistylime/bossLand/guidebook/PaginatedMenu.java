@@ -32,6 +32,10 @@ public abstract class PaginatedMenu extends Menu {
         return page;
     }
 
+    public void setPage(int page) {
+        this.page = Math.max(0, page);
+    }
+
     public int getIndex() {
         return index;
     }
@@ -61,11 +65,11 @@ public abstract class PaginatedMenu extends Menu {
             }
         }
 
-        inventory.setItem(2,createItem(Material.NAME_TAG, ChatColor.WHITE + "Search", false));
-        inventory.setItem(6,createItem(Material.BARRIER,ChatColor.RED.toString() + ChatColor.BOLD + "Close", false));
-        inventory.setItem(47,createItem(Material.ARROW, ChatColor.GOLD + "Previous Page", false));
-        inventory.setItem(51,createItem(Material.SPECTRAL_ARROW, ChatColor.GOLD + "Next Page", false));
-        inventory.setItem(49,createItem(Material.WRITABLE_BOOK, ChatColor.WHITE + "Previous Menu", false));
+        inventory.setItem(2,createItem(Material.NAME_TAG, ChatColor.WHITE + "Поиск", false));
+        inventory.setItem(6,createItem(Material.BARRIER,ChatColor.RED.toString() + ChatColor.BOLD + "Закрыть", false));
+        inventory.setItem(47,createItem(Material.ARROW, ChatColor.GOLD + "Предыдущая страница", false));
+        inventory.setItem(51,createItem(Material.SPECTRAL_ARROW, ChatColor.GOLD + "Следующая страница", false));
+        inventory.setItem(49,createItem(Material.WRITABLE_BOOK, ChatColor.WHITE + "Предыдущее меню", false));
     }
 
     public void addSmallMenuBorder(){
@@ -93,8 +97,8 @@ public abstract class PaginatedMenu extends Menu {
             }
         }
 
-        inventory.setItem(2,createItem(Material.NAME_TAG,ChatColor.WHITE + "Search", false));
-        inventory.setItem(6,createItem(Material.BARRIER,ChatColor.RED.toString() + ChatColor.BOLD + "Close", false));
+        inventory.setItem(2,createItem(Material.NAME_TAG,ChatColor.WHITE + "Поиск", false));
+        inventory.setItem(6,createItem(Material.BARRIER,ChatColor.RED.toString() + ChatColor.BOLD + "Закрыть", false));
     }
 
     public void addSmallCreditMenuBorder(){
@@ -117,9 +121,9 @@ public abstract class PaginatedMenu extends Menu {
             }
         }
 
-        inventory.setItem(0,createItem(Material.NAME_TAG,ChatColor.WHITE + "Search", false));
-        inventory.setItem(4,createItem(Material.WRITABLE_BOOK,ChatColor.WHITE + "Previous Menu", false));
-        inventory.setItem(8,createItem(Material.BARRIER,ChatColor.RED.toString() + ChatColor.BOLD + "Close", false));
+        inventory.setItem(0,createItem(Material.NAME_TAG,ChatColor.WHITE + "Поиск", false));
+        inventory.setItem(4,createItem(Material.WRITABLE_BOOK,ChatColor.WHITE + "Предыдущее меню", false));
+        inventory.setItem(8,createItem(Material.BARRIER,ChatColor.RED.toString() + ChatColor.BOLD + "Закрыть", false));
     }
 
     public void addBossRecipeTemplate(){
@@ -135,11 +139,11 @@ public abstract class PaginatedMenu extends Menu {
         ItemMeta instructionsMeta = bossRecipeInstructor.getItemMeta();
         if(instructionsMeta != null){
             instructionsMeta.setLore(List.of(
-                    "§e§lHow to Summon the Boss:",
+                    "§e§lКак призвать босса:",
                     "",
-                    "§7» §fBuild the structure in the world",
+                    "§7» §fПостройте структуру в мире",
                     "",
-                    "§fHover over the boss to know the biome it will spawn in."
+                    "§fНаведите курсор на босса, чтобы узнать биом для призыва."
             ));
             bossRecipeInstructor.setItemMeta(instructionsMeta);
         }
@@ -157,9 +161,9 @@ public abstract class PaginatedMenu extends Menu {
             }
         }
 
-        inventory.setItem(0,createItem(Material.NAME_TAG,ChatColor.WHITE + "Search", false));
-        inventory.setItem(8,createItem(Material.BARRIER,ChatColor.RED.toString() + ChatColor.BOLD + "Close", false));
-        inventory.setItem(4,createItem(Material.WRITABLE_BOOK,ChatColor.WHITE + "Previous Menu", false));
+        inventory.setItem(0,createItem(Material.NAME_TAG,ChatColor.WHITE + "Поиск", false));
+        inventory.setItem(8,createItem(Material.BARRIER,ChatColor.RED.toString() + ChatColor.BOLD + "Закрыть", false));
+        inventory.setItem(4,createItem(Material.WRITABLE_BOOK,ChatColor.WHITE + "Предыдущее меню", false));
         inventory.setItem(18, bossRecipeInstructor);
     }
 
@@ -185,9 +189,9 @@ public abstract class PaginatedMenu extends Menu {
             }
         }
 
-        inventory.setItem(1,createItem(Material.NAME_TAG,ChatColor.WHITE + "Search", false));
-        inventory.setItem(7,createItem(Material.BARRIER,ChatColor.RED.toString() + ChatColor.BOLD + "Close", false));
-        inventory.setItem(4,createItem(Material.WRITABLE_BOOK,ChatColor.WHITE + "Previous Menu", false));
+        inventory.setItem(1,createItem(Material.NAME_TAG,ChatColor.WHITE + "Поиск", false));
+        inventory.setItem(7,createItem(Material.BARRIER,ChatColor.RED.toString() + ChatColor.BOLD + "Закрыть", false));
+        inventory.setItem(4,createItem(Material.WRITABLE_BOOK,ChatColor.WHITE + "Предыдущее меню", false));
     }
 
     public void addItemRecipeTemplate(){
@@ -203,11 +207,11 @@ public abstract class PaginatedMenu extends Menu {
         ItemMeta instructionsMeta = itemRecipeInstructor.getItemMeta();
         if(instructionsMeta != null){
             instructionsMeta.setLore(List.of(
-                    "§e§lHow to Craft the Item:",
+                    "§e§lКак создать предмет:",
                     "",
-                    "§7» §fUse crafting table to craft item shown in the recipe",
+                    "§7» §fИспользуйте верстак для создания предмета из рецепта",
                     "",
-                    "§fItems should be placed in the crafting table as shown in the recipe"
+                    "§fПредметы должны быть расположены в верстаке как показано в рецепте"
             ));
             itemRecipeInstructor.setItemMeta(instructionsMeta);
         }
@@ -225,9 +229,9 @@ public abstract class PaginatedMenu extends Menu {
             }
         }
 
-        inventory.setItem(1,createItem(Material.NAME_TAG,ChatColor.WHITE + "Search", false));
-        inventory.setItem(7,createItem(Material.BARRIER,ChatColor.RED.toString() + ChatColor.BOLD + "Close", false));
-        inventory.setItem(49,createItem(Material.WRITABLE_BOOK,ChatColor.WHITE + "Previous Menu", false));
+        inventory.setItem(1,createItem(Material.NAME_TAG,ChatColor.WHITE + "Поиск", false));
+        inventory.setItem(7,createItem(Material.BARRIER,ChatColor.RED.toString() + ChatColor.BOLD + "Закрыть", false));
+        inventory.setItem(49,createItem(Material.WRITABLE_BOOK,ChatColor.WHITE + "Предыдущее меню", false));
         inventory.setItem(19, itemRecipeInstructor);
     }
 
