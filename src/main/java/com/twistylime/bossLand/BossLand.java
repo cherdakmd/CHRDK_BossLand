@@ -26,6 +26,9 @@ import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeInstance;
 import org.bukkit.block.Block;
 import org.bukkit.block.Chest;
+import org.bukkit.boss.BarColor;
+import org.bukkit.boss.BarFlag;
+import org.bukkit.boss.BarStyle;
 import org.bukkit.boss.BossBar;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -124,6 +127,12 @@ public class BossLand extends JavaPlugin implements Listener {
     static BossLandShrines shrinesManager;
     static BossLandLoot lootManager;
     static boolean lowBossHealthIndicator = false;
+
+    // Mini-boss system: track dug blocks per player
+    HashMap<UUID, Integer> dugBlocksMap = new HashMap<>();
+    HashMap<Entity, BossBar> miniBossBars = new HashMap<>();
+    private static final int DUG_BLOCKS_THRESHOLD = 1000;
+    private static final int MINI_BOSS_SPAWN_CHANCE = 5; // percent chance per 1000 blocks
 
     public static BossLand getPlugin() {
         return plugin;
@@ -390,6 +399,122 @@ public class BossLand extends JavaPlugin implements Listener {
             }
         }
         p.updateInventory();
+    }
+
+    /**
+     * Mini-boss system: track dug blocks and spawn mini-bosses randomly.
+     * Players must dig 1000 blocks to have a chance to trigger a mini-boss.
+     */
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void onBlockBreakForMiniBoss(BlockBreakEvent e) {
+        Player p = e.getPlayer();
+        if (p == null || e.isCancelled()) return;
+
+        UUID uuid = p.getUniqueId();
+        int count = dugBlocksMap.getOrDefault(uuid, 0) + 1;
+        dugBlocksMap.put(uuid, count);
+
+        if (count >= DUG_BLOCKS_THRESHOLD) {
+            dugBlocksMap.put(uuid, 0); // reset counter
+            if (UtilityCalc.rand(1, 100) <= MINI_BOSS_SPAWN_CHANCE) {
+                spawnMiniBoss(p, p.getLocation());
+            }
+        }
+    }
+
+    private void spawnMiniBoss(Player p, Location l) {
+        try {
+            // Announce to nearby players
+            String msg = config.getLang("miniboss.spawn");
+            for (Entity ent : l.getWorld().getNearbyEntities(l, 50, 50, 50)) {
+                if (ent instanceof Player pl) {
+                    pl.sendMessage(msg);
+                    pl.getWorld().playSound(pl.getLocation(), Sound.ENTITY_WITHER_SPAWN, 1, 1);
+                }
+            }
+
+            // Pick random mini-boss type
+            String[] miniBossTypes = {"ZOMBIE", "SKELETON", "SPIDER", "CAVE_SPIDER", "CREEPER", "DROWNED", "HUSK", "STRAY"};
+            String type = miniBossTypes[UtilityCalc.rand(0, miniBossTypes.length - 1)];
+            EntityType bossType = EntityType.valueOf(type);
+
+            Entity boss = l.getWorld().spawnEntity(l, bossType);
+            if (!(boss instanceof LivingEntity)) {
+                boss.remove();
+                return;
+            }
+            LivingEntity livingBoss = (LivingEntity) boss;
+
+            // Set custom name
+            String displayName = config.getLang("miniboss.name").replace("<type>", type);
+            boss.setCustomName(displayName);
+            boss.setCustomNameVisible(true);
+
+            // Set increased health
+            double baseHealth = 100.0;
+            double maxHealth = baseHealth * plugin.getConfig().getDouble("bossHealthMultiplier", 1.0);
+            AttributeInstance healthAttr = livingBoss.getAttribute(CompatibilityResolver.resolveAttribute("MAX_HEALTH", "GENERIC_MAX_HEALTH"));
+            if (healthAttr != null) {
+                healthAttr.setBaseValue(maxHealth);
+                livingBoss.setHealth(maxHealth);
+            }
+
+            // Prevent despawn
+            livingBoss.setRemoveWhenFarAway(false);
+
+            // Create BossBar
+            BossBar bar = Bukkit.createBossBar(displayName,
+                    BarColor.valueOf(plugin.getConfig().getString("miniboss.barColor", "RED")),
+                    BarStyle.valueOf(plugin.getConfig().getString("miniboss.barStyle", "SOLID")),
+                    BarFlag.CREATE_FOG);
+            bar.addPlayer(p);
+            bar.setVisible(true);
+            miniBossBars.put(boss, bar);
+
+            // Save as boss so damage events recognize it
+            config.setSaveData("bosses." + boss.getUniqueId().toString(), "MINI_BOSS:" + type);
+            config.saveBossData();
+
+            // Start health update task
+            Bukkit.getServer().getScheduler().scheduleSyncDelayedTask(this, new Runnable() {
+                @Override
+                public void run() {
+                    updateMiniBossBar(boss);
+                }
+            }, 5L);
+
+            plugin.getLogger().log(Level.INFO, "Mini-boss spawned: " + type + " at " + l.getBlockX() + "," + l.getBlockY() + "," + l.getBlockZ());
+        } catch (Exception x) {
+            plugin.getLogger().log(Level.SEVERE, "Failed to spawn mini-boss", x);
+        }
+    }
+
+    private void updateMiniBossBar(Entity boss) {
+        BossBar bar = miniBossBars.get(boss);
+        if (bar == null || boss.isDead() || !boss.isValid()) {
+            miniBossBars.remove(boss);
+            return;
+        }
+        try {
+            LivingEntity le = (LivingEntity) boss;
+            double health = le.getHealth();
+            double maxHealth = Objects.requireNonNull(le.getAttribute(CompatibilityResolver.resolveAttribute("MAX_HEALTH", "GENERIC_MAX_HEALTH"))).getBaseValue();
+            bar.setProgress((float) (health / maxHealth));
+        } catch (Exception x) {
+            // ignore
+        }
+        // Repeat while alive
+        if (!boss.isDead() && boss.isValid()) {
+            Bukkit.getServer().getScheduler().scheduleSyncDelayedTask(this, new Runnable() {
+                @Override
+                public void run() {
+                    updateMiniBossBar(boss);
+                }
+            }, 10L);
+        } else {
+            miniBossBars.remove(boss);
+            // Drop loot on death handled in onEntityDeath
+        }
     }
 
     private void enterDeath(final Player p) {
@@ -2073,6 +2198,19 @@ public class BossLand extends JavaPlugin implements Listener {
                 }
             }
         }
+        // Mini-boss death handling
+        if (bossType != null && bossType.startsWith("MINI_BOSS:")) {
+            miniBossBars.remove(ent);
+            String miniType = bossType.substring("MINI_BOSS:".length());
+            ItemStack loot = getMiniBossLoot(e.getEntity().getKiller(), miniType);
+            if (loot != null && loot.getType() != Material.AIR) {
+                ent.getWorld().dropItemNaturally(ent.getLocation(), loot);
+            }
+            ent.getWorld().playSound(ent.getLocation(), Sound.ENTITY_WITHER_DEATH, 1, 1);
+            MCUtility.displayParticle("DRAGON_BREATH:1:25:0", ent.getLocation());
+            this.getLogger().log(Level.INFO, "Mini-boss " + miniType + " defeated!");
+        }
+
         // Fire List Remove
         noFireList.remove(e.getEntity().getUniqueId());
         // Material.DIAMOND_BLOCK
@@ -2747,6 +2885,50 @@ public class BossLand extends JavaPlugin implements Listener {
             s = itemManager.getItem(bossType, list.get(UtilityCalc.rand(1, list.size()) - 1));
         }
         return s;
+    }
+
+    /**
+     * Mini-boss loot: very rare chance to drop a boss shard.
+     * Returns null if no loot drops (most common outcome).
+     */
+    public ItemStack getMiniBossLoot(Entity killer, String miniBossType) {
+        // Very rare drop chance: 3% base
+        if (UtilityCalc.rand(1, 100) > 3) {
+            return null;
+        }
+
+        // List of all shard item names from lang.yml
+        String[] shardKeys = {
+                "items.whiteshard", "items.greenshard", "items.greyshard",
+                "items.blackshard", "items.redshard", "items.brownshard",
+                "items.emeraldshard", "items.goldshard", "items.blueshard",
+                "items.demonicshard"
+        };
+
+        String key = shardKeys[UtilityCalc.rand(0, shardKeys.length - 1)];
+        String name = config.getLang(key);
+        if (name == null || name.isEmpty()) return null;
+
+        // Pick a random material for the shard item
+        Material[] shardMaterials = {
+                Material.QUARTZ, Material.GREEN_DYE, Material.CLAY_BALL,
+                Material.COAL, Material.RED_DYE, Material.BROWN_DYE,
+                Material.EMERALD, Material.YELLOW_DYE, Material.LAPIS_LAZULI,
+                Material.FIRE_CORAL
+        };
+        Material mat = shardMaterials[UtilityCalc.rand(0, shardMaterials.length - 1)];
+
+        ItemStack item = new ItemStack(mat, 1);
+        org.bukkit.inventory.ItemMeta meta = item.getItemMeta();
+        if (meta != null) {
+            meta.setDisplayName(name);
+            java.util.List<String> lore = new java.util.ArrayList<>();
+            lore.add("§7Редкий дроп с мини-босса §e" + miniBossType);
+            lore.add("§8Используется для призыва боссов");
+            meta.setLore(lore);
+            item.setItemMeta(meta);
+        }
+        return item;
     }
 
     public void setItem(ItemStack s, String path, FileConfiguration fc) {

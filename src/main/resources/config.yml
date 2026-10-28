@@ -1,6 +1,9 @@
 bossRange: 35
 bossLimit: 99
 bossHealthMultiplier: 1.0
+miniboss:
+  barColor: RED
+  barStyle: SOLID
 waterLevel: 40
 skyLevel: 200
 maxKBEnchantLevel: 10
