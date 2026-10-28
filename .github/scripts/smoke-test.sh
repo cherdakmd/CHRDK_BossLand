@@ -72,10 +72,16 @@ log "plugins command output"
 
 status=0
 grep -q 'Done (' server.log || { echo '::error::server never finished starting'; status=1; }
-grep -qiE 'Enabling BossLand' server.log || { echo '::error::BossLand was not enabled'; status=1; }
-if grep -qiE 'Disabling BossLand|Error occurred while enabling BossLand|Could not load .*BossLand' server.log; then
-  echo '::error::BossLand failed to load, see server.log'
-  sed -n '/BossLand/,/^$/p' server.log | head -n 60
+grep -qi 'Enabling BossLand' server.log || { echo '::error::BossLand was never enabled'; status=1; }
+
+# Everything the plugin did *before* the shutdown started: a disable line here means it crashed.
+PRE_STOP="$(sed '/Stopping the server/,$d' server.log || true)"
+if grep -qi 'Disabling BossLand' <<< "$PRE_STOP"; then
+  echo '::error::BossLand disabled itself before shutdown'
+  status=1
+fi
+if grep -qE 'Error occurred while enabling BossLand|Could not load .*[Bb]ossland|Caused by: java\.' <<< "$PRE_STOP"; then
+  echo '::error::BossLand threw during startup'
   status=1
 fi
 
@@ -83,7 +89,6 @@ if [ "$status" -eq 0 ]; then
   log "smoke test passed"
 else
   log "smoke test FAILED"
-  { grep -iE 'bossland|exception|error' server.log | tail -n 60 || true; } | sed 's/^/[smoke]   /'
-  { tail -n 60 server.log || true; } | sed 's/^/[smoke]   /' 
+  { grep -iE 'bossland|exception|error|Caused by' server.log | tail -n 60 || true; } | sed 's/^/[smoke]   /'
 fi
 exit "$status"
