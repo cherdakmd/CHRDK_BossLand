@@ -96,25 +96,29 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          set -euo pipefail
           {
             echo "smoke evidence @ $GITHUB_SHA"
             echo '```'
+            echo "== workspace =="
+            ls -la || true
             for f in smoke-paper.out smoke-purpur.out; do
-              [ -f "$f" ] || continue
-              echo "== $f (tail) =="
-              tail -n 25 "$f"
+              echo "== $f =="
+              if [ -f "$f" ]; then tail -n 30 "$f"; else echo '(файла нет)'; fi
               echo
             done
-            for d in smoke-*; do
-              [ -d "$d" ] || continue
+            for d in smoke-paper-1.21.5 smoke-purpur-26.3; do
               echo "== $d/server.log =="
-              grep -E 'САМОПРОВЕРКА|Осколков|Exception|Caused by|Done \(' "$d/server.log" 2>/dev/null | head -n 25 || echo '(нет строк)'
+              if [ -f "$d/server.log" ]; then
+                grep -E 'САМОПРОВЕРКА|Осколков|Exception|Caused by|Done \(|Enabling' "$d/server.log" | head -n 30
+              else
+                echo '(лога нет)'
+              fi
               echo
             done
             echo '```'
-          } > ev.md
-          jq -Rs '{body: .}' < ev.md | gh api "repos/$GITHUB_REPOSITORY/commits/$GITHUB_SHA/comments" --input - >/dev/null
+          } > ev.md 2>&1 || true
+          wc -c ev.md || true
+          jq -Rs '{body: .}' < ev.md | gh api "repos/$GITHUB_REPOSITORY/commits/$GITHUB_SHA/comments" --input - || true
 
       - name: Attach jar to GitHub release
         if: startsWith(github.ref, 'refs/tags/v') || inputs.release_tag != ''
