@@ -4,6 +4,10 @@ bossHealthMultiplier: 1.0
 miniboss:
   barColor: RED
   barStyle: SOLID
+  eliteBarColor: PURPLE
+  spawnChance: 5
+  eliteChance: 10
+  blockThreshold: 1000
 waterLevel: 40
 skyLevel: 200
 maxKBEnchantLevel: 10
