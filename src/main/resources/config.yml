@@ -518,6 +518,18 @@ bosses:
           1:
             enchantment: LOYALTY
             level: 1
+      4:
+        item: ICE
+        amount: 1
+        name: "&f&lЯдро Льда"
+        lore1: "&bHeart of the eternal winter"
+        lore2: "&eUsed to craft &lTier 3 &r&esummon item:"
+        lore3: "&6&lFrost Titan Summoning Item"
+        lore4: "&8Dropped by Evil Wizard"
+        enchantments: 
+          1:
+            enchantment: LOYALTY
+            level: 1
   "IllagerKing":
     entity: EVOKER
     minion: Pillager
@@ -764,6 +776,18 @@ bosses:
           6:
             enchantment: aqua_affinity
             level: 15-25
+      3:
+        item: ENDER_PEARL
+        amount: 1
+        name: "&d&lОсколок Кристалла Края"
+        lore1: "&dFragment of the end dimension"
+        lore2: "&eUsed to craft &lTier 4 &r&esummon item:"
+        lore3: "&6&lEnd Colossus Summoning Item"
+        lore4: "&8Dropped by Drowned God"
+        enchantments: 
+          1:
+            enchantment: LOYALTY
+            level: 1
   "PharaohGod":
     entity: WITHER_SKELETON
     minion: Husk
@@ -928,6 +952,18 @@ bosses:
           4:
             enchantment: PIERCING
             level: 15-25
+      3:
+        item: MAGMA_CREAM
+        amount: 1
+        name: "&c&lИнфернальное Ядро"
+        lore1: "&cCore of the nether ruler"
+        lore2: "&eUsed to craft &lTier 4 &r&esummon item:"
+        lore3: "&6&lNether Overlord Summoning Item"
+        lore4: "&8Dropped by Aether God"
+        enchantments: 
+          1:
+            enchantment: LOYALTY
+            level: 1
   "Demon":
     entity: WITHER_SKELETON
     minion: Husk
@@ -991,6 +1027,18 @@ bosses:
             level: 10-30
           '7':
             enchantment: mending
+            level: 1
+      2:
+        item: PRISMARINE_SHARD
+        amount: 1
+        name: "&b&lЧешуя Бездны"
+        lore1: "&bScale from the deep ocean beast"
+        lore2: "&eUsed to craft &lTier 3 &r&esummon item:"
+        lore3: "&6&lOcean Leviathan Summoning Item"
+        lore4: "&8Dropped by Demon"
+        enchantments: 
+          1:
+            enchantment: LOYALTY
             level: 1
   "Devil":
     entity: ZOMBIFIED_PIGLIN
@@ -1390,10 +1438,17 @@ bosses:
       - "WEAKNESS:1:10"
     loot:
       0:
-        item: OAK_SAPLING
-        amount: 64
-        name: "&2&lNature's Essence"
-        lore1: "&aEssence of the living forest"
+        item: GREEN_DYE
+        amount: 1
+        name: "&a&lЗеленый осколок босса"
+        lore1: "&eOne of 6 &lTier 1 &r&eshards"
+        lore2: "&6Used to craft &lTier 2 &r&6summon items:"
+        lore3: "&6&lPotion of Giant Growth&r&6, &lBell of Doom"
+        lore4: "&8Dropped by Forest Guardian"
+        enchantments: 
+          1:
+            enchantment: LOYALTY
+            level: 1
         lore2: "&eUsed to craft summoning items"
         lore3: "&8Dropped by Forest Guardian"
         enchantments:

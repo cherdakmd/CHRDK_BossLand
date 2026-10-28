@@ -10,6 +10,18 @@ item_recipes:
     ingredients:
       S: NETHER_STAR
       E: ENCHANTED_BOOK # BOOK_OF_KNOWLEDGE
+  nature_essence:
+    result:
+      item: OAK_SAPLING
+      amount: 1
+    shape:
+      - "GSG"
+      - "SRS"
+      - "GSG"
+    ingredients:
+      G: GREEN_DYE # GREEN_BOSS_SHARD - Slime King
+      S: BROWN_DYE # BROWN_BOSS_SHARD - Papa Panda
+      R: RED_DYE # RED_BOSS_SHARD - Zombie King
   god_fruit:
     result:
       item: FORBIDDEN_FRUIT

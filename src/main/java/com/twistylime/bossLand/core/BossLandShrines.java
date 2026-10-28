@@ -350,6 +350,91 @@ public class BossLandShrines {
             }
             // System.out.println("Is Shard: " +
             // isShard(p.getInventory().getItemInMainHand()));
+
+            // Forest Guardian - Tier 2, Forest biomes
+            if (p.getInventory().getItemInMainHand().getType().equals(Material.OAK_SAPLING)
+                    && p.getInventory().getItemInMainHand().getItemMeta() != null
+                    && p.getInventory().getItemInMainHand().getItemMeta().getDisplayName().equals("§2&lЭссенция Природы")
+                    && Objects.requireNonNull(l.getWorld()).getEnvironment().equals(World.Environment.NORMAL)
+                    && (l.getWorld().getBiome(l).toString().toUpperCase().contains("FOREST")
+                    || l.getWorld().getBiome(l).toString().toUpperCase().contains("TAIGA")
+                    || l.getWorld().getBiome(l).toString().toUpperCase().contains("BIRCH")
+                    || l.getWorld().getBiome(l).toString().toUpperCase().contains("JUNGLE"))) {
+                if (checkBlockRecipe(l, "OAK_LOG:OAK_LOG:OAK_LOG", "OAK_LOG:MOSS_BLOCK:OAK_LOG",
+                        "OAK_LOG:OAK_LOG:OAK_LOG", true)) {
+                    e.setCancelled(true);
+                    l.getWorld().createExplosion(l, 2, false);
+                    MCUtility.takeItem(p, 1);
+                    final Location bs = l.clone();
+                    Bukkit.getServer().getScheduler().scheduleSyncDelayedTask(plugin, () -> bossManager.spawnBoss(p, bs, "ForestGuardian"), (40));
+                }
+            }
+
+            // Frost Titan - Tier 3, Snowy biomes
+            if (p.getInventory().getItemInMainHand().getType().equals(Material.ICE)
+                    && p.getInventory().getItemInMainHand().getItemMeta() != null
+                    && p.getInventory().getItemInMainHand().getItemMeta().getDisplayName().equals("§f&lЯдро Льда")
+                    && Objects.requireNonNull(l.getWorld()).getEnvironment().equals(World.Environment.NORMAL)
+                    && (l.getWorld().getBiome(l).toString().toUpperCase().contains("SNOW")
+                    || l.getWorld().getBiome(l).toString().toUpperCase().contains("ICE")
+                    || l.getWorld().getBiome(l).toString().toUpperCase().contains("FROZEN")
+                    || l.getWorld().getBiome(l).toString().toUpperCase().contains("TAIGA"))) {
+                if (checkBlockRecipe(l, "PACKED_ICE:PACKED_ICE:PACKED_ICE", "PACKED_ICE:BLUE_ICE:PACKED_ICE",
+                        "PACKED_ICE:PACKED_ICE:PACKED_ICE", true)) {
+                    e.setCancelled(true);
+                    l.getWorld().createExplosion(l, 3, false);
+                    MCUtility.takeItem(p, 1);
+                    final Location bs = l.clone();
+                    Bukkit.getServer().getScheduler().scheduleSyncDelayedTask(plugin, () -> bossManager.spawnBoss(p, bs, "FrostTitan"), (40));
+                }
+            }
+
+            // Ocean Leviathan - Tier 3, Ocean
+            if (p.getInventory().getItemInMainHand().getType().equals(Material.PRISMARINE_SHARD)
+                    && p.getInventory().getItemInMainHand().getItemMeta() != null
+                    && p.getInventory().getItemInMainHand().getItemMeta().getDisplayName().equals("§b&lЧешуя Бездны")
+                    && Objects.requireNonNull(l.getWorld()).getEnvironment().equals(World.Environment.NORMAL)
+                    && (l.getWorld().getBiome(l).toString().toUpperCase().contains("OCEAN")
+                    || l.getWorld().getBiome(l).toString().toUpperCase().contains("BEACH"))) {
+                if (checkBlockRecipe(l, "PRISMARINE:PRISMARINE:PRISMARINE", "PRISMARINE:PRISMARINE_BRICKS:PRISMARINE",
+                        "PRISMARINE:PRISMARINE:PRISMARINE", true)) {
+                    e.setCancelled(true);
+                    l.getWorld().createExplosion(l, 3, false);
+                    MCUtility.takeItem(p, 1);
+                    final Location bs = l.clone();
+                    Bukkit.getServer().getScheduler().scheduleSyncDelayedTask(plugin, () -> bossManager.spawnBoss(p, bs, "OceanLeviathan"), (40));
+                }
+            }
+
+            // Nether Overlord - Tier 4, Nether
+            if (p.getInventory().getItemInMainHand().getType().equals(Material.MAGMA_CREAM)
+                    && p.getInventory().getItemInMainHand().getItemMeta() != null
+                    && p.getInventory().getItemInMainHand().getItemMeta().getDisplayName().equals("§c&lИнфернальное Ядро")
+                    && Objects.requireNonNull(l.getWorld()).getEnvironment().equals(World.Environment.NETHER)) {
+                if (checkBlockRecipe(l, "MAGMA_BLOCK:MAGMA_BLOCK:MAGMA_BLOCK", "MAGMA_BLOCK:NETHERRACK:MAGMA_BLOCK",
+                        "MAGMA_BLOCK:MAGMA_BLOCK:MAGMA_BLOCK", true)) {
+                    e.setCancelled(true);
+                    l.getWorld().createExplosion(l, 4, true);
+                    MCUtility.takeItem(p, 1);
+                    final Location bs = l.clone();
+                    Bukkit.getServer().getScheduler().scheduleSyncDelayedTask(plugin, () -> bossManager.spawnBoss(p, bs, "NetherOverlord"), (40));
+                }
+            }
+
+            // End Colossus - Tier 4, End
+            if (p.getInventory().getItemInMainHand().getType().equals(Material.ENDER_PEARL)
+                    && p.getInventory().getItemInMainHand().getItemMeta() != null
+                    && p.getInventory().getItemInMainHand().getItemMeta().getDisplayName().equals("§d&lОсколок Кристалла Края")
+                    && Objects.requireNonNull(l.getWorld()).getEnvironment().equals(World.Environment.THE_END)) {
+                if (checkBlockRecipe(l, "END_STONE:END_STONE:END_STONE", "END_STONE:OBSIDIAN:END_STONE",
+                        "END_STONE:END_STONE:END_STONE", true)) {
+                    e.setCancelled(true);
+                    l.getWorld().createExplosion(l, 4, false);
+                    MCUtility.takeItem(p, 1);
+                    final Location bs = l.clone();
+                    Bukkit.getServer().getScheduler().scheduleSyncDelayedTask(plugin, () -> bossManager.spawnBoss(p, bs, "EndColossus"), (40));
+                }
+            }
         } catch (Exception x) {
         }
     }
