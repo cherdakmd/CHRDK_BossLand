@@ -39,7 +39,7 @@ public class BossLandTabCompleter implements TabCompleter {
 
 
             if (args.length == 1) {
-                suggestions.addAll(Arrays.asList("guide", "spawn", "cspawn", "loot", "sloot", "addLoot", "setLoot", "killBosses", "reload"));
+                suggestions.addAll(Arrays.asList("guide", "spawn", "cspawn", "loot", "sloot", "addLoot", "setLoot", "killBosses", "miniboss", "reload"));
             } else if (args.length == 2) {
                 switch (args[0].toLowerCase()) {
                     case "spawn":
@@ -54,6 +54,11 @@ public class BossLandTabCompleter implements TabCompleter {
                         for (World w : Bukkit.getWorlds()) {
                             suggestions.add(w.getName());
                         }
+                        break;
+                    case "miniboss":
+                        suggestions.addAll(Arrays.asList("ZOMBIE", "SKELETON", "SPIDER", "CAVE_SPIDER", "CREEPER",
+                                "DROWNED", "HUSK", "STRAY", "WITCH", "EVOKER", "RAVAGER", "ENDERMAN", "SHULKER",
+                                "VINDICATOR", "PILLAGER"));
                         break;
                 }
             } else if (args.length == 3) {

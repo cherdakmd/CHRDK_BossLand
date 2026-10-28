@@ -101,6 +101,13 @@ print('\n'.join(keys))
 PY
       )
       sleep 8
+      # mini-bosses: explicit type, elite-tier type and a random one
+      echo "bl-admin miniboss ZOMBIE"
+      sleep 2
+      echo "bl-admin miniboss WITCH"
+      sleep 2
+      echo "bl-admin miniboss"
+      sleep 3
       echo "bl-admin killBosses world"
       sleep 4
     fi
@@ -112,7 +119,7 @@ log "starting server"
 feed_commands | timeout 420 java -Xms512M -Xmx1024M -Dcom.mojang.eula.agree=true -jar server.jar --nogui > server.log 2>&1 || true
 
 log "plugin / lifecycle log lines"
-{ grep -iE 'bossland|Done \(' server.log | tail -n 40 || true; } | sed 's/^/[smoke]   /'
+{ grep -iE 'bossland|Done \(|[Mm]ini-boss' server.log | tail -n 45 || true; } | sed 's/^/[smoke]   /'
 log "plugins command output"
 { sed -n '/Plugins (/,$p' server.log | head -n 10 || true; } | sed 's/^/[smoke]   /'
 
@@ -143,6 +150,25 @@ if [ "$EXERCISE" = "1" ]; then
   fi
   log "spawned bosses seen in log"
   { grep -icE 'spawned|boss' server.log || true; } | sed 's/^/[smoke]   lines matching: /'
+
+  # мини-боссы должны реально появиться (3 вызова команды в feed_commands)
+  MINI_COUNT="$(grep -c 'Mini-boss spawned' server.log || true)"
+  log "mini-bosses spawned: ${MINI_COUNT}"
+  if [ "${MINI_COUNT:-0}" -lt 2 ]; then
+    echo '::error::mini-bosses were not spawned by bl-admin miniboss'
+    status=1
+  fi
+
+  # и переведённый конфиг должен лежать в plugins/BossLand
+  if ! grep -q 'Герцог Гастов' plugins/BossLand/config.yml 2>/dev/null; then
+    echo '::error::translated config was not generated'
+    status=1
+  fi
+  if ! grep -q 'blockThreshold: 200' plugins/BossLand/config.yml 2>/dev/null; then
+    echo '::error::new miniboss section missing from the generated config'
+    status=1
+  fi
+  log "generated config contains translated names and the miniboss section"
 fi
 
 if [ "$status" -eq 0 ]; then

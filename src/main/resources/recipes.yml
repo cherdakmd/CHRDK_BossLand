@@ -150,14 +150,14 @@ shrine_recipes:
     result:
       item: SLIME_BLOCK
       amount: 1
-      display_name: "§a§lKing Slime"
+      display_name: "§a§lКороль Слизней"
       lore:
-        - "§7A towering mass of sentient slime,"
-        - "§7formed deep within the swamp's heart."
-        - "§7Its body absorbs attacks and crushes foes."
+        - "§7Огромная масса разумной слизи,"
+        - "§7рождённая в самом сердце болота."
+        - "§7Его тело поглощает удары и сокрушает врагов."
         - ""
-        - "§e§lBiome to summon the boss: §fSwamp"
-        - "§6§lBoss Tier: §fIV"
+        - "§e§lБиом для призыва: §fБолото"
+        - "§6§lУровень босса: §fIV"
     shape:
       - "SSS"
       - "SDS"
@@ -174,14 +174,14 @@ shrine_recipes:
     result:
       item: BAMBOO
       amount: 1
-      display_name: "§6§lPapa Panda"
+      display_name: "§6§lПапа Панда"
       lore:
-        - "§7A wise and ancient panda spirit,"
-        - "§7who guards the sacred bamboo groves."
-        - "§7His fury shakes the earth beneath."
+        - "§7Мудрый древний дух панды,"
+        - "§7хранящий священные бамбуковые рощи."
+        - "§7Его ярость сотрясает землю."
         - ""
-        - "§e§lBiome to summon the boss: §fBamboo Forest"
-        - "§6§lBoss Tier: §fIV"
+        - "§e§lБиом для призыва: §fБамбуковые джунгли"
+        - "§6§lУровень босса: §fIV"
     shape:
       - "SSS"
       - "SDS"
@@ -198,14 +198,14 @@ shrine_recipes:
     result:
       item: RABBIT_FOOT
       amount: 1
-      display_name: "§7§lKiller Bunny"
+      display_name: "§7§lКролик-Убийца"
       lore:
-        - "§7A bloodthirsty rabbit of legend,"
-        - "§7lurking in the scorching desert sands."
-        - "§7Its razor teeth tear through armor."
+        - "§7Кровожадный кролик из легенд,"
+        - "§7таится в раскалённых песках пустыни."
+        - "§7Его острые зубы рвут любую броню."
         - ""
-        - "§e§lBiome to summon the boss: §fDesert"
-        - "§6§lBoss Tier: §fIV"
+        - "§e§lБиом для призыва: §fПустыня"
+        - "§6§lУровень босса: §fIV"
     shape:
       - "SSS"
       - "SDS"
@@ -222,14 +222,14 @@ shrine_recipes:
     result:
       item: ROTTEN_FLESH
       amount: 1
-      display_name: "§2§lZombie King"
+      display_name: "§2§lКороль Зомби"
       lore:
-        - "§7The undead monarch of the plains,"
-        - "§7commanding legions of rotting flesh."
-        - "§7His crown bears the weight of death."
+        - "§7Монарх нежити на равнинах,"
+        - "§7повелевающий легионами гниющей плоти."
+        - "§7Его корона несёт бремя смерти."
         - ""
-        - "§e§lBiome to summon the boss: §fPlains"
-        - "§6§lBoss Tier: §fIV"
+        - "§e§lБиом для призыва: §fРавнины"
+        - "§6§lУровень босса: §fIV"
     shape:
       - "SSS"
       - "SDS"
@@ -246,14 +246,14 @@ shrine_recipes:
     result:
       item: WITHER_SKELETON_SKULL
       amount: 1
-      display_name: "§8§lWither Skeleton King"
+      display_name: "§8§lКороль Скелетов-Иссохших"
       lore:
-        - "§7A skeletal ruler from the depths of hell,"
-        - "§7wreathed in flames and shadow."
-        - "§7His bones burn with eternal fire."
+        - "§7Скелетный правитель из глубин ада,"
+        - "§7окутанный пламенем и тенью."
+        - "§7Его кости горят вечным огнём."
         - ""
-        - "§e§lBiome to summon the boss: §fNether"
-        - "§6§lBoss Tier: §fIV"
+        - "§e§lБиом для призыва: §fНижний мир"
+        - "§6§lУровень босса: §fIV"
     shape:
       - "SSS"
       - "SDS"
@@ -270,14 +270,14 @@ shrine_recipes:
     result:
       item: GHAST_TEAR
       amount: 1
-      display_name: "§f§lGhast Lord"
+      display_name: "§f§lГерцог Гастов"
       lore:
-        - "§7A colossal phantom of the Nether,"
-        - "§7whose wails echo through lava lakes."
-        - "§7Its tears burn like molten stone."
+        - "§7Колоссальный призрак Нижнего мира,"
+        - "§7чей вой отражается над лавовыми озёрами."
+        - "§7Его слёзы жгут, как расплавленный камень."
         - ""
-        - "§e§lBiome to summon the boss: §fNether"
-        - "§6§lBoss Tier: §fIV"
+        - "§e§lБиом для призыва: §fНижний мир"
+        - "§6§lУровень босса: §fIV"
     shape:
       - "SSS"
       - "SDS"
@@ -294,14 +294,14 @@ shrine_recipes:
     result:
       item: ENCHANTED_BOOK
       amount: 1
-      display_name: "§9§lEvil Wizard"
+      display_name: "§9§lЗлой Колдун"
       lore:
-        - "§7A master of dark magic and forbidden arts,"
-        - "§7dwelling in the frozen wastelands."
-        - "§7His spells freeze blood and soul alike."
+        - "§7Мастер тёмной магии и запретных искусств,"
+        - "§7обитающий в замёрзших пустошах."
+        - "§7Его чары леденят и кровь, и душу."
         - ""
-        - "§e§lBiome to summon the boss: §fAny Snowy Biome"
-        - "§6§lBoss Tier: §fIII"
+        - "§e§lБиом для призыва: §fЛюбой снежный биом"
+        - "§6§lУровень босса: §fIII"
     shape:
       - "RSR"
       - "SDS"
@@ -319,14 +319,14 @@ shrine_recipes:
     result:
       item: ENCHANTED_BOOK
       amount: 1
-      display_name: "§6§lKing of the Illagers"
+      display_name: "§6§lКороль Иллов"
       lore:
-        - "§7The supreme commander of all illager clans,"
-        - "§7ruling from his savanna stronghold."
-        - "§7His banner strikes fear into heroes."
+        - "§7Верховный командующий всеми кланами иллов,"
+        - "§7правящий из своей крепости в саванне."
+        - "§7Его знамя вселяет страх в героев."
         - ""
-        - "§e§lBiome to summon the boss: §fSavanna"
-        - "§6§lBoss Tier: §fIII"
+        - "§e§lБиом для призыва: §fСаванна"
+        - "§6§lУровень босса: §fIII"
     shape:
       - "RSR"
       - "SDS"
@@ -344,14 +344,14 @@ shrine_recipes:
     result:
       item: ZOMBIE_HEAD
       amount: 1
-      display_name: "§2§lGiant"
+      display_name: "§2§lГигант"
       lore:
-        - "§7A colossal undead behemoth,"
-        - "§7towering above the tallest trees."
-        - "§7Each step shakes the very earth."
+        - "§7Колоссальный нежить-исполин,"
+        - "§7возвышающийся над самыми высокими деревьями."
+        - "§7Каждый шаг сотрясает саму землю."
         - ""
-        - "§e§lBiome to summon the boss: §fOverworld"
-        - "§6§lBoss Tier: §fIII"
+        - "§e§lБиом для призыва: §fВерхний мир"
+        - "§6§lУровень босса: §fIII"
     shape:
       - "RSR"
       - "SDS"
@@ -369,15 +369,15 @@ shrine_recipes:
     result:
       item: NETHER_STAR
       amount: 1
-      display_name: "§c§lDemon"
+      display_name: "§c§lДемон"
       lore:
-        - "§7An ancient evil from beyond the void,"
-        - "§7summoned only by the most desperate."
-        - "§7Its presence corrupts reality itself."
+        - "§7Древнее зло из-за пределов пустоты,"
+        - "§7призываемое лишь самыми отчаянными."
+        - "§7Его присутствие искажает саму реальность."
         - ""
-        - "§e§lBiome to summon the boss: §fAny Dimension"
-        - "§c§lOnly summonable after all Tier II bosses have been defeated."
-        - "§6§lBoss Tier: §fIII"
+        - "§e§lБиом для призыва: §fЛюбое измерение"
+        - "§c§lПризывается только после победы над всеми боссами Тира II."
+        - "§6§lУровень босса: §fIII"
     shape:
       - "RSR"
       - "SDS"
@@ -395,14 +395,14 @@ shrine_recipes:
     result:
       item: FEATHER
       amount: 1
-      display_name: "§b§lThe Aether God"
+      display_name: "§b§lЭфирный Бог"
       lore:
-        - "§7A divine being of wind and sky,"
-        - "§7dwelling in the highest heavens."
-        - "§7Its wings command storms and lightning."
+        - "§7Божественное существо ветра и неба,"
+        - "§7обитающее в высших небесах."
+        - "§7Его крылья повелевают бурями и молниями."
         - ""
-        - "§e§lBiome to summon the boss: §fOverworld"
-        - "§6§lBoss Tier: §fII"
+        - "§e§lБиом для призыва: §fВерхний мир"
+        - "§6§lУровень босса: §fII"
     activator:
       item: FORBIDDEN_FRUIT
       amount: 1
@@ -410,25 +410,25 @@ shrine_recipes:
       item: WHITE_BANNER
       amount: 1
       lore:
-        - "§e§lHow to Summon AetherGod:"
+        - "§e§lКак призвать Эфирного Бога:"
         - ""
-        - "§7» §fTravel to the §bOverworld skies"
-        - "§7» §fReach above §aY-Level 200"
-        - "§7» §fConsume the §5Forbidden Fruit"
+        - "§7» §fПоднимитесь в небеса §bВерхнего мира"
+        - "§7» §fДостигните высоты выше §aY = 200"
+        - "§7» §fСъешьте §5Запретный Плод"
     loot: [ 0,1,2 ]
     lootName: "AetherGod"
   pharaoh_god:
     result:
       item: BLAZE_POWDER
       amount: 1
-      display_name: "§0§lThe Pharaoh God"
+      display_name: "§0§lБог-Фараон"
       lore:
-        - "§7An ancient ruler of forgotten sands,"
-        - "§7entombed within pyramid depths."
-        - "§7His curse burns like desert sun."
+        - "§7Древний правитель забытых песков,"
+        - "§7погребённый в глубинах пирамид."
+        - "§7Его проклятие жжёт, как пустынное солнце."
         - ""
-        - "§e§lBiome to summon the boss: §fOverworld"
-        - "§6§lBoss Tier: §fII"
+        - "§e§lБиом для призыва: §fВерхний мир"
+        - "§6§lУровень босса: §fII"
     activator:
       item: FORBIDDEN_FRUIT
       amount: 1
@@ -436,24 +436,24 @@ shrine_recipes:
       item: YELLOW_BANNER
       amount: 1
       lore:
-        - "§e§lHow to Summon PharaohGod:"
+        - "§e§lКак призвать Бога-Фараона:"
         - ""
-        - "§7» §fTravel to the §eDesert"
-        - "§7» §fConsume the §5Forbidden Fruit"
+        - "§7» §fОтправляйтесь в §eпустыню"
+        - "§7» §fСъешьте §5Запретный Плод"
     loot: [ 0,1,2 ]
     lootName: "PharaohGod"
   drowned_god:
     result:
       item: HEART_OF_THE_SEA
       amount: 1
-      display_name: "§b§lThe Drowned God"
+      display_name: "§b§lУтонувший Бог"
       lore:
-        - "§7A primordial deity of the deepest oceans,"
-        - "§7lost beneath crushing waves."
-        - "§7Its heart pulses with tidal fury."
+        - "§7Первородное божество глубочайших океанов,"
+        - "§7затерянное под сокрушительными волнами."
+        - "§7Его сердце бьётся в такт ярости приливов."
         - ""
-        - "§e§lBiome to summon the boss: §fOverworld"
-        - "§6§lBoss Tier: §fII"
+        - "§e§lБиом для призыва: §fВерхний мир"
+        - "§6§lУровень босса: §fII"
     activator:
       item: FORBIDDEN_FRUIT
       amount: 1
@@ -461,25 +461,25 @@ shrine_recipes:
       item: BLUE_BANNER
       amount: 1
       lore:
-        - "§e§lHow to Summon DrownedGod:"
+        - "§e§lКак призвать Утонувшего Бога:"
         - ""
-        - "§7» §fTravel to the §9Oceans"
-        - "§7» §fReach below §aY-Level -40"
-        - "§7» §fConsume the §5Forbidden Fruit"
+        - "§7» §fОтправляйтесь в §9океан"
+        - "§7» §fОпуститесь ниже §aY = -40"
+        - "§7» §fСъешьте §5Запретный Плод"
     loot: [ 0,1,2 ]
     lootName: "DrownedGod"
   the_devil:
     result:
       item: COAL
       amount: 1
-      display_name: "§c§lThe Devil"
+      display_name: "§c§lДьявол"
       lore:
-        - "§7The ultimate manifestation of evil,"
-        - "§7ruling over all infernal realms."
-        - "§7His very presence ignites hellfire."
+        - "§7Высшее воплощение зла,"
+        - "§7правящее всеми инфернальными мирами."
+        - "§7Само его присутствие зажигает адское пламя."
         - ""
-        - "§e§lBiome to summon the boss: §fNether"
-        - "§6§lBoss Tier: §fI"
+        - "§e§lБиом для призыва: §fНижний мир"
+        - "§6§lУровень босса: §fI"
     activator:
       item: ABHORRENT_FRUIT
       amount: 1
@@ -487,24 +487,24 @@ shrine_recipes:
       item: GRAY_BANNER
       amount: 1
       lore:
-        - "§e§lHow to Summon The Devil:"
+        - "§e§lКак призвать Дьявола:"
         - ""
-        - "§7» §fTravel to the §cNether"
-        - "§7» §fConsume the §5Abhorrent Fruit"
+        - "§7» §fОтправляйтесь в §cНижний мир"
+        - "§7» §fСъешьте §5Отвратительный Плод"
     loot: [ 0,1 ]
     lootName: "Devil"
   death:
     result:
       item: CHARCOAL
       amount: 1
-      display_name: "§5§lDeath"
+      display_name: "§5§lСмерть"
       lore:
-        - "§7The inevitable end that awaits all,"
-        - "§7dwelling in the void between worlds."
-        - "§7Its touch brings eternal silence."
+        - "§7Неизбежный конец, что ждёт каждого,"
+        - "§7обитающий в пустоте между мирами."
+        - "§7Его прикосновение приносит вечную тишину."
         - ""
-        - "§e§lBiome to summon the boss: §fEnd"
-        - "§6§lBoss Tier: §fI"
+        - "§e§lБиом для призыва: §fКрай"
+        - "§6§lУровень босса: §fI"
     activator:
       item: DEATH_NOTE
       amount: 1
@@ -512,20 +512,20 @@ shrine_recipes:
       item: BLACK_BANNER
       amount: 1
       lore:
-        - "§e§lHow to Summon Death:"
+        - "§e§lКак призвать Смерть:"
         - ""
-        - "§7» §fTravel to the §2End"
-        - "§7» §fUse the Death Note"
-        - "§7» §fEnter your own name"
-        - "§7» §f10% chance of Death Note being consumed"
-        - "§7» §fKeep Inventory should be on to summon Death"
+        - "§7» §fОтправляйтесь в §2Край"
+        - "§7» §fИспользуйте §5Смертную Тетрадь"
+        - "§7» §fВведите своё имя"
+        - "§7» §f10% шанс, что Смертная Тетрадь потратится"
+        - "§7» §fДля призыва Смерти должен быть включён Keep Inventory"
     loot: [ 0,1 ]
     lootName: "Death"
   frost_titan:
     result:
       item: SNIFFER_EGG
       amount: 1
-      display_name: "§3§lFrost Titan"
+      display_name: "§3§lЛедяной Титан"
       lore:
         - "§7Титан вечной зимы, пробудившийся ото сна."
         - "§7Его дыхание замораживает всё вокруг."
@@ -548,9 +548,9 @@ shrine_recipes:
     result:
       item: GUARDIAN_SPAWN_EGG
       amount: 1
-      display_name: "§b§lOcean Leviathan"
+      display_name: "§b§lОкеанский Левиафан"
       lore:
-        - "§7Гигантский страж глубин ocean."
+        - "§7Гигантский страж глубин океана."
         - "§7Его чешуя непроницаема для клинков."
         - ""
         - "§e§lБиом для призыва: §fОкеан"
@@ -571,7 +571,7 @@ shrine_recipes:
     result:
       item: MAGMA_CUBE_SPAWN_EGG
       amount: 1
-      display_name: "§4§lNether Overlord"
+      display_name: "§4§lВладыка Нижнего Мира"
       lore:
         - "§7Повелитель незерских пещер и лавовых озёр."
         - "§7Его жар раскаляет сталь докрасна."
@@ -594,7 +594,7 @@ shrine_recipes:
     result:
       item: ENDERMAN_SPAWN_EGG
       amount: 1
-      display_name: "§5§lEnd Colossus"
+      display_name: "§5§lКолосс Края"
       lore:
         - "§7Колосс Края, разорвавший ткань измерений."
         - "§7Его лезвия прорезают пустоту."
@@ -617,7 +617,7 @@ shrine_recipes:
     result:
       item: IRON_GOLEM_SPAWN_EGG
       amount: 1
-      display_name: "§a§lForest Guardian"
+      display_name: "§a§lЛесной Страж"
       lore:
         - "§7Древний страж дремучих лесов."
         - "§7Его объятия несут жизнь и спокойствие."

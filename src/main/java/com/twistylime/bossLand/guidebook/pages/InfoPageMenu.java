@@ -66,7 +66,7 @@ public class InfoPageMenu extends PaginatedMenu {
 
         Map<String, List<String>> creditData = new LinkedHashMap<>();
         creditData.put(ChatColor.GOLD + "" + ChatColor.BOLD + "Версия плагина",
-                List.of(ChatColor.YELLOW + "BossLand v2.9"));
+                List.of(ChatColor.YELLOW + "BossLand v3.0"));
         creditData.put(ChatColor.AQUA + "" + ChatColor.BOLD + "Поддерживаемые версии Minecraft",
                 List.of(ChatColor.GREEN + "v1.16.1 - v1.21.5"));
         creditData.put(ChatColor.LIGHT_PURPLE + "" + ChatColor.BOLD + "Страница плагина",
