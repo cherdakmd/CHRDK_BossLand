@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# Loads the freshly built plugin into a throw-away server and checks that it enables cleanly.
+# Loads the freshly built plugin into a throw-away server, enables it, and (optionally) exercises
+# every configured boss so that material/entity lookups are validated on that server version.
 # Usage: smoke-test.sh <paper|purpur> <minecraft-version> <path-to-plugin-jar>
 set -euo pipefail
 
@@ -7,6 +8,8 @@ SERVER_KIND="${1:?server kind required: paper|purpur}"
 MC_VERSION="${2:?minecraft version required}"
 JAR_PATH="${3:?plugin jar path required}"
 WORKDIR="${WORKDIR:-smoke-${SERVER_KIND}-${MC_VERSION}}"
+EXERCISE="${EXERCISE:-0}"
+STARTUP_WAIT="${STARTUP_WAIT:-75}"
 
 log() { printf '\n[smoke] %s\n' "$*"; }
 
@@ -65,11 +68,48 @@ fi
 log "downloading ${SERVER_URL}"
 curl -fsSL --retry 3 -o server.jar "$SERVER_URL"
 ls -lh server.jar
-log "$(java -version 2>&1 | head -n1)"
+log "runtime: $(java -version 2>&1 | head -n1)"
+
+# Console commands: reload the config, then spawn every configured boss so that the plugin has to
+# build items, boss bars and mobs on this exact server version.
+feed_commands() {
+  sleep "$STARTUP_WAIT"
+  echo "plugins"
+  if [ "$EXERCISE" = "1" ]; then
+    echo "bl-admin reload"
+    sleep 2
+    if [ -f plugins/BossLand/config.yml ]; then
+      while read -r boss; do
+        [ -n "$boss" ] || continue
+        echo "bl-admin cspawn $boss 0 100 0 world"
+        sleep 0.5
+      done < <(python3 - <<'PY'
+import re, sys
+lines = open('plugins/BossLand/config.yml', encoding='utf-8', errors='replace').read().split('\n')
+try:
+    start = next(i for i, l in enumerate(lines) if l.startswith('bosses:'))
+except StopIteration:
+    sys.exit(0)
+keys = []
+for line in lines[start + 1:]:
+    if line and not line.startswith(' '):
+        break
+    m = re.match(r'^  "?([A-Za-z][A-Za-z0-9_]*)"?:\s*$', line)
+    if m:
+        keys.append(m.group(1))
+print('\n'.join(keys))
+PY
+      )
+      sleep 8
+      echo "bl-admin killBosses world"
+      sleep 4
+    fi
+  fi
+  echo "stop"
+}
 
 log "starting server"
-( sleep 75; echo "plugins"; echo "stop" ) \
-  | timeout 360 java -Xms512M -Xmx1024M -Dcom.mojang.eula.agree=true -jar server.jar --nogui > server.log 2>&1 || true
+feed_commands | timeout 420 java -Xms512M -Xmx1024M -Dcom.mojang.eula.agree=true -jar server.jar --nogui > server.log 2>&1 || true
 
 log "plugin / lifecycle log lines"
 { grep -iE 'bossland|Done \(' server.log | tail -n 40 || true; } | sed 's/^/[smoke]   /'
@@ -86,12 +126,23 @@ if grep -qi 'Disabling BossLand' <<< "$PRE_STOP"; then
   echo '::error::BossLand disabled itself before shutdown'
   status=1
 fi
-if grep -qE 'Error occurred while enabling BossLand|Could not load .*[Bb]ossland|Caused by: java\.' <<< "$PRE_STOP"; then
+if grep -qE 'Error occurred while enabling BossLand|Could not load .*[Bb]ossland' <<< "$PRE_STOP"; then
   echo '::error::BossLand threw during startup'
   status=1
 fi
-if grep -qiE 'unsupported api version|legacy plugin|is not compatible' <<< "$PRE_STOP"; then
-  echo '::warning::BossLand reported an API compatibility problem'
+
+if [ "$EXERCISE" = "1" ]; then
+  log "runtime exceptions (boss spawning exercise)"
+  EXC="$(grep -nE 'Exception|Caused by:' <<< "$PRE_STOP" | grep -viE 'PaperVersionFetcher|Error obtaining version information|Failed to check for updates' || true)"
+  if [ -n "$EXC" ]; then
+    printf '%s\n' "$EXC" | head -n 40 | sed 's/^/[smoke]   /'
+    echo '::error::exceptions while exercising bosses'
+    status=1
+  else
+    log "no runtime exceptions during the boss exercise"
+  fi
+  log "spawned bosses seen in log"
+  { grep -icE 'spawned|boss' server.log || true; } | sed 's/^/[smoke]   lines matching: /'
 fi
 
 if [ "$status" -eq 0 ]; then
