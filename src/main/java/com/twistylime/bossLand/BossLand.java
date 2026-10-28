@@ -161,6 +161,9 @@ public class BossLand extends JavaPlugin implements Listener {
 
     public static BossLandLoot getLootManager(){ return lootManager; }
 
+    /** Доступ к менеджеру конфигов (нужен самопроверке и админ-командам). */
+    public BossLandConfiguration getBossConfig(){ return config; }
+
     public static boolean isLowBossHealthIndicator(){ return lowBossHealthIndicator; }
 
     @Override
