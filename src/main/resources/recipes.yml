@@ -12,7 +12,7 @@ item_recipes:
       E: ENCHANTED_BOOK # BOOK_OF_KNOWLEDGE
   nature_essence:
     result:
-      item: OAK_SAPLING
+      item: NATURES_ESSENCE
       amount: 1
     shape:
       - "GSG"
@@ -22,6 +22,50 @@ item_recipes:
       G: GREEN_DYE # GREEN_BOSS_SHARD - Slime King
       S: BROWN_DYE # BROWN_BOSS_SHARD - Papa Panda
       R: RED_DYE # RED_BOSS_SHARD - Zombie King
+  frost_core:
+    result:
+      item: FROST_CORE
+      amount: 1
+    shape:
+      - "SSS"
+      - "SDS"
+      - "SSS"
+    ingredients:
+      S: LAPIS_LAZULI # BLUE_BOSS_SHARD - Evil Wizard
+      D: EMERALD # EMERALD_BOSS_SHARD - Giant
+  abyssal_scale:
+    result:
+      item: ABYSSAL_SCALE
+      amount: 1
+    shape:
+      - "SSS"
+      - "SDS"
+      - "SSS"
+    ingredients:
+      S: COAL # BLACK_BOSS_SHARD - Wither Skeleton King
+      D: RED_DYE # RED_BOSS_SHARD - Zombie King
+  infernal_core:
+    result:
+      item: INFERNAL_CORE
+      amount: 1
+    shape:
+      - "SSS"
+      - "SDS"
+      - "SSS"
+    ingredients:
+      S: ICE # FROST_CORE - Frost Titan
+      D: PRISMARINE_SHARD # ABYSSAL_SCALE - Ocean Leviathan
+  ender_crystal_shard:
+    result:
+      item: ENDER_CRYSTAL_SHARD
+      amount: 1
+    shape:
+      - "SSS"
+      - "SDS"
+      - "SSS"
+    ingredients:
+      S: MAGMA_CREAM # INFERNAL_CORE - Nether Overlord
+      D: ICE # FROST_CORE - Frost Titan
   god_fruit:
     result:
       item: FORBIDDEN_FRUIT

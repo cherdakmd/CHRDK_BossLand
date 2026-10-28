@@ -201,6 +201,38 @@ public class BossLandRecipes {
                     if (!ci.getItem(5).getItemMeta().getDisplayName().equals(config.getLang("items.knowledgebook"))) {
                         ci.setResult(null);
                     }
+                } else if (craftingResultMeta.getDisplayName().contains(config.getLang("items.frostcore"))) {
+                    // Frost Core - requires Blue Shard and Emerald Shard
+                    if (!ci.getItem(4).getItemMeta().getDisplayName().equals(config.getLang("items.blueshard")))
+                        ci.setResult(null);
+                    if (!ci.getItem(5).getItemMeta().getDisplayName().equals(config.getLang("items.emeraldshard")))
+                        ci.setResult(null);
+                } else if (craftingResultMeta.getDisplayName().contains(config.getLang("items.abyssalscale"))) {
+                    // Abyssal Scale - requires Black Shard and Red Shard
+                    if (!ci.getItem(4).getItemMeta().getDisplayName().equals(config.getLang("items.blackshard")))
+                        ci.setResult(null);
+                    if (!ci.getItem(5).getItemMeta().getDisplayName().equals(config.getLang("items.redshard")))
+                        ci.setResult(null);
+                } else if (craftingResultMeta.getDisplayName().contains(config.getLang("items.infernalcore"))) {
+                    // Infernal Core - requires Frost Core and Abyssal Scale
+                    if (!ci.getItem(4).getItemMeta().getDisplayName().equals(config.getLang("items.frostcore")))
+                        ci.setResult(null);
+                    if (!ci.getItem(5).getItemMeta().getDisplayName().equals(config.getLang("items.abyssalscale")))
+                        ci.setResult(null);
+                } else if (craftingResultMeta.getDisplayName().contains(config.getLang("items.endercrystalshard"))) {
+                    // Ender Crystal Shard - requires Infernal Core and Frost Core
+                    if (!ci.getItem(4).getItemMeta().getDisplayName().equals(config.getLang("items.infernalcore")))
+                        ci.setResult(null);
+                    if (!ci.getItem(5).getItemMeta().getDisplayName().equals(config.getLang("items.frostcore")))
+                        ci.setResult(null);
+                } else if (craftingResultMeta.getDisplayName().contains(config.getLang("items.naturesessence"))) {
+                    // Nature's Essence - requires Green, Brown and Red shards
+                    if (!ci.getItem(4).getItemMeta().getDisplayName().equals(config.getLang("items.greenshard")))
+                        ci.setResult(null);
+                    if (!ci.getItem(5).getItemMeta().getDisplayName().equals(config.getLang("items.brownshard")))
+                        ci.setResult(null);
+                    if (!ci.getItem(6).getItemMeta().getDisplayName().equals(config.getLang("items.redshard")))
+                        ci.setResult(null);
                 }
             }
         } catch (Exception localException) {
@@ -307,6 +339,41 @@ public class BossLandRecipes {
             if (isInvalidShard(inv.getItem(4), config.getLang("items.knowledgebook"))) {
                 setCancelledMethod.invoke(event, true);
             }
+        } else if (displayName.contains(config.getLang("items.frostcore"))) {
+            // Frost Core
+            if (isInvalidShard(inv.getItem(3), config.getLang("items.blueshard")) ||
+                    isInvalidShard(inv.getItem(4), config.getLang("items.emeraldshard")) ||
+                    isInvalidShard(inv.getItem(5), config.getLang("items.blueshard"))) {
+                setCancelledMethod.invoke(event, true);
+            }
+        } else if (displayName.contains(config.getLang("items.abyssalscale"))) {
+            // Abyssal Scale
+            if (isInvalidShard(inv.getItem(3), config.getLang("items.blackshard")) ||
+                    isInvalidShard(inv.getItem(4), config.getLang("items.redshard")) ||
+                    isInvalidShard(inv.getItem(5), config.getLang("items.blackshard"))) {
+                setCancelledMethod.invoke(event, true);
+            }
+        } else if (displayName.contains(config.getLang("items.infernalcore"))) {
+            // Infernal Core
+            if (isInvalidShard(inv.getItem(3), config.getLang("items.frostcore")) ||
+                    isInvalidShard(inv.getItem(4), config.getLang("items.abyssalscale")) ||
+                    isInvalidShard(inv.getItem(5), config.getLang("items.frostcore"))) {
+                setCancelledMethod.invoke(event, true);
+            }
+        } else if (displayName.contains(config.getLang("items.endercrystalshard"))) {
+            // Ender Crystal Shard
+            if (isInvalidShard(inv.getItem(3), config.getLang("items.infernalcore")) ||
+                    isInvalidShard(inv.getItem(4), config.getLang("items.frostcore")) ||
+                    isInvalidShard(inv.getItem(5), config.getLang("items.infernalcore"))) {
+                setCancelledMethod.invoke(event, true);
+            }
+        } else if (displayName.contains(config.getLang("items.naturesessence"))) {
+            // Nature's Essence
+            if (isInvalidShard(inv.getItem(3), config.getLang("items.greenshard")) ||
+                    isInvalidShard(inv.getItem(4), config.getLang("items.brownshard")) ||
+                    isInvalidShard(inv.getItem(5), config.getLang("items.redshard"))) {
+                setCancelledMethod.invoke(event, true);
+            }
         }
     }
 
@@ -327,6 +394,11 @@ public class BossLandRecipes {
                 case "BOOK_OF_SPELLS" -> itemManager.getWizardItem();
                 case "POTION_OF_GIANT_GROWTH" -> itemManager.getGiantIem();
                 case "ELDER_EGG" -> itemManager.getDragonItem();
+                case "NATURES_ESSENCE" -> itemManager.getNaturesEssence();
+                case "FROST_CORE" -> itemManager.getFrostCore();
+                case "ABYSSAL_SCALE" -> itemManager.getAbyssalScale();
+                case "INFERNAL_CORE" -> itemManager.getInfernalCore();
+                case "ENDER_CRYSTAL_SHARD" -> itemManager.getEnderCrystalShard();
                 case "ENCHANTED_BOOK" -> lootManager.getLootFromName("BOOK_OF_KNOWLEDGE","Devil"); // return BOOK_OF_KNOWLEDGE only in getRecipes
                 case "EMERALD" -> lootManager.getLootFromName("EMERALD_BOSS_SHARD","Giant"); // return EMERALD_BOSS_SHARD only in getRecipes
                 case "YELLOW_DYE" -> lootManager.getLootFromName("GOLD_BOSS_SHARD","IllagerKing"); // return GOLD_BOSS_SHARD only in getRecipes
@@ -350,6 +422,11 @@ public class BossLandRecipes {
             case "BOOK_OF_SPELLS" -> itemManager.getWizardItem();
             case "POTION_OF_GIANT_GROWTH" -> itemManager.getGiantIem();
             case "ELDER_EGG" -> itemManager.getDragonItem();
+            case "NATURES_ESSENCE" -> itemManager.getNaturesEssence();
+            case "FROST_CORE" -> itemManager.getFrostCore();
+            case "ABYSSAL_SCALE" -> itemManager.getAbyssalScale();
+            case "INFERNAL_CORE" -> itemManager.getInfernalCore();
+            case "ENDER_CRYSTAL_SHARD" -> itemManager.getEnderCrystalShard();
             default -> new ItemStack(CompatibilityResolver.resolveMaterial(name), 1);
         };
     }
