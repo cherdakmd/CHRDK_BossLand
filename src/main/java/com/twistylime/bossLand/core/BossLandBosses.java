@@ -73,7 +73,7 @@ public class BossLandBosses {
                 return;
             }
             // Log Spawn
-            plugin.getLogger().log(Level.INFO, "Spawn Boss: " + bossType);
+            plugin.getLogger().log(Level.INFO, "Спавн босса: " + bossType);
             String entType = plugin.getConfig().getString("bosses." + bossType + ".entity");
             // //System.out.println("entType: " + entType);
             // //System.out.println("entType2: " + EntityType.valueOf(entType));
@@ -230,7 +230,7 @@ public class BossLandBosses {
             config.saveBossData();
             makeBoss(boss, bossType);
         } catch (Exception x) {
-            plugin.getLogger().log(Level.SEVERE, "Failed to spawn Boss: " + bossType);
+            plugin.getLogger().log(Level.SEVERE, "Не удалось заспавнить босса: " + bossType);
             x.printStackTrace();
         }
     }
@@ -254,7 +254,7 @@ public class BossLandBosses {
         if (maxHealth != maxHP) {
             if(BossLand.isLowBossHealthIndicator() && maxHP > 1024){
                 maxHP = 1024;
-                plugin.getLogger().log(Level.WARNING,"Boss with health above 1024 has been spawned and is capped to 1024 HP. Change the maxHealth in spigot.yml from 1024 to 2048 to fix this.");
+                plugin.getLogger().log(Level.WARNING,"Здоровье босса превышает 1024 и урезано до 1024 HP. Измените maxHealth в spigot.yml с 1024 на 2048, чтобы это исправить.");
             }
             ((LivingEntity) ent).getAttribute(CompatibilityResolver.resolveAttribute("MAX_HEALTH", "GENERIC_MAX_HEALTH")).setBaseValue(maxHP);
             ((Damageable) ent).setHealth(maxHP);

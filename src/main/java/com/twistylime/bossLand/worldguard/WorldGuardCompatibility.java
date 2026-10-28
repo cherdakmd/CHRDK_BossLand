@@ -18,9 +18,9 @@ public class WorldGuardCompatibility {
     public WorldGuardCompatibility(BossLand plugin) {
         this.worldGuardPresent = Bukkit.getPluginManager().isPluginEnabled("WorldGuard");
         if (worldGuardPresent) {
-            plugin.getLogger().info("WorldGuard detected. Enabling region checks.");
+            plugin.getLogger().info("WorldGuard найден. Проверка регионов включена.");
         } else {
-            plugin.getLogger().info("WorldGuard not detected. Skipping region checks.");
+            plugin.getLogger().info("WorldGuard не найден. Проверка регионов пропущена.");
         }
     }
 

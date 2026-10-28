@@ -149,10 +149,10 @@ if [ "$EXERCISE" = "1" ]; then
     log "no runtime exceptions during the boss exercise"
   fi
   log "spawned bosses seen in log"
-  { grep -icE 'spawned|boss' server.log || true; } | sed 's/^/[smoke]   lines matching: /'
+  { grep -icE 'Спавн босса|Спавн|спавн' server.log || true; } | sed 's/^/[smoke]   lines matching: /'
 
   # мини-боссы должны реально появиться (3 вызова команды в feed_commands)
-  MINI_COUNT="$(grep -c 'Mini-boss spawned' server.log || true)"
+  MINI_COUNT="$(grep -c 'Мини-босс заспавнен' server.log || true)"
   log "mini-bosses spawned: ${MINI_COUNT}"
   if [ "${MINI_COUNT:-0}" -lt 2 ]; then
     echo '::error::mini-bosses were not spawned by bl-admin miniboss'

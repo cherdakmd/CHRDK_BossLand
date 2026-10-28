@@ -44,7 +44,7 @@ public class BossLandConfiguration {
         if (!this.saveYML.exists()) {
             try {
                 if(saveYML.createNewFile()){
-                    plugin.getLogger().log(Level.INFO, "New save.yml generated.");
+                    plugin.getLogger().log(Level.INFO, "Создан новый save.yml.");
                 }
             } catch (IOException e) {
                 e.printStackTrace();
@@ -52,16 +52,16 @@ public class BossLandConfiguration {
         }
 
         if (!langYML.exists()) {
-            plugin.getLogger().log(Level.INFO, "No lang.yml found, generating...");
+            plugin.getLogger().log(Level.INFO, "lang.yml не найден, создаю...");
             plugin.saveResource("lang.yml", false);
-            plugin.getLogger().log(Level.INFO, Bukkit.getVersion() + " Lang successfully generated!");
+            plugin.getLogger().log(Level.INFO, Bukkit.getVersion() + " lang.yml успешно создан!");
             reloadLang();
         }
 
         if (!recipesYML.exists()) {
-            plugin.getLogger().log(Level.INFO, "No recipes.yml found, generating...");
+            plugin.getLogger().log(Level.INFO, "recipes.yml не найден, создаю...");
             plugin.saveResource("recipes.yml", false);
-            plugin.getLogger().log(Level.INFO, Bukkit.getVersion() + " Recipes successfully generated!");
+            plugin.getLogger().log(Level.INFO, Bukkit.getVersion() + " recipes.yml успешно создан!");
             reloadRecipes();
         }
     }
@@ -94,7 +94,7 @@ public class BossLandConfiguration {
 
     public String getLang(String s) {
         if (langFile.getString(s) == null) {
-            plugin.getLogger().log(Level.SEVERE, "Error with Lang file!");
+            plugin.getLogger().log(Level.SEVERE, "Ошибка в файле lang.yml!");
             System.out.print("Looking for path: " + s);
             System.out.print("Found: " + langFile.getString(s));
             langFile.set(s, "Missing!");
@@ -115,7 +115,7 @@ public class BossLandConfiguration {
     public ArrayList<String> getLangList(String s) {
         ArrayList<String> list = (ArrayList<String>) langFile.getList(s);
         if (list == null || list.isEmpty()) {
-            plugin.getLogger().log(Level.SEVERE, "Error with Lang file!");
+            plugin.getLogger().log(Level.SEVERE, "Ошибка в файле lang.yml!");
             System.out.print("Looking for list path: " + s);
             System.out.print("Found: " + langFile.getString(s));
         }
@@ -130,7 +130,7 @@ public class BossLandConfiguration {
         try {
             this.saveFile.save(this.saveYML);
         } catch (IOException localIOException) {
-            plugin.getLogger().log(Level.WARNING,"Error while saving save.yml file.");
+            plugin.getLogger().log(Level.WARNING,"Ошибка при сохранении save.yml.");
         }
     }
 
@@ -166,7 +166,7 @@ public class BossLandConfiguration {
 
         ConfigurationSection bosses = plugin.getConfig().getConfigurationSection("bosses");
         if (bosses == null) {
-            plugin.getLogger().warning("No bosses section found in config.yml!");
+            plugin.getLogger().warning("В config.yml нет секции bosses!");
             return lootIdMap;
         }
 

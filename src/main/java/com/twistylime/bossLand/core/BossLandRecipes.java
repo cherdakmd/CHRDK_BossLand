@@ -38,7 +38,7 @@ public class BossLandRecipes {
 
     public void addRecipes(ConfigurationSection recipesSection) {
         if (recipesSection == null) {
-            plugin.getLogger().warning("No item_recipes section found in config!");
+            plugin.getLogger().warning("В конфиге нет секции item_recipes!");
             return;
         }
 
@@ -52,7 +52,7 @@ public class BossLandRecipes {
             if(resultItemName == null) return;
             ItemStack resultItem = getResultItem(resultItemName, false);
             if (resultItem == null) {
-                plugin.getLogger().warning("Could not find custom item: " + resultItemName);
+                plugin.getLogger().warning("Не найден кастомный предмет: " + resultItemName);
                 continue;
             }
             resultItem.setAmount(resultAmount);
@@ -60,7 +60,7 @@ public class BossLandRecipes {
             // ===== Shape =====
             java.util.List<String> shapeList = recipeData.getStringList("shape");
             if (shapeList.size() != 3) {
-                plugin.getLogger().warning("Invalid shape for recipe: " + recipeName);
+                plugin.getLogger().warning("Неверная форма рецепта: " + recipeName);
                 continue;
             }
             String[] shape = shapeList.toArray(new String[0]);
@@ -89,13 +89,13 @@ public class BossLandRecipes {
 
     public Map<String, Object> getRecipes(String itemName){
         if (recipesSection == null) {
-            plugin.getLogger().warning("No item_recipes section found in config!");
+            plugin.getLogger().warning("В конфиге нет секции item_recipes!");
             return null;
         }
 
         ConfigurationSection requiredItemRecipe = (ConfigurationSection) recipesSection.get(itemName);
         if (requiredItemRecipe == null) {
-            plugin.getLogger().warning("No recipe for item found in config!");
+            plugin.getLogger().warning("В конфиге не найден рецепт для предмета!");
             return null;
         }
 
@@ -236,7 +236,7 @@ public class BossLandRecipes {
                 }
             }
         } catch (Exception localException) {
-            plugin.getLogger().log(Level.WARNING, "Error while restricting crafting of items using normal dyes instead of shards.");
+            plugin.getLogger().log(Level.WARNING, "Ошибка при ограничении крафта предметами-заменителями вместо осколков.");
         }
     }
 
@@ -271,7 +271,7 @@ public class BossLandRecipes {
                         }
                     }
                 } catch (Exception e) {
-                    plugin.getLogger().log(Level.WARNING, "Error in crafter event handler: " + e.getMessage());
+                    plugin.getLogger().log(Level.WARNING, "Ошибка в обработчике события Crafter: " + e.getMessage());
                 }
             };
 
@@ -284,7 +284,7 @@ public class BossLandRecipes {
             );
 
         } catch (ClassNotFoundException e) {
-            plugin.getLogger().info("Crafter events not supported in this version");
+            plugin.getLogger().info("События Crafter не поддерживаются в этой версии сервера");
         }
     }
 
