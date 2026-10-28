@@ -131,10 +131,23 @@ public class BossLand extends JavaPlugin implements Listener {
     // Mini-boss system: track dug blocks per player
     HashMap<UUID, Integer> dugBlocksMap = new HashMap<>();
     HashMap<Entity, BossBar> miniBossBars = new HashMap<>();
-    // Default values (overridden by config.yml)
-    private static final int DEFAULT_DUG_BLOCKS_THRESHOLD = 1000;
-    private static final int DEFAULT_MINI_BOSS_SPAWN_CHANCE = 5;
-    private static final int DEFAULT_ELITE_MINI_BOSS_CHANCE = 10;
+    // Last time a mini-boss was spawned for a player (cooldown, see miniboss.cooldownSeconds)
+    HashMap<UUID, Long> lastMiniBossSpawnMap = new HashMap<>();
+
+    // Default values (overridden by config.yml -> miniboss.*)
+    private static final int DEFAULT_DUG_BLOCKS_THRESHOLD = 200;
+    private static final int DEFAULT_MINI_BOSS_SPAWN_CHANCE = 35;
+    private static final int DEFAULT_ELITE_MINI_BOSS_CHANCE = 12;
+    private static final int DEFAULT_MINI_BOSS_COOLDOWN_SECONDS = 120;
+    private static final int DEFAULT_MINI_BOSS_MAX_NEARBY = 2;
+    private static final double DEFAULT_MINI_BOSS_NEARBY_RADIUS = 64.0;
+    private static final double DEFAULT_MINI_BOSS_BASE_HEALTH = 100.0;
+    private static final double DEFAULT_ELITE_MINI_BOSS_HEALTH = 300.0;
+
+    private static final String[] COMMON_MINI_BOSS_TYPES =
+            {"ZOMBIE", "SKELETON", "SPIDER", "CAVE_SPIDER", "CREEPER", "DROWNED", "HUSK", "STRAY"};
+    private static final String[] RARE_MINI_BOSS_TYPES =
+            {"WITCH", "EVOKER", "RAVAGER", "ENDERMAN", "SHULKER", "VINDICATOR", "PILLAGER"};
 
     public static BossLand getPlugin() {
         return plugin;
@@ -404,63 +417,189 @@ public class BossLand extends JavaPlugin implements Listener {
     }
 
     /**
-     * Mini-boss system: track dug blocks and spawn mini-bosses randomly.
-     * Players must dig 1000 blocks to have a chance to trigger a mini-boss.
+     * Mini-boss system: every player digs blocks, and once the configured threshold is reached a
+     * single spawn roll is made. Frequency, cooldown, limits and per-type weights are all tunable
+     * through the miniboss.* section of config.yml.
      */
     @EventHandler(priority = EventPriority.MONITOR)
     public void onBlockBreakForMiniBoss(BlockBreakEvent e) {
         Player p = e.getPlayer();
         if (p == null || e.isCancelled()) return;
+        if (!plugin.getConfig().getBoolean("miniboss.enabled", true)) return;
+        if (isMiniBossDisabledWorld(p.getWorld())) return;
 
         int threshold = plugin.getConfig().getInt("miniboss.blockThreshold", DEFAULT_DUG_BLOCKS_THRESHOLD);
         int spawnChance = plugin.getConfig().getInt("miniboss.spawnChance", DEFAULT_MINI_BOSS_SPAWN_CHANCE);
+        if (threshold < 1 || spawnChance <= 0) return;
 
         UUID uuid = p.getUniqueId();
         int count = dugBlocksMap.getOrDefault(uuid, 0) + 1;
         dugBlocksMap.put(uuid, count);
 
-        if (count >= threshold) {
-            dugBlocksMap.put(uuid, 0); // reset counter
-            if (UtilityCalc.rand(1, 100) <= spawnChance) {
-                spawnMiniBoss(p, p.getLocation());
-            }
+        if (count < threshold) return;
+
+        dugBlocksMap.put(uuid, 0); // reset counter
+        if (UtilityCalc.rand(1, 100) > spawnChance) return;
+
+        Location loc = p.getLocation();
+        if (!isMiniBossHeightAllowed(loc)) return;
+
+        int cooldownSeconds = plugin.getConfig().getInt("miniboss.cooldownSeconds", DEFAULT_MINI_BOSS_COOLDOWN_SECONDS);
+        long now = System.currentTimeMillis();
+        Long lastSpawn = lastMiniBossSpawnMap.get(uuid);
+        if (cooldownSeconds > 0 && lastSpawn != null && now - lastSpawn < cooldownSeconds * 1000L) {
+            return;
+        }
+
+        int maxNearby = plugin.getConfig().getInt("miniboss.maxNearby", DEFAULT_MINI_BOSS_MAX_NEARBY);
+        double nearbyRadius = plugin.getConfig().getDouble("miniboss.nearbyRadius", DEFAULT_MINI_BOSS_NEARBY_RADIUS);
+        if (maxNearby > 0 && countNearbyMiniBosses(loc, nearbyRadius) >= maxNearby) {
+            return;
+        }
+
+        lastMiniBossSpawnMap.put(uuid, now);
+        spawnMiniBoss(p, loc);
+    }
+
+    /** @return true when the world name is listed in miniboss.disabledWorlds */
+    private boolean isMiniBossDisabledWorld(World world) {
+        if (world == null) return true;
+        for (String disabled : plugin.getConfig().getStringList("miniboss.disabledWorlds")) {
+            if (world.getName().equalsIgnoreCase(disabled)) return true;
+        }
+        return false;
+    }
+
+    /** @return true when the location is between miniboss.minY and miniboss.maxY */
+    private boolean isMiniBossHeightAllowed(Location loc) {
+        int minY = plugin.getConfig().getInt("miniboss.minY", -60);
+        int maxY = plugin.getConfig().getInt("miniboss.maxY", 320);
+        return loc.getY() >= minY && loc.getY() <= maxY;
+    }
+
+    /** Counts still-alive mini-bosses within {@code radius} blocks of {@code loc}. */
+    private int countNearbyMiniBosses(Location loc, double radius) {
+        if (loc.getWorld() == null) return 0;
+        int found = 0;
+        double radiusSquared = radius * radius;
+        for (Entity boss : new ArrayList<>(miniBossBars.keySet())) {
+            if (boss == null || boss.isDead() || !boss.isValid()) continue;
+            if (boss.getWorld() != loc.getWorld()) continue;
+            if (boss.getLocation().distanceSquared(loc) <= radiusSquared) found++;
+        }
+        return found;
+    }
+
+    /**
+     * Picks a random mini-boss type honouring miniboss.types.<TYPE>.enabled and .weight.
+     * Disabled types never show up; weights change how often each type appears.
+     */
+    private String pickMiniBossType(boolean isElite) {
+        String[] pool = isElite ? RARE_MINI_BOSS_TYPES : COMMON_MINI_BOSS_TYPES;
+        List<String> candidates = new ArrayList<>();
+        int totalWeight = 0;
+        for (String type : pool) {
+            if (!plugin.getConfig().getBoolean("miniboss.types." + type + ".enabled", true)) continue;
+            int weight = plugin.getConfig().getInt("miniboss.types." + type + ".weight", 10);
+            if (weight <= 0) continue;
+            candidates.add(type);
+            totalWeight += weight;
+        }
+        if (candidates.isEmpty()) {
+            // every type of this tier was disabled - fall back to the pool so the event still works
+            return pool[UtilityCalc.rand(0, pool.length - 1)];
+        }
+        int roll = UtilityCalc.rand(1, totalWeight);
+        for (String type : candidates) {
+            roll -= plugin.getConfig().getInt("miniboss.types." + type + ".weight", 10);
+            if (roll <= 0) return type;
+        }
+        return candidates.get(0);
+    }
+
+    /** Spawns a random mini-boss at the player's location (used by the block-break event). */
+    public boolean spawnRandomMiniBoss(Player p) {
+        return spawnMiniBoss(p, p.getLocation(), null);
+    }
+
+    /** Spawns a mini-boss of the given vanilla type, or a random one when {@code requestedType} is blank. */
+    public boolean spawnMiniBossOfType(Player p, String requestedType) {
+        return spawnMiniBoss(p, p.getLocation(), normaliseMiniBossType(requestedType));
+    }
+
+    /**
+     * Spawns a mini-boss at an explicit location (also usable from the console).
+     * @param requestedType vanilla entity name, or {@code null}/blank for a random one
+     */
+    public boolean spawnMiniBossAt(Location location, String requestedType) {
+        return spawnMiniBoss(null, location, normaliseMiniBossType(requestedType));
+    }
+
+    /** @return upper-case entity name, or {@code null} when the name is blank or unknown */
+    private String normaliseMiniBossType(String requestedType) {
+        if (requestedType == null || requestedType.isBlank()) return null;
+        String type = requestedType.trim().toUpperCase(Locale.ROOT);
+        try {
+            EntityType.valueOf(type);
+            return type;
+        } catch (IllegalArgumentException ignored) {
+            return "?";
         }
     }
 
     private void spawnMiniBoss(Player p, Location l) {
-        try {
-            // Determine if elite mini-boss (rare, better loot, harder)
-            int eliteChance = plugin.getConfig().getInt("miniboss.eliteChance", DEFAULT_ELITE_MINI_BOSS_CHANCE);
-            boolean isElite = UtilityCalc.rand(1, 100) <= eliteChance;
+        spawnMiniBoss(p, l, null);
+    }
 
-            // Announce to nearby players with title/actionbar
+    /**
+     * @param forcedType vanilla entity name to spawn, or {@code null} for a weighted random pick
+     * @return true when a mini-boss was actually spawned
+     */
+    private boolean spawnMiniBoss(Player p, Location l, String forcedType) {
+        if ("?".equals(forcedType)) {
+            return false; // unknown entity name supplied by an admin
+        }
+        try {
+            boolean isElite = UtilityCalc.rand(1, 100) <= plugin.getConfig().getInt("miniboss.eliteChance", DEFAULT_ELITE_MINI_BOSS_CHANCE);
+
+            String type;
+            if (forcedType != null) {
+                type = forcedType;
+                // an explicitly requested elite-tier mob keeps its elite stats
+                isElite = isElite || java.util.Arrays.asList(RARE_MINI_BOSS_TYPES).contains(type);
+            } else {
+                type = pickMiniBossType(isElite);
+            }
+
+            EntityType bossType;
+            try {
+                bossType = EntityType.valueOf(type);
+            } catch (IllegalArgumentException badType) {
+                plugin.getLogger().log(Level.WARNING, "Unknown mini-boss type: " + type);
+                return false;
+            }
+
+            // Announce to nearby players
             String spawnMsg = config.getLang("miniboss.spawn");
             String eliteMsg = config.getLang("miniboss.eliteSpawn");
             String titleMsg = isElite ? "§c§lЭЛИТНЫЙ МИНИ-БОСС" : "§c§lМини-босс";
             String subtitleMsg = isElite ? eliteMsg : spawnMsg;
+            int announceRadius = plugin.getConfig().getInt("miniboss.announceRadius", 80);
+            boolean playSound = plugin.getConfig().getBoolean("miniboss.playSpawnSound", true);
 
-            for (Entity ent : l.getWorld().getNearbyEntities(l, 80, 80, 80)) {
+            for (Entity ent : l.getWorld().getNearbyEntities(l, announceRadius, announceRadius, announceRadius)) {
                 if (ent instanceof Player pl) {
                     pl.sendMessage(spawnMsg);
-                    pl.getWorld().playSound(pl.getLocation(), Sound.ENTITY_WITHER_SPAWN, 1, 1);
-                    // Send title for more impact
+                    if (playSound) pl.getWorld().playSound(pl.getLocation(), Sound.ENTITY_WITHER_SPAWN, 1, 1);
                     pl.sendTitle(titleMsg, subtitleMsg, 10, 40, 10);
                 }
             }
 
-            // Pick random mini-boss type with different tiers
-            String[] commonTypes = {"ZOMBIE", "SKELETON", "SPIDER", "CAVE_SPIDER", "CREEPER", "DROWNED", "HUSK", "STRAY"};
-            String[] rareTypes = {"WITCH", "EVOKER", "RAVAGER", "ENDERMAN", "SHULKER", "VINDICATOR", "PILLAGER"};
-            String[] types = isElite ? rareTypes : commonTypes;
-            String type = types[UtilityCalc.rand(0, types.length - 1)];
-            EntityType bossType = EntityType.valueOf(type);
-
             Entity boss = l.getWorld().spawnEntity(l, bossType);
-            if (!(boss instanceof LivingEntity)) {
+            if (!(boss instanceof LivingEntity livingBoss)) {
                 boss.remove();
-                return;
+                return false;
             }
-            LivingEntity livingBoss = (LivingEntity) boss;
 
             // Set custom name with tier prefix
             String typeName = config.getLang("miniboss.type." + type);
@@ -473,13 +612,16 @@ public class BossLand extends JavaPlugin implements Listener {
             boss.setCustomName(displayName);
             boss.setCustomNameVisible(true);
 
-            // Set health based on tier
-            double baseHealth = isElite ? 300.0 : 100.0;
+            // Health comes from miniboss.baseHealth / miniboss.eliteHealth
+            double baseHealth = isElite
+                    ? plugin.getConfig().getDouble("miniboss.eliteHealth", DEFAULT_ELITE_MINI_BOSS_HEALTH)
+                    : plugin.getConfig().getDouble("miniboss.baseHealth", DEFAULT_MINI_BOSS_BASE_HEALTH);
             double maxHealth = baseHealth * plugin.getConfig().getDouble("bossHealthMultiplier", 1.0);
             AttributeInstance healthAttr = livingBoss.getAttribute(CompatibilityResolver.resolveAttribute("MAX_HEALTH", "GENERIC_MAX_HEALTH"));
             if (healthAttr != null) {
                 healthAttr.setBaseValue(maxHealth);
-                livingBoss.setHealth(maxHealth);
+                // the server may clamp max health (spigot.yml -> maxHealth), so read the real value back
+                livingBoss.setHealth(healthAttr.getValue());
             }
 
             // Apply tier-based abilities
@@ -494,7 +636,7 @@ public class BossLand extends JavaPlugin implements Listener {
                     : BarColor.valueOf(plugin.getConfig().getString("miniboss.barColor", "RED"));
             BarStyle barStyle = BarStyle.valueOf(plugin.getConfig().getString("miniboss.barStyle", "SOLID"));
             BossBar bar = Bukkit.createBossBar(displayName, barColor, barStyle, BarFlag.CREATE_FOG);
-            bar.addPlayer(p);
+            if (p != null) bar.addPlayer(p);
             bar.setVisible(true);
             miniBossBars.put(boss, bar);
 
@@ -511,8 +653,10 @@ public class BossLand extends JavaPlugin implements Listener {
             }, 5L);
 
             plugin.getLogger().log(Level.INFO, "Mini-boss spawned: " + (isElite ? "ELITE " : "") + type + " at " + l.getBlockX() + "," + l.getBlockY() + "," + l.getBlockZ());
+            return true;
         } catch (Exception x) {
             plugin.getLogger().log(Level.SEVERE, "Failed to spawn mini-boss", x);
+            return false;
         }
     }
 
@@ -2989,9 +3133,11 @@ public class BossLand extends JavaPlugin implements Listener {
         boolean isElite = miniBossType.endsWith(":ELITE");
         String cleanType = isElite ? miniBossType.substring(0, miniBossType.length() - 6) : miniBossType;
 
-        // Drop chance: 3% common, 15% elite
-        int dropChance = isElite ? 15 : 3;
-        if (UtilityCalc.rand(1, 100) > dropChance) {
+        // Drop chance is tunable: miniboss.dropChance / miniboss.eliteDropChance
+        int dropChance = isElite
+                ? plugin.getConfig().getInt("miniboss.eliteDropChance", 15)
+                : plugin.getConfig().getInt("miniboss.dropChance", 3);
+        if (dropChance <= 0 || UtilityCalc.rand(1, 100) > dropChance) {
             return null;
         }
 
@@ -3012,8 +3158,9 @@ public class BossLand extends JavaPlugin implements Listener {
         Material mat = getMaterialForShard(key);
         if (mat == null) mat = Material.IRON_INGOT;
 
-        // Elite mini-bosses drop more items (1-3)
-        int amount = isElite ? UtilityCalc.rand(1, 3) : 1;
+        // Elite mini-bosses drop more items (1 .. miniboss.eliteDropAmountMax)
+        int eliteMax = Math.max(1, plugin.getConfig().getInt("miniboss.eliteDropAmountMax", 3));
+        int amount = isElite ? UtilityCalc.rand(1, eliteMax) : 1;
 
         ItemStack item = new ItemStack(mat, amount);
         org.bukkit.inventory.meta.ItemMeta meta = item.getItemMeta();
@@ -3053,6 +3200,7 @@ public class BossLand extends JavaPlugin implements Listener {
      */
     public void handleCreeperMiniBossDeath(LivingEntity creeper) {
         try {
+            if (!plugin.getConfig().getBoolean("miniboss.creeperExplodesOnDeath", true)) return;
             if (creeper.getType() != EntityType.CREEPER) return;
             org.bukkit.entity.Creeper c = (org.bukkit.entity.Creeper) creeper;
             c.setPowered(true); // charged creeper for bigger explosion

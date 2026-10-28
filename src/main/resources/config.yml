@@ -1,13 +1,108 @@
 bossRange: 35
 bossLimit: 99
 bossHealthMultiplier: 1.0
+# ============================================================
+#  МИНИ-БОССЫ
+#  Появляются случайно при добыче блоков. Все параметры ниже
+#  можно менять на лету: /bl-admin reload
+# ============================================================
 miniboss:
+  # Главный выключатель. false = мини-боссы не появляются вовсе
+  enabled: true
+  # Миры, в которых мини-боссы запрещены
+  disabledWorlds:
+    - MyTownWorld
+
+  # ---- частота появления ----
+  # Сколько блоков нужно добыть, чтобы прошла одна попытка спавна
+  blockThreshold: 200
+  # Шанс успеха этой попытки, % (35 = примерно раз в ~570 блоков)
+  spawnChance: 35
+  # Шанс, что выпавший мини-босс окажется элитным, %
+  eliteChance: 12
+  # Пауза после спавна для игрока, секунды (0 = без паузы)
+  cooldownSeconds: 120
+  # Сколько мини-боссов может быть живо рядом одновременно
+  maxNearby: 2
+  # Радиус проверки maxNearby, блоки
+  nearbyRadius: 64
+  # Границы по высоте: вне их мини-боссы не появляются
+  minY: -60
+  maxY: 320
+
+  # ---- уведомление игроков ----
+  announceRadius: 80
+  playSpawnSound: true
+
+  # ---- характеристики ----
+  # Базовое здоровье обычного и элитного мини-босса (умножается на bossHealthMultiplier)
+  baseHealth: 100
+  eliteHealth: 300
+  # Полоса босса
   barColor: RED
   barStyle: SOLID
   eliteBarColor: PURPLE
-  spawnChance: 5
-  eliteChance: 10
-  blockThreshold: 1000
+
+  # ---- лут ----
+  # Шанс дропа осколка с обычного / элитного мини-босса, %
+  dropChance: 3
+  eliteDropChance: 15
+  # Максимум осколков за дроп с элитного (от 1 до этого числа)
+  eliteDropAmountMax: 3
+
+  # ---- поведение ----
+  # Крипер-мини-босс взрывается при смерти
+  creeperExplodesOnDeath: true
+
+  # ---- какие типы могут появляться ----
+  # enabled: false — тип отключён
+  # weight — относительный вес (чем больше, тем чаще)
+  types:
+    ZOMBIE:
+      enabled: true
+      weight: 10
+    SKELETON:
+      enabled: true
+      weight: 10
+    SPIDER:
+      enabled: true
+      weight: 10
+    CAVE_SPIDER:
+      enabled: true
+      weight: 10
+    CREEPER:
+      enabled: true
+      weight: 6
+    DROWNED:
+      enabled: true
+      weight: 6
+    HUSK:
+      enabled: true
+      weight: 6
+    STRAY:
+      enabled: true
+      weight: 6
+    WITCH:
+      enabled: true
+      weight: 10
+    EVOKER:
+      enabled: true
+      weight: 8
+    RAVAGER:
+      enabled: true
+      weight: 8
+    ENDERMAN:
+      enabled: true
+      weight: 10
+    SHULKER:
+      enabled: true
+      weight: 6
+    VINDICATOR:
+      enabled: true
+      weight: 8
+    PILLAGER:
+      enabled: true
+      weight: 8
 waterLevel: 40
 skyLevel: 200
 maxKBEnchantLevel: 10
@@ -22,7 +117,7 @@ bosses:
     entity: GHAST
     minion: BLAZE
     dropedXP: 6000
-    name: "§f§lGhast Lord"
+    name: "§f§lГерцог Гастов"
     health: 500
     specialChance: 10 # Percentage amount for which boss will do a special attack on getting hit
     potionChance: 20 # Percentage amount for which boss will use potion effects on target on getting hit
@@ -42,11 +137,11 @@ bosses:
       1:
         item: quartz
         amount: 1
-        name: "&lWhite Boss Shard"
-        lore1: "&eOne of 6 &lTier 1 &r&eshards"
-        lore2: "&6Used to craft &lTier 2 &r&6summon item:"
-        lore3: "&6&lBell of Doom"
-        lore4: "&8Dropped by Ghast Lord"
+        name: "&lБелый осколок босса"
+        lore1: "&eОдин из 6 осколков &lТира 1"
+        lore2: "&6Нужен для крафта предмета призыва &lТира 2&r&6:"
+        lore3: "&6&lКолокол Рока"
+        lore4: "&8Выпадает с: Герцог Гастов"
         enchantments: 
           1:
             enchantment: LOYALTY
@@ -54,9 +149,9 @@ bosses:
       2:
         item: GOLDEN_SWORD
         amount: 1
-        name: "&c&lFlame Sword"
-        lore1: '&6Hey, at least it has looting'
-        lore2: '&8Dropped by Ghast Lord'
+        name: "&c&lПламенный Меч"
+        lore1: '&6Зато с добычей'
+        lore2: '&8Выпадает с: Герцог Гастов'
         minEnchantments: 3
         maxEnchantments: 5
         enchantments: 
@@ -84,9 +179,9 @@ bosses:
         item: BOW
         amount: 1
         unbreaking: 10
-        name: '&c&lFlame &6&lBow'
-        lore1: '&6Shoots fire to the heavens!'
-        lore2: '&8Dropped by Ghast Lord'
+        name: '&c&lПламенный &6&lЛук'
+        lore1: '&6Мечет огонь в небеса!'
+        lore2: '&8Выпадает с: Герцог Гастов'
         minEnchantments: 3
         maxEnchantments: 5
         enchantments:
@@ -114,7 +209,7 @@ bosses:
     entity: SLIME
     minion: SLIME
     dropedXP: 5000
-    name: "§a§lKing Slime"
+    name: "§a§lКороль Слизней"
     health: 1000
     specialChance: 10
     potionChance: 20
@@ -129,10 +224,10 @@ bosses:
       0:
         item: leather_boots
         amount: 1
-        name: "&a&lSlime Boots"
-        lore1: "&2Bouncy as heck!"
-        lore2: "&eGrants ability to &lbounce off everything"
-        lore3: "&8Dropped by Slime King"
+        name: "&a&lСлизистые Ботинки"
+        lore1: "&2Прыгучий до жути!"
+        lore2: "&eДаёт умение &lотскакивать от всего"
+        lore3: "&8Выпадает с: Король Слизней"
         colour: "102,255,102"
         enchantments: 
           1:
@@ -153,11 +248,11 @@ bosses:
       2:
         item: GREEN_DYE
         amount: 1
-        name: "&a&lGreen Boss Shard"
-        lore1: "&eOne of 6 &lTier 1 &r&eshards"
-        lore2: "&6Used to craft &lTier 2 &r&6summon items:"
-        lore3: "&6&lPotion of Giant Growth&r&6, &lBell of Doom"
-        lore4: "&8Dropped by Slime King"
+        name: "&a&lЗеленый осколок босса"
+        lore1: "&eОдин из 6 осколков &lТира 1"
+        lore2: "&6Нужен для крафта предметов призыва &lТира 2&r&6:"
+        lore3: "&6&lЗелье Роста Гиганта&r&6, &lКолокол Рока"
+        lore4: "&8Выпадает с: Король Слизней"
         enchantments: 
           1:
             enchantment: LOYALTY
@@ -166,7 +261,7 @@ bosses:
     entity: RABBIT
     minion: RABBIT
     dropedXP: 3000
-    name: "§7§lKiller Bunny"
+    name: "§7§lКролик-Убийца"
     health: 300
     specialChance: 30
     potionChance: 20
@@ -185,11 +280,11 @@ bosses:
       1:
         item: clay_ball
         amount: 1
-        name: "&7&lGrey Boss Shard"
-        lore1: "&eOne of 6 &lTier 1 &r&eshards"
-        lore2: "&6Used to craft &lTier 2 &r&6summon item:"
-        lore3: "&6&lBell of Doom"
-        lore4: "&8Dropped by Killer Bunny"
+        name: "&7&lСерый осколок босса"
+        lore1: "&eОдин из 6 осколков &lТира 1"
+        lore2: "&6Нужен для крафта предмета призыва &lТира 2&r&6:"
+        lore3: "&6&lКолокол Рока"
+        lore4: "&8Выпадает с: Кролик-Убийца"
         enchantments: 
           1:
             enchantment: LOYALTY
@@ -197,10 +292,10 @@ bosses:
       2:
         item: leather_leggings
         amount: 1
-        name: "&7&lBunny Pants"
-        lore1: "&6I'm the king of parkour!"
-        lore2: "&eGrants &lJump Boost IV"
-        lore3: "&8Dropped by Killer Bunny"
+        name: "&7&lКроличьи Штаны"
+        lore1: "&6Я король паркура!"
+        lore2: "&eДаёт &lПрыгучесть IV"
+        lore3: "&8Выпадает с: Кролик-Убийца"
         colour: "252,168,0"
         enchantments: 
           1:
@@ -216,7 +311,7 @@ bosses:
     entity: Panda
     minion: Panda
     dropedXP: 4000
-    name: "§6§lPapa Panda"
+    name: "§6§lПапа Панда"
     health: 1000
     specialChance: 25
     specal2DMG: 6
@@ -231,11 +326,11 @@ bosses:
       0:
         item: brown_dye
         amount: 1
-        name: "&4&lBrown Boss Shard"
-        lore1: "&eOne of 6 &lTier 1 &r&eshards"
-        lore2: "&6Used to craft &lTier 2 &r&6summon item:"
-        lore3: "&6&lPotion of Giant Growth"
-        lore4: "&8Dropped by Papa Panda"
+        name: "&4&lКоричневый осколок босса"
+        lore1: "&eОдин из 6 осколков &lТира 1"
+        lore2: "&6Нужен для крафта предмета призыва &lТира 2&r&6:"
+        lore3: "&6&lЗелье Роста Гиганта"
+        lore4: "&8Выпадает с: Папа Панда"
         enchantments: 
           1:
             enchantment: LOYALTY
@@ -243,10 +338,10 @@ bosses:
       1:
         item: LEATHER_LEGGINGS
         amount: 1
-        name: "&lPanda Pants"
-        lore1: "&bI'M FAST AS FLIP BOI!"
-        lore2: "&eGrants &lSpeed IV"
-        lore3: "&8Dropped by Papa Panda"
+        name: "&lШтаны Панды"
+        lore1: "&bЯ БЫСТРЫЙ, КАК ВЕТЕР!"
+        lore2: "&eДаёт &lСкорость IV"
+        lore3: "&8Выпадает с: Папа Панда"
         colour: "84,252,252"
         enchantments: 
           1:
@@ -266,7 +361,7 @@ bosses:
     mount: SKELETON_HORSE
     minion: SKELETON
     dropedXP: 4000
-    name: "§8§lWither Skeleton King"
+    name: "§8§lКороль Скелетов-Иссохших"
     health: 1000
     specialChance: 10
     potionChance: 20
@@ -283,11 +378,11 @@ bosses:
       0:
         item: COAL
         amount: 1
-        name: "&8&lBlack Boss Shard"
-        lore1: "&eOne of 6 &lTier 1 &r&eshards"
-        lore2: "&6Used to craft &lTier 2 &r&6summon item:"
-        lore3: "&6&lBook of Spells"
-        lore4: "&8Dropped by Wither Skeleton King"
+        name: "&8&lЧерный осколок босса"
+        lore1: "&eОдин из 6 осколков &lТира 1"
+        lore2: "&6Нужен для крафта предмета призыва &lТира 2&r&6:"
+        lore3: "&6&lКнига Заклинаний"
+        lore4: "&8Выпадает с: Король Скелетов-Иссохших"
         enchantments: 
           1:
             enchantment: LOYALTY
@@ -300,8 +395,8 @@ bosses:
         - '&c&lNether Sword'
         - '&c&lGhast Sword'
         - '&c&lMagma Sword'
-        lore1: '&cLet them feel the PAIN'
-        lore2: "&8Dropped by Wither Skeleton King"
+        lore1: '&cПусть почувствуют БОЛЬ'
+        lore2: "&8Выпадает с: Король Скелетов-Иссохших"
         minEnchantments: 5
         maxEnchantments: 7
         enchantments:
@@ -336,9 +431,9 @@ bosses:
       2:
         item: DIAMOND_HELMET
         amount: 1
-        name: '&f&lDeath Mask'
-        lore1: '&fBreath death itself!'
-        lore2: '&8Dropped by Wither Skeleton King'
+        name: '&f&lМаска Смерти'
+        lore1: '&fДыхание самой смерти!'
+        lore2: '&8Выпадает с: Король Скелетов-Иссохших'
         enchantments:
           1:
             enchantment: THORNS
@@ -361,7 +456,7 @@ bosses:
     minion: ZOMBIE
     minionMount: CHICKEN
     dropedXP: 4000
-    name: "§2§lZombie King"
+    name: "§2§lКороль Зомби"
     health: 1000
     specialChance: 10
     potionChance: 20
@@ -378,11 +473,11 @@ bosses:
       0:
         item: red_dye
         amount: 1
-        name: "&c&lRed Boss Shard"
-        lore1: "&eOne of 6 &lTier 1 &r&eshards"
-        lore2: "&6Used to craft &lTier 2 &r&6summon items:"
-        lore3: "&6&lPotion of Giant Growth&r&6, &lBook of Spells"
-        lore4: "&8Dropped by Zombie King"
+        name: "&c&lКрасный осколок босса"
+        lore1: "&eОдин из 6 осколков &lТира 1"
+        lore2: "&6Нужен для крафта предметов призыва &lТира 2&r&6:"
+        lore3: "&6&lЗелье Роста Гиганта&r&6, &lКнига Заклинаний"
+        lore4: "&8Выпадает с: Король Зомби"
         enchantments: 
           1:
             enchantment: LOYALTY
@@ -390,9 +485,9 @@ bosses:
       1:
         item: DIAMOND_PICKAXE
         amount: 1
-        name: "&2&lPick of the Undead"
-        lore1: "&2Pretty dang good at digging holes"
-        lore2: "&8Dropped by Zombie King"
+        name: "&2&lКирка Нежити"
+        lore1: "&2Копает ямы лучше всех"
+        lore2: "&8Выпадает с: Король Зомби"
         minEnchantments: 2
         maxEnchantments: 4
         enchantments: 
@@ -415,8 +510,8 @@ bosses:
       2:
         item: DIAMOND_SHOVEL
         amount: 1
-        name: "&2&lGrave Digger"
-        lore1: "&8Dropped by Zombie King"
+        name: "&2&lМогильщик"
+        lore1: "&8Выпадает с: Король Зомби"
         minEnchantments: 2
         maxEnchantments: 4
         enchantments: 
@@ -439,9 +534,9 @@ bosses:
       3:
         item: DIAMOND_AXE
         amount: 1
-        name: "&2&lThe Headmans Axe"
-        lore1: "&2TREES! FEAR ME!"
-        lore2: "&8Dropped by Zombie King"
+        name: "&2&lТопор Палача"
+        lore1: "&2ДЕРЕВЬЯ! БОЙТЕСЬ МЕНЯ!"
+        lore2: "&8Выпадает с: Король Зомби"
         minEnchantments: 3
         maxEnchantments: 5
         enchantments: 
@@ -470,7 +565,7 @@ bosses:
     minion: ENDERMITE
     minion3: Witch
     dropedXP: 8000
-    name: "§9§lEvil Wizard"
+    name: "§9§lЗлой Колдун"
     health: 1400
     specialChance: 20
     potionChance: 20
@@ -488,11 +583,11 @@ bosses:
       0: 
         item: LAPIS_LAZULI
         amount: 1
-        name: "&9&lBlue Boss Shard"
-        lore1: "&eOne of 4 &lTier 2 &r&eshards"
-        lore2: "&6Used to craft &lTier 3 &r&6summon item:"
-        lore3: "&6&lForbidden Fruit"
-        lore4: "&8Dropped by Evil Wizard"
+        name: "&9&lСиний осколок босса"
+        lore1: "&eОдин из 4 осколков &lТира 2"
+        lore2: "&6Нужен для крафта предмета призыва &lТира 3&r&6:"
+        lore3: "&6&lЗапретный Плод"
+        lore4: "&8Выпадает с: Злой Колдун"
         enchantments: 
           1:
             enchantment: LOYALTY
@@ -510,10 +605,10 @@ bosses:
       3: 
         item: ENCHANTED_BOOK
         amount: 1
-        name:  "&5&lMagic Book"
-        lore1: "&5Use when all hope is lost"
-        lore2: "&eConsumes 5 regular books from inventory to teleport back to your bed."
-        lore3: "&8Dropped by Evil Wizard"
+        name: "&5&lКнига Магии"
+        lore1: "&5Используй, когда надежды не осталось"
+        lore2: "&eТратит 5 обычных книг из инвентаря, чтобы телепортировать вас к кровати."
+        lore3: "&8Выпадает с: Злой Колдун"
         enchantments: 
           1:
             enchantment: LOYALTY
@@ -522,10 +617,10 @@ bosses:
         item: ICE
         amount: 1
         name: "&f&lЯдро Льда"
-        lore1: "&bHeart of the eternal winter"
-        lore2: "&eUsed to craft &lTier 3 &r&esummon item:"
-        lore3: "&6&lFrost Titan Summoning Item"
-        lore4: "&8Dropped by Evil Wizard"
+        lore1: "&bСердце вечной зимы"
+        lore2: "&eНужен для крафта предмета призыва &lТира 3&r&e:"
+        lore3: "&6&lПредмет призыва Ледяного Титана"
+        lore4: "&8Выпадает с: Злой Колдун"
         enchantments: 
           1:
             enchantment: LOYALTY
@@ -536,7 +631,7 @@ bosses:
     minion2: Vex
     minion3: Vindicator
     dropedXP: 10000
-    name: "§6§lKing of the Illagers"
+    name: "§6§lКороль Иллов"
     health: 2000
     mount: RAVAGER
     specialChance: 10
@@ -554,11 +649,11 @@ bosses:
       0: 
         item: yellow_dye
         amount: 1
-        name: "&6&lGold Boss Shard"
-        lore1: "&eOne of 4 &lTier 2 &r&eshards"
-        lore2: "&6Used to craft &lTier 3 &r&6summon item:"
-        lore3: "&6&lForbidden Fruit"
-        lore4: "&8Dropped by Illager King"
+        name: "&6&lЗолотой осколок босса"
+        lore1: "&eОдин из 4 осколков &lТира 2"
+        lore2: "&6Нужен для крафта предмета призыва &lТира 3&r&6:"
+        lore3: "&6&lЗапретный Плод"
+        lore4: "&8Выпадает с: Король Иллов"
         enchantments: 
           1:
             enchantment: LOYALTY
@@ -576,9 +671,9 @@ bosses:
       3:
         item: DIAMOND_CHESTPLATE
         amount: 1
-        name: "&f&lPlate of Death"
-        lore1: "&fBecome immune to death"
-        lore2: "&8Dropped by Illager King"
+        name: "&f&lЛаты Смерти"
+        lore1: "&fСтань неуязвим к смерти"
+        lore2: "&8Выпадает с: Король Иллов"
         enchantments: 
           0:
             enchantment: mending
@@ -598,9 +693,9 @@ bosses:
       4:
         item: CROSSBOW
         amount: 1
-        name: "&1&lWitch Hunter"
-        lore1: "&13 witches 1 shot"
-        lore2: "&8Dropped by Illager King"
+        name: "&1&lОхотник на Ведьм"
+        lore1: "&1Три ведьмы — один выстрел"
+        lore2: "&8Выпадает с: Король Иллов"
         enchantments: 
           0:
             enchantment: mending
@@ -625,7 +720,7 @@ bosses:
     minion3: Skeleton
     minion3Mount: SKELETON_HORSE
     dropedXP: 10000
-    name: "§2§lGiant"
+    name: "§2§lГигант"
     health: 2000
     specialChance: 50
     special2Damage: 25
@@ -641,11 +736,11 @@ bosses:
       0: 
         item: emerald
         amount: 1
-        name: "&a&lEmerald Boss Shard"
-        lore1: "&eOne of 4 &lTier 2 &r&eshards"
-        lore2: "&6Used to craft &lTier 3 &r&6summon item:"
-        lore3: "&6&lForbidden Fruit"
-        lore4: "&8Dropped by the Giant"
+        name: "&a&lИзумрудный осколок босса"
+        lore1: "&eОдин из 4 осколков &lТира 2"
+        lore2: "&6Нужен для крафта предмета призыва &lТира 3&r&6:"
+        lore3: "&6&lЗапретный Плод"
+        lore4: "&8Выпадает с: Гигант"
         enchantments: 
           1:
             enchantment: LOYALTY
@@ -653,10 +748,10 @@ bosses:
       1:
         item: DIAMOND_PICKAXE
         amount: 1
-        name: "&d&lGiant's Pick"
-        lore1: "&dD dwarve's dream"
-        lore2: "&eDigs &l3x3 &r&ehole"
-        lore3: "&8Dropped by the Giant"
+        name: "&d&lКирка Гиганта"
+        lore1: "&dМечта гнома"
+        lore2: "&eКопает яму &l3x3"
+        lore3: "&8Выпадает с: Гигант"
         enchantments: 
           1:
             enchantment: unbreaking
@@ -667,10 +762,10 @@ bosses:
       2:
         item: DIAMOND_SHOVEL
         amount: 1
-        name: "&d&lGiant's Spade"
-        lore1: "&dThe holes are dang huge!"
-        lore2: "&eDigs &l3x3 &r&ehole"
-        lore3: "&8Dropped by the Giant"
+        name: "&d&lЛопата Гиганта"
+        lore1: "&dЯмы просто огромные!"
+        lore2: "&eКопает яму &l3x3"
+        lore3: "&8Выпадает с: Гигант"
         enchantments: 
           1:
             enchantment: unbreaking
@@ -684,7 +779,7 @@ bosses:
     minion4Mount: Dolphin
     amountSpecial3: 3
     dropedXP: 20000
-    name: "§b§lThe Drowned God"
+    name: "§b§lУтонувший Бог"
     health: 2048
     specialChance: 20
     potionChance: 33
@@ -700,10 +795,10 @@ bosses:
       0: 
         item: TRIDENT
         amount: 1
-        name: "&3&lTrident of Ultimate Power"
-        lore1: "&3His lightnings lit up the world"
-        lore2: "&3The earth saw and trembled"
-        lore3: "&4Dropped by Drowned God"
+        name: "&3&lТрезубец Абсолютной Силы"
+        lore1: "&3Его молнии озарили мир"
+        lore2: "&3Земля увидела и задрожала"
+        lore3: "&4Выпадает с: Утонувший Бог"
         enchantments: 
           1:
             enchantment: channeling
@@ -726,10 +821,10 @@ bosses:
       1: 
         item: TRIDENT
         amount: 1
-        name: "&3&lTrident of Ultimate Speed"
-        lore1: "&3The rains fall on the"
-        lore2: "&3wicked and the good alike"
-        lore3: "&4Dropped by Drowned God"
+        name: "&3&lТрезубец Абсолютной Скорости"
+        lore1: "&3Дождь идёт равно"
+        lore2: "&3на злых и на добрых"
+        lore3: "&4Выпадает с: Утонувший Бог"
         enchantments: 
           1:
             enchantment: riptide
@@ -749,11 +844,11 @@ bosses:
       2:
         item: NETHERITE_HELMET
         amount: 1
-        name: "&3&lDrowned Helm"
-        lore1: "&3What is dead may never die"
-        lore2: "&3but rises again, harder and stronger"
-        lore3: "&eGrants &lNight Vision, Conduit Power, Dolphin's Grace"
-        lore4: "&4Dropped by Drowned God"
+        name: "&3&lШлем Утонувшего"
+        lore1: "&3Что мертво, умереть не может"
+        lore2: "&3но восстаёт вновь, сильнее прежнего"
+        lore3: "&eДаёт &lНочное зрение, Силу проводника, Грацию дельфина"
+        lore4: "&4Выпадает с: Утонувший Бог"
         enchantments: 
           0:
             enchantment: mending
@@ -780,10 +875,10 @@ bosses:
         item: ENDER_PEARL
         amount: 1
         name: "&d&lОсколок Кристалла Края"
-        lore1: "&dFragment of the end dimension"
-        lore2: "&eUsed to craft &lTier 4 &r&esummon item:"
-        lore3: "&6&lEnd Colossus Summoning Item"
-        lore4: "&8Dropped by Drowned God"
+        lore1: "&dФрагмент измерения Края"
+        lore2: "&eНужен для крафта предмета призыва &lТира 4&r&e:"
+        lore3: "&6&lПредмет призыва Колосса Края"
+        lore4: "&8Выпадает с: Утонувший Бог"
         enchantments: 
           1:
             enchantment: LOYALTY
@@ -798,7 +893,7 @@ bosses:
     amountSpecial4: 1
     specialDamage3: 10
     dropedXP: 20000
-    name: "§0§lThe Pharaoh God"
+    name: "§0§lБог-Фараон"
     health: 2048
     specialChance: 20
     special3Chance: 10
@@ -816,10 +911,10 @@ bosses:
       0: 
         item: PLAYER_HEAD
         amount: 1
-        name: "&e&lThe Cursed Skull"
-        lore1: "&6Immortality, a fate worse than death"
-        lore2: "&eWorks like a totem (only in offhand) *15min cooldown*"
-        lore3: "&4Dropped by Pharaoh God"
+        name: "&e&lПроклятый Череп"
+        lore1: "&6Бессмертие — участь хуже смерти"
+        lore2: "&eРаботает как тотем (только во второй руке) *откат 15 мин*"
+        lore3: "&4Выпадает с: Бог-Фараон"
         texture: "http://textures.minecraft.net/texture/4ad0476e8671696af3a8949afa2a814b9bdde65eccd1a8b593aeeff5a0318d"
         enchantments: 
           1:
@@ -828,11 +923,11 @@ bosses:
       1: 
         item: BLAZE_ROD
         amount: 1
-        name: "&e&lStaff of Brimstone"
-        lore1: "&6Rain upon them fire and brimstone"
-        lore2: "&6Their ruin will be great"
-        lore3: "&eSummons &lDESTRUCTIVE &r&efireballs"
-        lore4: "&4Dropped by Pharaoh God"
+        name: "&e&lПосох Серы"
+        lore1: "&6Пролей на них огонь и серу"
+        lore2: "&6Их погибель будет велика"
+        lore3: "&eПризывает &lРАЗРУШИТЕЛЬНЫЕ &r&eфаерболы"
+        lore4: "&4Выпадает с: Бог-Фараон"
         enchantments: 
           1:
             enchantment: LOYALTY
@@ -840,11 +935,11 @@ bosses:
       2:
         item: NETHERITE_BOOTS
         amount: 1
-        name: "&6&lSwiftfoot Boots"
-        lore1: "&6Swift like a wind"
-        lore2: "&6deadly like a lightning"
-        lore3: "&eGrants &lJump Boost III, Speed III, Haste III"
-        lore4: "&4Dropped by Pharaoh God"
+        name: "&6&lБотинки Быстронога"
+        lore1: "&6Быстрый, как ветер"
+        lore2: "&6смертоносный, как молния"
+        lore3: "&eДаёт &lПрыгучесть III, Скорость III, Спешку III"
+        lore4: "&4Выпадает с: Бог-Фараон"
         enchantments: 
           0:
             enchantment: mending
@@ -876,7 +971,7 @@ bosses:
     amountSpecial4: 3
     specialDamage3: 6
     dropedXP: 20000
-    name: "§b§lThe Aether God"
+    name: "§b§lЭфирный Бог"
     health: 2048
     specialChance: 30
     minionChance: 20
@@ -895,11 +990,11 @@ bosses:
       0:
         item: NETHERITE_CHESTPLATE
         amount: 1
-        name: "&lZephyr Wings"
-        lore1: "&bSoft the zephyr blows, While "
-        lore2: "&bproudly riding o'er the azure realm"
-        lore3: "&eGrants &lStrength II, Slow Falling IV"
-        lore4: "&4Dropped by Aether God"
+        name: "&lКрылья Зефира"
+        lore1: "&bНежно веет зефир, пока "
+        lore2: "&bгордо несусь над лазурным краем"
+        lore3: "&eДаёт &lСилу II, Медленное падение IV"
+        lore4: "&4Выпадает с: Эфирный Бог"
         enchantments: 
           0:
             enchantment: mending
@@ -919,12 +1014,12 @@ bosses:
       1: 
         item: END_ROD
         amount: 1
-        name: "&lStaff of Control"
-        lore1: "&bMode: Shard"
-        lore2: "&b(Sneak/Click to Change)"
-        lore3: "&eAllows for &lgrabbing &r&eentities"
-        lore4: "&e&lloot/shard &r&emode is only for &lboss &r&eloot"
-        lore5: "&4Dropped by Aether God"
+        name: "&lПосох Контроля"
+        lore1: "&bРежим: осколок"
+        lore2: "&b(Shift/клик — сменить)"
+        lore3: "&eПозволяет &lзахватывать &r&eсущности"
+        lore4: "&e&lРежим лута/осколков &r&eтолько для &lлута боссов"
+        lore5: "&4Выпадает с: Эфирный Бог"
         enchantments: 
           1:
             enchantment: LOYALTY
@@ -932,10 +1027,10 @@ bosses:
       2:
         item: BOW
         amount: 1
-        name: "&lZephyr Bow"
-        lore1: "&bHushed in grim repose,"
-        lore2: "&bexpects his evening prey"
-        lore3: "&4Dropped by Aether God"
+        name: "&lЛук Зефира"
+        lore1: "&bВ мрачном покое,"
+        lore2: "&bждёт своей вечерней добычи"
+        lore3: "&4Выпадает с: Эфирный Бог"
         enchantments: 
           0:
             enchantment: mending
@@ -956,10 +1051,10 @@ bosses:
         item: MAGMA_CREAM
         amount: 1
         name: "&c&lИнфернальное Ядро"
-        lore1: "&cCore of the nether ruler"
-        lore2: "&eUsed to craft &lTier 4 &r&esummon item:"
-        lore3: "&6&lNether Overlord Summoning Item"
-        lore4: "&8Dropped by Aether God"
+        lore1: "&cЯдро владыки Нижнего мира"
+        lore2: "&eНужен для крафта предмета призыва &lТира 4&r&e:"
+        lore3: "&6&lПредмет призыва Владыки Нижнего Мира"
+        lore4: "&8Выпадает с: Эфирный Бог"
         enchantments: 
           1:
             enchantment: LOYALTY
@@ -972,7 +1067,7 @@ bosses:
     minion4: SKELETON
     amountSpecial: 3
     dropedXP: 15000
-    name: "§c§lDemon"
+    name: "§c§lДемон"
     health: 1250
     specialChance: 35
     minionChance: 20
@@ -991,11 +1086,11 @@ bosses:
       0: 
         item: fire_coral
         amount: 1
-        name: "&c&lDemonic Shard"
-        lore1: "&eOne of 4 &lTier 2 &r&eshards"
-        lore2: "&6Used to craft &lTier 3 &r&6summon item:"
-        lore3: "&6&lAbhorrent Fruit"
-        lore4: "&8Dropped by Demon"
+        name: "&c&lДемонический Осколок"
+        lore1: "&eОдин из 4 осколков &lТира 2"
+        lore2: "&6Нужен для крафта предмета призыва &lТира 3&r&6:"
+        lore3: "&6&lОтвратительный Плод"
+        lore4: "&8Выпадает с: Демон"
         enchantments: 
           1:
             enchantment: LOYALTY
@@ -1003,9 +1098,9 @@ bosses:
       1:
         item: DIAMOND_AXE
         amount: 1
-        name: '&kxxx &r&c&lDemonic Axe &r&kxxx'
-        lore1: "&cHERE'S JOHNNY!"
-        lore2: "&8Dropped by Demon"
+        name: '&kxxx &r&c&lДемонический Топор &r&kxxx'
+        lore1: "&cА ВОТ И Я!"
+        lore2: "&8Выпадает с: Демон"
         enchantments:
           '1':
             enchantment: sharpness
@@ -1032,10 +1127,10 @@ bosses:
         item: PRISMARINE_SHARD
         amount: 1
         name: "&b&lЧешуя Бездны"
-        lore1: "&bScale from the deep ocean beast"
-        lore2: "&eUsed to craft &lTier 3 &r&esummon item:"
-        lore3: "&6&lOcean Leviathan Summoning Item"
-        lore4: "&8Dropped by Demon"
+        lore1: "&bЧешуя глубинного морского зверя"
+        lore2: "&eНужен для крафта предмета призыва &lТира 3&r&e:"
+        lore3: "&6&lПредмет призыва Океанского Левиафана"
+        lore4: "&8Выпадает с: Демон"
         enchantments: 
           1:
             enchantment: LOYALTY
@@ -1049,7 +1144,7 @@ bosses:
     minion3Mount: BAT
     amountSpecial: 3
     dropedXP: 40000
-    name: "§c§lThe Devil"
+    name: "§c§lДьявол"
     health: 2048
     specialChance: 35
     minionChance: 20
@@ -1070,11 +1165,11 @@ bosses:
       0:
         item: NETHERITE_LEGGINGS
         amount: 1
-        name: "&c&lDevil's Greaves"
-        lore1: "&cProwl like a roaring lion"
-        lore2: "&cseeking who you may devour"
-        lore3: "&eGrants &lAbsorbtion II, Fire Resistance IV"
-        lore4: "&4Dropped by the &lDEVIL"
+        name: "&c&lНаголенники Дьявола"
+        lore1: "&cРыскаю, как рычащий лев"
+        lore2: "&cища, кого поглотить"
+        lore3: "&eДаёт &lПоглощение II, Огнестойкость IV"
+        lore4: "&4Выпадает с: &lДьявол"
         enchantments: 
           0:
             enchantment: mending
@@ -1094,13 +1189,13 @@ bosses:
       1: 
         item: ENCHANTED_BOOK
         amount: 1
-        name: "&c&lBook of Knowledge"
-        lore1: "&cWhen you read thereof"
-        lore2: "&cyour eyes will be opened" 
-        lore3: "&cyou will be like God"
-        lore4: "&eAllows to add various &lenchantments &r&eto items"
-        lore5: "&6Used to craft the ultimate summon item: &lDeath Note"
-        lore6: "&4Dropped by the &lDEVIL"
+        name: "&c&lКнига Знаний"
+        lore1: "&cКогда прочтёшь сие"
+        lore2: "&cоткроются глаза твои"
+        lore3: "&cи будешь как Бог"
+        lore4: "&eПозволяет добавлять разные &lзачарования &r&eна предметы"
+        lore5: "&6Нужна для крафта финального предмета призыва: &lСмертная Тетрадь"
+        lore6: "&4Выпадает с: &lДьявол"
         enchantments: 
           1:
             enchantment: LOYALTY
@@ -1113,7 +1208,7 @@ bosses:
     minion4: ZOMBIE
     amountSpecial: 3
     dropedXP: 50000
-    name: "§5§lDeath"
+    name: "§5§lСмерть"
     health: 2048
     specialChance: 40
     minionChance: 30
@@ -1134,9 +1229,9 @@ bosses:
       0:
         item: NETHERITE_SWORD
         amount: 1
-        name: '&5&lEnd Blade'
-        lore1: "The blade to end them all"
-        lore2: "&4Dropped by the &lDEATH"
+        name: '&5&lКлинок Края'
+        lore1: "Клинок, что положит конец всему"
+        lore2: "&4Выпадает с: &lСмерть"
         enchantments:
           '1':
             enchantment: sharpness
@@ -1165,19 +1260,19 @@ bosses:
       1: 
         item: NETHERITE_HOE
         amount: 1
-        name: "&5&lScythe of Death"
-        lore1: "Life and death are one"
-        lore2: "just as the river and the sea become one"
-        lore3: "&eDeals a shit ton of &lDAMAGE"
-        lore4: "&eexept to players and &lDeath &eboss"
-        lore5: "&4Dropped by the &lDEATH"
+        name: "&5&lКоса Смерти"
+        lore1: "Жизнь и смерть едины"
+        lore2: "как река и море становятся одним"
+        lore3: "&eНаносит чудовищный &lУРОН"
+        lore4: "&eкроме игроков и босса &lСмерть"
+        lore5: "&4Выпадает с: &lСмерть"
         enchantments: 
           '1':
             enchantment: unbreaking
             level: 999
   "Anger":
     entity: IRON_GOLEM
-    name: "§c§lEmbodiment of Anger"
+    name: "§c§lВоплощение Гнева"
     minion: ZOMBIE
     minion2: ZOMBIE
     minion3: ZOMBIE
@@ -1199,8 +1294,8 @@ bosses:
       0:
         item: WOODEN_SWORD
         amount: 1
-        name: "&6&lCopper Sword"
-        lore1: "&4Dropped by the angry one"
+        name: "&6&lМедный Меч"
+        lore1: "&4Выпадает с: Воплощение Гнева"
         minEnchantments: 4
         enchantments: 
           1:
@@ -1221,8 +1316,8 @@ bosses:
       2:
         item: GOLD_INGOT
         amount: 1
-        name: "&c&lTablet of Anger"
-        lore1: "&4One of the 7 tablets of sin"
+        name: "&c&lСкрижаль Гнева"
+        lore1: "&4Одна из 7 скрижалей грехов"
         enchantments: 
           1:
             enchantment: LOYALTY
@@ -1232,7 +1327,7 @@ bosses:
     minion: ZOMBIE
     minion2: SKELETON
     dropedXP: 15000
-    name: "§3§lFrost Titan"
+    name: "§3§lЛедяной Титан"
     health: 2500
     specialChance: 25
     potionChance: 30
@@ -1248,10 +1343,10 @@ bosses:
       0:
         item: ICE
         amount: 64
-        name: "&f&lFrost Core"
-        lore1: "&bHeart of the eternal winter"
-        lore2: "&eUsed to craft summoning items"
-        lore3: "&8Dropped by Frost Titan"
+        name: "&f&lЯдро Льда"
+        lore1: "&bСердце вечной зимы"
+        lore2: "&eИспользуется для крафта предметов призыва"
+        lore3: "&8Выпадает с: Ледяной Титан"
         enchantments:
           1:
             enchantment: LOYALTY
@@ -1259,9 +1354,9 @@ bosses:
       1:
         item: DIAMOND_SWORD
         amount: 1
-        name: "&f&lFrostbrand"
-        lore1: "&bFreezes enemies on hit"
-        lore2: "&8Dropped by Frost Titan"
+        name: "&f&lМорозный Клинок"
+        lore1: "&bЗамораживает врагов при ударе"
+        lore2: "&8Выпадает с: Ледяной Титан"
         enchantments:
           1:
             enchantment: sharpness
@@ -1280,7 +1375,7 @@ bosses:
     minion: GUARDIAN
     minion2: DROWNED
     dropedXP: 20000
-    name: "§b§lOcean Leviathan"
+    name: "§b§lОкеанский Левиафан"
     health: 3000
     specialChance: 20
     potionChance: 35
@@ -1296,10 +1391,10 @@ bosses:
       0:
         item: PRISMARINE_SHARD
         amount: 64
-        name: "&b&lAbyssal Scale"
-        lore1: "&bScale from the deep ocean beast"
-        lore2: "&eUsed to craft summoning items"
-        lore3: "&8Dropped by Ocean Leviathan"
+        name: "&b&lЧешуя Бездны"
+        lore1: "&bЧешуя глубинного морского зверя"
+        lore2: "&eИспользуется для крафта предметов призыва"
+        lore3: "&8Выпадает с: Океанский Левиафан"
         enchantments:
           1:
             enchantment: LOYALTY
@@ -1307,9 +1402,9 @@ bosses:
       1:
         item: TRIDENT
         amount: 1
-        name: "&b&lTide Caller"
-        lore1: "&bCommands the ocean itself"
-        lore2: "&8Dropped by Ocean Leviathan"
+        name: "&b&lЗов Прилива"
+        lore1: "&bПовелевает самим океаном"
+        lore2: "&8Выпадает с: Океанский Левиафан"
         enchantments:
           1:
             enchantment: loyalty
@@ -1328,7 +1423,7 @@ bosses:
     minion: BLAZE
     minion2: GHAST
     dropedXP: 25000
-    name: "§4§lNether Overlord"
+    name: "§4§lВладыка Нижнего Мира"
     health: 3500
     specialChance: 30
     potionChance: 30
@@ -1344,10 +1439,10 @@ bosses:
       0:
         item: MAGMA_CREAM
         amount: 64
-        name: "&c&lInfernal Core"
-        lore1: "&cCore of the nether ruler"
-        lore2: "&eUsed to craft summoning items"
-        lore3: "&8Dropped by Nether Overlord"
+        name: "&c&lИнфернальное Ядро"
+        lore1: "&cЯдро владыки Нижнего мира"
+        lore2: "&eИспользуется для крафта предметов призыва"
+        lore3: "&8Выпадает с: Владыка Нижнего Мира"
         enchantments:
           1:
             enchantment: LOYALTY
@@ -1355,9 +1450,9 @@ bosses:
       1:
         item: DIAMOND_AXE
         amount: 1
-        name: "&c&lInferno Cleaver"
-        lore1: "&cBurns everything it touches"
-        lore2: "&8Dropped by Nether Overlord"
+        name: "&c&lТесак Инферно"
+        lore1: "&cСжигает всё, к чему прикоснётся"
+        lore2: "&8Выпадает с: Владыка Нижнего Мира"
         enchantments:
           1:
             enchantment: sharpness
@@ -1376,7 +1471,7 @@ bosses:
     minion: ENDERMITE
     minion2: SHULKER
     dropedXP: 30000
-    name: "§5§lEnd Colossus"
+    name: "§5§lКолосс Края"
     health: 4000
     specialChance: 35
     potionChance: 25
@@ -1392,10 +1487,10 @@ bosses:
       0:
         item: ENDER_PEARL
         amount: 64
-        name: "&d&lEnder Crystal Shard"
-        lore1: "&dFragment of the end dimension"
-        lore2: "&eUsed to craft summoning items"
-        lore3: "&8Dropped by End Colossus"
+        name: "&d&lОсколок Кристалла Края"
+        lore1: "&dФрагмент измерения Края"
+        lore2: "&eИспользуется для крафта предметов призыва"
+        lore3: "&8Выпадает с: Колосс Края"
         enchantments:
           1:
             enchantment: LOYALTY
@@ -1403,9 +1498,9 @@ bosses:
       1:
         item: NETHERITE_SWORD
         amount: 1
-        name: "&d&lVoid Blade"
-        lore1: "&dCuts through dimensions"
-        lore2: "&8Dropped by End Colossus"
+        name: "&d&lКлинок Пустоты"
+        lore1: "&dРассекает измерения"
+        lore2: "&8Выпадает с: Колосс Края"
         enchantments:
           1:
             enchantment: sharpness
@@ -1424,7 +1519,7 @@ bosses:
     minion: WOLF
     minion2: BEE
     dropedXP: 10000
-    name: "§a§lForest Guardian"
+    name: "§a§lЛесной Страж"
     health: 1500
     specialChance: 20
     potionChance: 20
@@ -1441,16 +1536,16 @@ bosses:
         item: GREEN_DYE
         amount: 1
         name: "&a&lЗеленый осколок босса"
-        lore1: "&eOne of 6 &lTier 1 &r&eshards"
-        lore2: "&6Used to craft &lTier 2 &r&6summon items:"
-        lore3: "&6&lPotion of Giant Growth&r&6, &lBell of Doom"
-        lore4: "&8Dropped by Forest Guardian"
+        lore1: "&eОдин из 6 осколков &lТира 1"
+        lore2: "&6Нужен для крафта предметов призыва &lТира 2&r&6:"
+        lore3: "&6&lЗелье Роста Гиганта&r&6, &lКолокол Рока"
+        lore4: "&8Выпадает с: Лесной Страж"
         enchantments: 
           1:
             enchantment: LOYALTY
             level: 1
-        lore2: "&eUsed to craft summoning items"
-        lore3: "&8Dropped by Forest Guardian"
+        lore2: "&eИспользуется для крафта предметов призыва"
+        lore3: "&8Выпадает с: Лесной Страж"
         enchantments:
           1:
             enchantment: LOYALTY
@@ -1458,9 +1553,9 @@ bosses:
       1:
         item: DIAMOND_PICKAXE
         amount: 1
-        name: "&2&lGreenwarden"
-        lore1: "&aBlessed by the forest itself"
-        lore2: "&8Dropped by Forest Guardian"
+        name: "&2&lЗелёный Страж"
+        lore1: "&aБлагословлён самим лесом"
+        lore2: "&8Выпадает с: Лесной Страж"
         enchantments:
           1:
             enchantment: unbreaking

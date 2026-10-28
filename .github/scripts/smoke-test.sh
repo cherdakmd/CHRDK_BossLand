@@ -101,6 +101,13 @@ print('\n'.join(keys))
 PY
       )
       sleep 8
+      # mini-bosses: explicit type, elite-tier type and a random one
+      echo "bl-admin miniboss ZOMBIE"
+      sleep 2
+      echo "bl-admin miniboss WITCH"
+      sleep 2
+      echo "bl-admin miniboss"
+      sleep 3
       echo "bl-admin killBosses world"
       sleep 4
     fi
@@ -112,7 +119,7 @@ log "starting server"
 feed_commands | timeout 420 java -Xms512M -Xmx1024M -Dcom.mojang.eula.agree=true -jar server.jar --nogui > server.log 2>&1 || true
 
 log "plugin / lifecycle log lines"
-{ grep -iE 'bossland|Done \(' server.log | tail -n 40 || true; } | sed 's/^/[smoke]   /'
+{ grep -iE 'bossland|Done \(|[Mm]ini-boss' server.log | tail -n 45 || true; } | sed 's/^/[smoke]   /'
 log "plugins command output"
 { sed -n '/Plugins (/,$p' server.log | head -n 10 || true; } | sed 's/^/[smoke]   /'
 

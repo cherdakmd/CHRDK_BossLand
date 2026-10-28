@@ -152,6 +152,30 @@ public class BossLandCommandHandler implements CommandExecutor {
                         }
                     sender.sendMessage("§eBossLand: Все боссы удалены из мира.");
                     return true;
+                } else if (args[0].equalsIgnoreCase("miniboss") && (args.length == 1 || args.length == 2)) {
+                    String requested = args.length == 2 ? args[1] : null;
+                    boolean spawned;
+                    String where;
+                    if (sender instanceof Player p) {
+                        spawned = plugin.spawnMiniBossOfType(p, requested);
+                        where = "рядом с вами";
+                    } else {
+                        // console: spawn near the spawn point of the main world
+                        World world = Bukkit.getWorlds().isEmpty() ? null : Bukkit.getWorlds().get(0);
+                        if (world == null) {
+                            sender.sendMessage("§cМир ещё не загружен.");
+                            return true;
+                        }
+                        spawned = plugin.spawnMiniBossAt(world.getSpawnLocation(), requested);
+                        where = "у точки спавна мира " + world.getName();
+                    }
+                    if (spawned) {
+                        sender.sendMessage("§eBossLand: мини-босс §a" + (requested == null ? "(случайный)" : requested.toUpperCase())
+                                + " §fзаспавнен " + where + ". Настройки: §econfig.yml → miniboss");
+                    } else {
+                        sender.sendMessage("§cНе удалось заспавнить мини-босса: неизвестный тип §f" + requested);
+                    }
+                    return true;
                 } else if (args[0].equals("help") && args.length == 1){
                     sender.sendMessage("§6§lBoss Land §r§bv"+version);
                     sender.sendMessage("§3===============");
@@ -163,6 +187,7 @@ public class BossLandCommandHandler implements CommandExecutor {
                     sender.sendMessage("§8■ §e/bl-admin setLoot <босс> <id> §7→ §fУстановить лут для босса");
                     sender.sendMessage("§8■ §e/bl-admin addLoot <босс> §7→ §fДобавить лут для босса");
                     sender.sendMessage("§8■ §e/bl-admin killBosses <мир> §7→ §fУдалить боссов в мире");
+                    sender.sendMessage("§8■ §e/bl-admin miniboss [тип] §7→ §fЗаспавнить мини-босса");
                     sender.sendMessage("§8■ §e/bl-admin reload §7→ §fПерезагрузить конфиг");
                     return true;
                 }
