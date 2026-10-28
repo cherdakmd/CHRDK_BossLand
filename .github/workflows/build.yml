@@ -94,10 +94,9 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           INPUT_TAG: ${{ inputs.release_tag }}
-          RELEASE_TARGET: 'v2.8-v1.21.5'
         run: |
           set -euo pipefail
-          TAG="${RELEASE_TARGET:-${INPUT_TAG:-$GITHUB_REF_NAME}}"
+          TAG="${INPUT_TAG:-$GITHUB_REF_NAME}"
           if ! gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
             gh release create "$TAG" --repo "$GITHUB_REPOSITORY" \
               --title "BossLand $TAG" --notes "Собрано автоматически из $GITHUB_SHA"
