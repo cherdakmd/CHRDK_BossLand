@@ -70,6 +70,8 @@ jobs:
       # Loading the jar in a real server catches runtime problems that a plain compile cannot.
       - name: Smoke test on Paper 1.21.5 (Java 21)
         if: startsWith(github.ref, 'refs/tags/v') || github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch'
+        env:
+          EXERCISE: '1'
         run: bash .github/scripts/smoke-test.sh paper 1.21.5 "$JAR_PATH"
 
       - name: Set up JDK 25 (needed by Minecraft 26.x)
@@ -97,7 +99,7 @@ jobs:
             echo "smoke evidence @ $GITHUB_SHA"
             echo '```'
             echo "== smoke output (purpur) =="
-            grep -E '^\[smoke\]|::error::' smoke-purpur.out 2>/dev/null | tail -n 30 || echo '(none)'
+            grep -E '^\[smoke\]|::error::' smoke-purpur.out 2>/dev/null | tail -n 12 || echo '(none)'
             echo
             echo "== exceptions in purpur server.log =="
             grep -nA6 -E 'Exception|Caused by:' smoke-purpur-26.3/server.log 2>/dev/null | head -n 60 || echo '(none)'

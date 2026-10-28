@@ -306,24 +306,107 @@ public class MCUtility {
         amount = (amount <= 0) ? 1 : amount;
         Location l = new Location(w, x, y, z);
         try {
+            Particle particle = resolveDisplayParticle(effect);
+            if (particle == null) {
+                return; // unknown on this server version - nothing to draw
+            }
+            Object data = particleData(particle);
+            if (data == SKIP_DATA) {
+                return; // this particle needs data we cannot guess (block/item based)
+            }
             if (radius <= 0) {
-                // Effect, Location, Count, X, Y, Z, Speed
-                w.spawnParticle(Particle.valueOf(effect), l, amount, 0, 0, 0, speed);
-                // w.spawnParticle(Particle.valueOf(effect), l, 0, 0, 0, speed, amount);
+                spawnParticle(w, particle, data, l, amount, speed);
             } else {
                 List<Location> ll = MCUtility.getArea(l, radius, 0.2);
                 if (!ll.isEmpty()) {
                     for (int i = 0; i < amount; i++) {
                         int index = new Random().nextInt(ll.size());
-                        // w.spawnParticle(Particle.valueOf(effect), ll.get(index), 1, 0, 0, speed, 1);
-                        w.spawnParticle(Particle.valueOf(effect), ll.get(index), amount, 0, 0, 0, speed);
+                        spawnParticle(w, particle, data, ll.get(index), amount, speed);
                         ll.remove(index);
                     }
                 }
             }
         } catch (Exception ex) {
-            // System.out.println("V: " + getServer().getVersion());
-            ex.printStackTrace();
+            // Particle effects are cosmetic: a bad entry in config must never spam the console.
+        }
+    }
+
+    /** Marks particles that require data we cannot fabricate. */
+    private static final Object SKIP_DATA = new Object();
+
+    /**
+     * Particle enum constants were renamed in 1.20.5 (SMOKE_NORMAL -> SMOKE, CRIT_MAGIC -> CRIT, ...).
+     * Configs written for older servers still use the legacy names, so translate them before lookup.
+     */
+    private static final Map<String, String> LEGACY_PARTICLE_NAMES = Map.ofEntries(
+            Map.entry("SMOKE_NORMAL", "SMOKE"),
+            Map.entry("SMOKE_LARGE", "LARGE_SMOKE"),
+            Map.entry("CRIT_MAGIC", "CRIT"),
+            Map.entry("SPELL_MOB", "ENTITY_EFFECT"),
+            Map.entry("SPELL_MOB_AMBIENT", "ENTITY_EFFECT"),
+            Map.entry("SPELL_WITCH", "WITCH"),
+            Map.entry("EXPLOSION_NORMAL", "POOF"),
+            Map.entry("EXPLOSION_LARGE", "EXPLOSION_EMITTER"),
+            Map.entry("EXPLOSION_HUGE", "EXPLOSION_EMITTER"),
+            Map.entry("WATER_SPLASH", "SPLASH"),
+            Map.entry("WATER_BUBBLE", "BUBBLE"),
+            Map.entry("WATER_WAKE", "FISHING"),
+            Map.entry("WATER_DROP", "RAIN"),
+            Map.entry("SLIME", "ITEM_SLIME"),
+            Map.entry("SNOWBALL", "ITEM_SNOWBALL"),
+            Map.entry("VILLAGER_HAPPY", "HAPPY_VILLAGER"),
+            Map.entry("REDSTONE", "DUST"),
+            Map.entry("ENCHANTMENT_TABLE", "ENCHANT"),
+            Map.entry("TOTEM", "TOTEM_OF_UNDYING"),
+            Map.entry("FIREWORKS_SPARK", "FIREWORK"),
+            Map.entry("SUSPENDED", "UNDERWATER"),
+            Map.entry("SUSPENDED_DEPTH", "UNDERWATER"),
+            Map.entry("BARRIER", "BLOCK_MARKER")
+    );
+
+    private static Particle resolveDisplayParticle(String name) {
+        if (name == null || name.isEmpty()) return null;
+        String key = name.trim().toUpperCase(Locale.ROOT);
+        String mapped = LEGACY_PARTICLE_NAMES.getOrDefault(key, key);
+        for (String candidate : new String[]{mapped, key}) {
+            try {
+                return Particle.valueOf(candidate);
+            } catch (IllegalArgumentException ignored) {
+                // try the next candidate
+            }
+        }
+        return null;
+    }
+
+    /** Default data for particles that require it, or {@link #SKIP_DATA} when we cannot supply any. */
+    private static Object particleData(Particle particle) {
+        Class<?> type;
+        try {
+            type = particle.getDataType();
+        } catch (Throwable ignored) {
+            return null;
+        }
+        if (type == null || type == Void.class) return null;
+        if (type == Float.class) return 0.5f;
+        if (type == Integer.class) return 0;
+        if (type == Color.class) return Color.fromRGB(0x7F00FF);
+        if (type == Particle.DustOptions.class) return new Particle.DustOptions(Color.WHITE, 1f);
+        if (type == ItemStack.class) {
+            // block-break style particles need an item; use the closest matching one
+            String particleName = particle.name();
+            if (particleName.contains("SLIME")) return new ItemStack(Material.SLIME_BALL);
+            if (particleName.contains("SNOWBALL")) return new ItemStack(Material.SNOWBALL);
+            return SKIP_DATA;
+        }
+        return SKIP_DATA;
+    }
+
+    private static void spawnParticle(World w, Particle particle, Object data, Location loc, int amount, int speed) {
+        if (data == null) {
+            // Effect, Location, Count, X, Y, Z, Speed
+            w.spawnParticle(particle, loc, amount, 0, 0, 0, speed);
+        } else {
+            w.spawnParticle(particle, loc, amount, 0, 0, 0, speed, data);
         }
     }
 
