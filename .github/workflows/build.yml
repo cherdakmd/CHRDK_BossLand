@@ -77,6 +77,7 @@ jobs:
           out=$(bash .github/scripts/smoke-test.sh paper 1.21.5 "$JAR_PATH" 2>&1); rc=$?
           echo "$out" | tail -n 30
           if [ "$rc" -ne 0 ]; then
+            # строки самопроверки и ошибок должны быть видны в аннотациях: полный лог Actions недоступен
             { echo "$out" | grep -E '::error::|САМОПРОВЕРКА|✗|Осколков|mini-bosses|self-test' || true; } | head -n 40 | while IFS= read -r line; do echo "::error::SMOKE-PAPER: $line"; done
             exit 1
           fi
@@ -97,41 +98,10 @@ jobs:
           out=$(bash .github/scripts/smoke-test.sh purpur 26.3 "$JAR_PATH" 2>&1); rc=$?
           echo "$out" | tail -n 30
           if [ "$rc" -ne 0 ]; then
+            # строки самопроверки и ошибок должны быть видны в аннотациях: полный лог Actions недоступен
             { echo "$out" | grep -E '::error::|САМОПРОВЕРКА|✗|Осколков|mini-bosses|self-test' || true; } | head -n 40 | while IFS= read -r line; do echo "::error::SMOKE-PURPUR: $line"; done
             exit 1
           fi
-
-      - name: Publish smoke evidence [temp]
-        if: always()
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          {
-            echo "smoke evidence @ $GITHUB_SHA"
-            echo '```'
-            echo "== workspace =="
-            pwd || true
-            ls -la || true
-            echo "== где лежат smoke-файлы =="
-            find / -maxdepth 6 -name 'smoke-*' -not -path '/proc/*' 2>/dev/null | head -n 20 || true
-            for f in smoke-paper.out smoke-purpur.out; do
-              echo "== $f =="
-              if [ -f "$f" ]; then tail -n 30 "$f"; else echo '(файла нет)'; fi
-              echo
-            done
-            for d in smoke-paper-1.21.5 smoke-purpur-26.3; do
-              echo "== $d/server.log =="
-              if [ -f "$d/server.log" ]; then
-                grep -E 'САМОПРОВЕРКА|Осколков|Exception|Caused by|Done \(|Enabling' "$d/server.log" | head -n 30
-              else
-                echo '(лога нет)'
-              fi
-              echo
-            done
-            echo '```'
-          } > ev.md 2>&1 || true
-          wc -c ev.md || true
-          jq -Rs '{body: .}' < ev.md | gh api "repos/$GITHUB_REPOSITORY/commits/$GITHUB_SHA/comments" --input - || true
 
       - name: Attach jar to GitHub release
         if: startsWith(github.ref, 'refs/tags/v') || inputs.release_tag != ''
