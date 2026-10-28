@@ -729,6 +729,24 @@ public class BossLand extends JavaPlugin implements Listener {
         }
     }
 
+    /**
+     * Убивает мини-боссов обычной смертью: срабатывает {@link #handleMiniBossDeath},
+     * поэтому выдаётся награда и убирается полоса здоровья.
+     *
+     * @param world мир, в котором убиваем, либо {@code null} для всех миров
+     * @return сколько мини-боссов задето
+     */
+    public int killMiniBosses(World world) {
+        int killed = 0;
+        for (Entity miniBoss : new ArrayList<>(miniBossBars.keySet())) {
+            if (world != null && !world.equals(miniBoss.getWorld())) continue;
+            if (!(miniBoss instanceof LivingEntity living)) continue;
+            living.damage(1_000_000.0);
+            killed++;
+        }
+        return killed;
+    }
+
     /** Обновляет полоску мини-босса без запуска новой цепочки задач: её уже ведёт {@link #updateMiniBossBar(Entity)}. */
     private void refreshMiniBossBar(Entity boss) {
         BossBar bar = miniBossBars.get(boss);
