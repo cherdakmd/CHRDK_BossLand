@@ -31,9 +31,12 @@ log "resolving Paper ${MC_VERSION} download url"
 # Fill v3 API (current)
 V3="https://fill.papermc.io/v3/projects/paper/versions/${MC_VERSION}/builds"
 if V3_JSON="$(curl -fsSL --max-time 30 "$V3" 2>/dev/null)"; then
-  log "fill v3 responded"
-  echo "$V3_JSON" | head -c 400; echo
-  PAPER_URL="$(echo "$V3_JSON" | jq -r 'last | .downloads | to_entries[0].value.url // empty' 2>/dev/null || true)"
+  log "fill v3 responded: ${V3_JSON:0:240}"
+  log "last build keys: $(jq -r 'if type=="array" then .[-1] else . end | keys_unsorted | join(",")' <<< "$V3_JSON" 2>/dev/null || echo '?')"
+  PAPER_URL="$(jq -r 'if type=="array" then .[-1] else .builds[-1] end
+                      | (.downloads // {})
+                      | (if type=="object" then (to_entries[0].value.url // empty) else . end)' \
+                 <<< "$V3_JSON" 2>/dev/null || true)"
 fi
 
 # Legacy v2 API fallback
