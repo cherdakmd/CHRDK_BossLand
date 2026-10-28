@@ -17,6 +17,12 @@ log "preparing workspace ${WORKDIR} (${SERVER_KIND} ${MC_VERSION})"
 rm -rf "$WORKDIR"
 mkdir -p "$WORKDIR/plugins"
 cp "$JAR_PATH" "$WORKDIR/plugins/"
+
+# Эмулируем сервер, обновившийся со старой версии: в lang.yml не хватает ключей,
+# а часть значений прежние версии записали как "Missing!".
+mkdir -p "$WORKDIR/plugins/BossLand"
+printf 'items:\n  bell: "Missing!"\n' > "$WORKDIR/plugins/BossLand/lang.yml"
+
 cd "$WORKDIR"
 
 echo "eula=true" > eula.txt
@@ -108,6 +114,10 @@ PY
       sleep 2
       echo "bl-admin miniboss"
       sleep 3
+      # настоящая смерть мини-босса: проверяет обработчик onEntityDeath
+      # (раньше он падал с NullPointerException и лут не выдавался)
+      echo "kill @e[type=witch]"
+      sleep 2
       # самопроверка: дроп осколков + сборка предметов призыва в сетке крафта
       echo "bl-admin selftest"
       sleep 3
@@ -170,6 +180,27 @@ if [ "$EXERCISE" = "1" ]; then
     grep -E 'САМОПРОВЕРКА|✗' server.log | tail -n 20 | sed 's/^/[smoke]   /'
     status=1
   fi
+
+  # смерть мини-босса должна отработать штатно и выдать награду
+  if grep -q 'Мини-босс WITCH повержен' server.log; then
+    log "mini-boss death handled: $(grep -o 'Мини-босс WITCH повержен' server.log | tail -1)"
+  else
+    echo '::error::mini-boss death handler did not run (see NullPointerException in onEntityDeath)'
+    grep -iE 'Мини-босс|NullPointer|Could not pass' server.log | tail -n 10 | sed 's/^/[smoke]   /'
+    status=1
+  fi
+
+  # старый lang.yml должен быть дополнен ключами и вычищен от "Missing!"
+  if grep -q 'Missing!' plugins/BossLand/lang.yml 2>/dev/null; then
+    echo '::error::lang.yml still contains "Missing!" placeholders'
+    grep -n 'Missing!' plugins/BossLand/lang.yml | head -n 5 | sed 's/^/[smoke]   /'
+    status=1
+  fi
+  if ! grep -q '^miniboss:' plugins/BossLand/lang.yml 2>/dev/null; then
+    echo '::error::lang.yml was not extended with the new keys'
+    status=1
+  fi
+  log "old lang.yml was merged with the bundled defaults"
 
   # и переведённый конфиг должен лежать в plugins/BossLand
   if ! grep -q 'Герцог Гастов' plugins/BossLand/config.yml 2>/dev/null; then
