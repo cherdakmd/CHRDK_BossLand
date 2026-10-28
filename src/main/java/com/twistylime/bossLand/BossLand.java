@@ -2407,7 +2407,8 @@ public class BossLand extends JavaPlugin implements Listener {
         // Мини-босс обрабатывается отдельно и до боссов: в bossMap его нет,
         // из-за чего раньше здесь падал NullPointerException и не выдавался лут.
         if (bossType != null && bossType.startsWith(MINI_BOSS_PREFIX)) {
-            handleMiniBossDeath(ent, bossType.substring(MINI_BOSS_PREFIX.length()), ent.getKiller());
+            Player miniBossKiller = ent instanceof LivingEntity living ? living.getKiller() : null;
+            handleMiniBossDeath(ent, bossType.substring(MINI_BOSS_PREFIX.length()), miniBossKiller);
             return;
         }
 
