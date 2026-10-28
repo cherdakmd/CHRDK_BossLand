@@ -31,6 +31,9 @@ echo "eula=true" > eula.txt
   echo "level-type=minecraft\\:flat"
   echo "view-distance=4"
   echo "spawn-protection=0"
+  # мини-боссы — враждебные мобы, в peaceful сервер удаляет их сразу после спавна
+  echo "difficulty=hard"
+  echo "spawn-monsters=true"
   echo "max-players=2"
   echo "sync-chunk-writes=false"
 } > server.properties
