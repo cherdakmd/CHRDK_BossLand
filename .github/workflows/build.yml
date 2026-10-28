@@ -100,7 +100,10 @@ jobs:
             echo "smoke evidence @ $GITHUB_SHA"
             echo '```'
             echo "== workspace =="
+            pwd || true
             ls -la || true
+            echo "== где лежат smoke-файлы =="
+            find / -maxdepth 6 -name 'smoke-*' -not -path '/proc/*' 2>/dev/null | head -n 20 || true
             for f in smoke-paper.out smoke-purpur.out; do
               echo "== $f =="
               if [ -f "$f" ]; then tail -n 30 "$f"; else echo '(файла нет)'; fi
