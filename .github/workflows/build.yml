@@ -38,7 +38,20 @@ jobs:
           cache: maven
 
       - name: Build with Maven
-        run: mvn -B -ntp clean package
+        id: build
+        run: |
+          set -o pipefail
+          mvn -B -ntp clean package 2>&1 | tee build.log
+
+      - name: Publish log excerpt on failure
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          EXCERPT="$(tail -c 20000 build.log 2>/dev/null || echo 'no build.log captured')"
+          jq -Rs '{body: .}' <<< "$(printf 'Build failure @ %s\n\n```\n%s\n```\n' "$GITHUB_SHA" "$EXCERPT")" \
+            | gh api "repos/$GITHUB_REPOSITORY/commits/$GITHUB_SHA/comments" --input - >/dev/null
 
       - name: Collect jar
         run: |
