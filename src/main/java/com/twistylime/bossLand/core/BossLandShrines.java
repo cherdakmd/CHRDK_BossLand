@@ -52,7 +52,7 @@ public class BossLandShrines {
             int amount = resultSec.getInt("amount", 1);
             String displayName = resultSec.getString("display_name", null);
             List<String> lore = resultSec.getStringList("lore");
-            Material material = Material.getMaterial(item);
+            Material material = CompatibilityResolver.resolveMaterial(item);
             resultItem = new ItemStack(material, amount);
             ItemMeta meta = resultItem.getItemMeta();
             if (meta != null) {
@@ -169,6 +169,11 @@ public class BossLandShrines {
             case "FORBIDDEN_FRUIT" -> itemManager.getGodItem();
             case "ABHORRENT_FRUIT" -> itemManager.getDevilItem();
             case "DEATH_NOTE" -> itemManager.getDeathItem();
+            case "FROST_CORE" -> itemManager.getFrostCore();
+            case "ABYSSAL_SCALE" -> itemManager.getAbyssalScale();
+            case "INFERNAL_CORE" -> itemManager.getInfernalCore();
+            case "ENDER_CRYSTAL_SHARD" -> itemManager.getEnderCrystalShard();
+            case "NATURES_ESSENCE" -> itemManager.getNaturesEssence();
             case "FIRE" -> representFireItem();
             default -> new ItemStack(CompatibilityResolver.resolveMaterial(name), amount);
         };
@@ -197,7 +202,7 @@ public class BossLandShrines {
         try {
             assert e.getClickedBlock() != null;
             Location l = e.getClickedBlock().getLocation();
-            String biome = Objects.requireNonNull(l.getWorld()).getBiome((int) l.getX(), (int) l.getY(), (int) l.getZ()).toString();
+            String biome = Objects.requireNonNull(l.getWorld()).getBiome(l).toString().toUpperCase();
             // Boss Rituals
             if (p.getInventory().getItemInMainHand().getType().equals(Material.ENDER_EYE)
                     && Objects.requireNonNull(l.getWorld()).getEnvironment().equals(World.Environment.NORMAL) && biome.contains("SWAMP")) {
@@ -279,7 +284,7 @@ public class BossLandShrines {
                 }
             } else if (p.getInventory().getItemInMainHand().getItemMeta().getDisplayName()
                     .equals("§2§lPotion of Giant Growth") && Objects.requireNonNull(l.getWorld()).getEnvironment().equals(World.Environment.NORMAL)
-                    && (l.getWorld().getBiome((int) l.getX(), (int) l.getY(), (int) l.getZ()).toString()
+                    && (l.getWorld().getBiome(l).toString().toUpperCase()
                     .contains("PLAINS"))) {
                 if (checkBlockRecipe(l, "REDSTONE_TORCH:REDSTONE_WIRE:REDSTONE_TORCH",
                         "REDSTONE_WIRE:CAMPFIRE:REDSTONE_WIRE", "REDSTONE_TORCH:REDSTONE_WIRE:REDSTONE_TORCH", true)) {
@@ -325,7 +330,7 @@ public class BossLandShrines {
                     && p.getInventory().getItemInMainHand().getAmount() >= 16) {
                 // this.getLogger().log(Level.WARNING, "Gold Consumed!");
                 // l.setY(l.getY()+1);
-                if (Objects.requireNonNull(l.getWorld()).getBiome((int) l.getX(), (int) l.getY(), (int) l.getZ()).toString().contains("DESERT"))
+                if (Objects.requireNonNull(l.getWorld()).getBiome(l).toString().toUpperCase().contains("DESERT"))
                     if (l.getWorld().getEnvironment().equals(World.Environment.NORMAL)
                             && checkBlockRecipe(l, "CARROTS:CARROTS:CARROTS", "CARROTS:MAGMA_BLOCK:CARROTS",
                             "CARROTS:CARROTS:CARROTS", false)) {
@@ -345,6 +350,91 @@ public class BossLandShrines {
             }
             // System.out.println("Is Shard: " +
             // isShard(p.getInventory().getItemInMainHand()));
+
+            // Forest Guardian - Tier 2, Forest biomes
+            if (p.getInventory().getItemInMainHand().getType().equals(Material.OAK_SAPLING)
+                    && p.getInventory().getItemInMainHand().getItemMeta() != null
+                    && p.getInventory().getItemInMainHand().getItemMeta().getDisplayName().equals("§2&lЭссенция Природы")
+                    && Objects.requireNonNull(l.getWorld()).getEnvironment().equals(World.Environment.NORMAL)
+                    && (l.getWorld().getBiome(l).toString().toUpperCase().contains("FOREST")
+                    || l.getWorld().getBiome(l).toString().toUpperCase().contains("TAIGA")
+                    || l.getWorld().getBiome(l).toString().toUpperCase().contains("BIRCH")
+                    || l.getWorld().getBiome(l).toString().toUpperCase().contains("JUNGLE"))) {
+                if (checkBlockRecipe(l, "OAK_LOG:OAK_LOG:OAK_LOG", "OAK_LOG:MOSS_BLOCK:OAK_LOG",
+                        "OAK_LOG:OAK_LOG:OAK_LOG", true)) {
+                    e.setCancelled(true);
+                    l.getWorld().createExplosion(l, 2, false);
+                    MCUtility.takeItem(p, 1);
+                    final Location bs = l.clone();
+                    Bukkit.getServer().getScheduler().scheduleSyncDelayedTask(plugin, () -> bossManager.spawnBoss(p, bs, "ForestGuardian"), (40));
+                }
+            }
+
+            // Frost Titan - Tier 3, Snowy biomes
+            if (p.getInventory().getItemInMainHand().getType().equals(Material.ICE)
+                    && p.getInventory().getItemInMainHand().getItemMeta() != null
+                    && p.getInventory().getItemInMainHand().getItemMeta().getDisplayName().equals("§f&lЯдро Льда")
+                    && Objects.requireNonNull(l.getWorld()).getEnvironment().equals(World.Environment.NORMAL)
+                    && (l.getWorld().getBiome(l).toString().toUpperCase().contains("SNOW")
+                    || l.getWorld().getBiome(l).toString().toUpperCase().contains("ICE")
+                    || l.getWorld().getBiome(l).toString().toUpperCase().contains("FROZEN")
+                    || l.getWorld().getBiome(l).toString().toUpperCase().contains("TAIGA"))) {
+                if (checkBlockRecipe(l, "PACKED_ICE:PACKED_ICE:PACKED_ICE", "PACKED_ICE:BLUE_ICE:PACKED_ICE",
+                        "PACKED_ICE:PACKED_ICE:PACKED_ICE", true)) {
+                    e.setCancelled(true);
+                    l.getWorld().createExplosion(l, 3, false);
+                    MCUtility.takeItem(p, 1);
+                    final Location bs = l.clone();
+                    Bukkit.getServer().getScheduler().scheduleSyncDelayedTask(plugin, () -> bossManager.spawnBoss(p, bs, "FrostTitan"), (40));
+                }
+            }
+
+            // Ocean Leviathan - Tier 3, Ocean
+            if (p.getInventory().getItemInMainHand().getType().equals(Material.PRISMARINE_SHARD)
+                    && p.getInventory().getItemInMainHand().getItemMeta() != null
+                    && p.getInventory().getItemInMainHand().getItemMeta().getDisplayName().equals("§b&lЧешуя Бездны")
+                    && Objects.requireNonNull(l.getWorld()).getEnvironment().equals(World.Environment.NORMAL)
+                    && (l.getWorld().getBiome(l).toString().toUpperCase().contains("OCEAN")
+                    || l.getWorld().getBiome(l).toString().toUpperCase().contains("BEACH"))) {
+                if (checkBlockRecipe(l, "PRISMARINE:PRISMARINE:PRISMARINE", "PRISMARINE:PRISMARINE_BRICKS:PRISMARINE",
+                        "PRISMARINE:PRISMARINE:PRISMARINE", true)) {
+                    e.setCancelled(true);
+                    l.getWorld().createExplosion(l, 3, false);
+                    MCUtility.takeItem(p, 1);
+                    final Location bs = l.clone();
+                    Bukkit.getServer().getScheduler().scheduleSyncDelayedTask(plugin, () -> bossManager.spawnBoss(p, bs, "OceanLeviathan"), (40));
+                }
+            }
+
+            // Nether Overlord - Tier 4, Nether
+            if (p.getInventory().getItemInMainHand().getType().equals(Material.MAGMA_CREAM)
+                    && p.getInventory().getItemInMainHand().getItemMeta() != null
+                    && p.getInventory().getItemInMainHand().getItemMeta().getDisplayName().equals("§c&lИнфернальное Ядро")
+                    && Objects.requireNonNull(l.getWorld()).getEnvironment().equals(World.Environment.NETHER)) {
+                if (checkBlockRecipe(l, "MAGMA_BLOCK:MAGMA_BLOCK:MAGMA_BLOCK", "MAGMA_BLOCK:NETHERRACK:MAGMA_BLOCK",
+                        "MAGMA_BLOCK:MAGMA_BLOCK:MAGMA_BLOCK", true)) {
+                    e.setCancelled(true);
+                    l.getWorld().createExplosion(l, 4, true);
+                    MCUtility.takeItem(p, 1);
+                    final Location bs = l.clone();
+                    Bukkit.getServer().getScheduler().scheduleSyncDelayedTask(plugin, () -> bossManager.spawnBoss(p, bs, "NetherOverlord"), (40));
+                }
+            }
+
+            // End Colossus - Tier 4, End
+            if (p.getInventory().getItemInMainHand().getType().equals(Material.ENDER_PEARL)
+                    && p.getInventory().getItemInMainHand().getItemMeta() != null
+                    && p.getInventory().getItemInMainHand().getItemMeta().getDisplayName().equals("§d&lОсколок Кристалла Края")
+                    && Objects.requireNonNull(l.getWorld()).getEnvironment().equals(World.Environment.THE_END)) {
+                if (checkBlockRecipe(l, "END_STONE:END_STONE:END_STONE", "END_STONE:OBSIDIAN:END_STONE",
+                        "END_STONE:END_STONE:END_STONE", true)) {
+                    e.setCancelled(true);
+                    l.getWorld().createExplosion(l, 4, false);
+                    MCUtility.takeItem(p, 1);
+                    final Location bs = l.clone();
+                    Bukkit.getServer().getScheduler().scheduleSyncDelayedTask(plugin, () -> bossManager.spawnBoss(p, bs, "EndColossus"), (40));
+                }
+            }
         } catch (Exception x) {
         }
     }

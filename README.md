@@ -1,158 +1,267 @@
-# BossLand v2.3 - v1.16.1-v1.21.5
+# BossLand v2.9 - v1.21.5 / 26.3
 
-## Overview
+## Обзор
 
-BossLand is a comprehensive Minecraft plugin that extends vanilla gameplay by adding **15 unique custom bosses** across multiple tiers. Originally created by **Eliminator** and discontinued after Minecraft 1.19, this project continues the development to bring enhanced boss combat experiences to modern Minecraft versions.
+BossLand — это всеобъемлющий плагин для Minecraft, который расширяет vanilla-геймплей, добавляя **15 уникальных custom-боссов** разных уровней. Изначально создан **Eliminator** и остановлен после Minecraft 1.19, этот проект продолжает разработку, чтобы привнести улучшенный опыт сражений с боссами в современные версии Minecraft.
 
-## Credits
+## Авторы
 
-**Original Author:** Eliminator  
-**Original Repository:** https://bitbucket.org/Eliminator/bossland/  
-**Original SpigotMC Resource:** https://www.spigotmc.org/resources/boss-land.68320/  
+**Оригинальный автор:** Eliminator  
+**Оригинальный репозиторий:** https://bitbucket.org/Eliminator/bossland/  
+**Оригинальный ресурс SpigotMC:** https://www.spigotmc.org/resources/boss-land.68320/
 
-This continuation aims to maintain the original vision while updating compatibility and adding new features for current Minecraft versions.
+Это продолжение направлено на сохранение оригинального видения при обновлении совместимости и добавлении новых функций для текущих версий Minecraft.
 
-## Downloads
+## Загрузки
 
-| Minecraft Version | BossLand Version          | Download Link                                                                                                                  | Notes                                                      |
-|-------------------|---------------------------|--------------------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------|
-| 1.16.1 - 1.21.5   | 2.3                       | [Download v2.3](https://github.com/TwistyLime/BossLand/releases/download/v2.3-v1.16.1-v1.21.5/bossland2.3-v1.16.1-v1.21.5.jar) | New Guide Book and Shard Effects added and bugs fixed      |
-| 1.16.1 - 1.21.5   | 2.2                       | [Download v2.2](https://github.com/TwistyLime/BossLand/releases/download/v2.2-v1.16.1-v1.21.5/bossland2.2-v1.16.1-v1.21.5.jar) | Compatible throughout 1.16.1 uptill 1.21.5 with bugs fixed |
-| 1.21.3            | 2.1                       | [Download v2.1](https://github.com/TwistyLime/BossLand/releases/download/v2.1-1.21.3/bossland2-0-2.1.jar)                      | Updated for 1.21.3 with new API and support                |
-| 1.19.x            | 0.8 (Final by Eliminator) | [Download v0.8](https://www.spigotmc.org/resources/boss-land.68320/)                                                           | Original discontinued version                              |
-| 1.18.x            | 0.7                       | [Download v0.7](https://www.spigotmc.org/resources/boss-land.68320/)                                                           | Last version before 1.19                                   |
-| 1.16 – 1.17       | 0.5 – 0.6                 | [View Releases](https://www.spigotmc.org/resources/boss-land.68320/)                                                           | May have limited feature set                               |
-| 1.13 – 1.15       | 0.1 – 0.4                 | [View Releases](https://www.spigotmc.org/resources/boss-land.68320/)                                                           | Legacy builds, minimal support                             |
+| Версия Minecraft | Версия BossLand | Ссылка на скачивание | Примечания |
+|------------------|-----------------|----------------------|------------|
+| 1.21.5 – 26.3 | 2.9 | [Скачать v2.9](https://github.com/cherdakmd/CHRDK_BossLand/releases/download/v2.9-v1.21.5/bossland2.9-v1.21.5.jar) | Сборка под современные версии: фиксы компиляции, совместимость с Minecraft 26.x (Purpur 26.3), исправление частиц |
+| 1.21.5 | 2.8 | [Скачать v2.8](https://github.com/cherdakmd/CHRDK_BossLand/releases/download/v2.8-v1.21.5/bossland2.8-v1.21.5.jar) | Полная progresstion-цепочка: крафт предметов призыва из осколков, нет циклических рецептов |
+| 1.21.5 | 2.6 | [Скачать v2.6](https://github.com/TwistyLime/BossLand/releases/download/v2.6-v1.21.5/bossland2.6-v1.21.5.jar) | Элитные мини-боссы, разные уровни, уникальные способности |
+| 1.21.5 | 2.5 | [Скачать v2.5](https://github.com/TwistyLime/BossLand/releases/download/v2.5-v1.21.5/bossland2.5-v1.21.5.jar) | Мини-боссы при копании, новые боссы и предметы |
+| 1.21.5 | 2.4 | [Скачать v2.4](https://github.com/TwistyLime/BossLand/releases/download/v2.4-v1.21.5/bossland2.4-v1.21.5.jar) | Руководство, эффекты осколков и исправления ошибок |
+| 1.16.1 - 1.21.5 | 2.3 | [Скачать v2.3](https://github.com/TwistyLime/BossLand/releases/download/v2.3-v1.16.1-v1.21.5/bossland2.3-v1.16.1-v1.21.5.jar) | Добавлено руководство и эффекты осколков, исправлены ошибки |
+| 1.16.1 - 1.21.5 | 2.2 | [Скачать v2.2](https://github.com/TwistyLime/BossLand/releases/download/v2.2-v1.16.1-v1.21.5/bossland2.2-v1.16.1-v1.21.5.jar) | Совместимость с 1.16.1 по 1.21.5, исправления ошибок |
+| 1.21.3 | 2.1 | [Скачать v2.1](https://github.com/TwistyLime/BossLand/releases/download/v2.1-1.21.3/bossland2-0-2.1.jar) | Обновлено для 1.21.3 с новым API и поддержкой |
+| 1.19.x | 0.8 (Финал от Eliminator) | [Скачать v0.8](https://www.spigotmc.org/resources/boss-land.68320/) | Оригинальная 중단ённая версия |
+| 1.18.x | 0.7 | [Скачать v0.7](https://www.spigotmc.org/resources/boss-land.68320/) | Последняя версия до 1.19 |
+| 1.16 – 1.17 | 0.5 – 0.6 | [Релизы](https://www.spigotmc.org/resources/boss-land.68320/) | Ограниченный набор функций |
+| 1.13 – 1.15 | 0.1 – 0.4 | [Релизы](https://www.spigotmc.org/resources/boss-land.68320/) | Устаревшие сборки, минимальная поддержка |
+
+## Особенности
+
+### Основная концепция
+
+Победил Края Dracona? Путь только начался! Плагин добавляет прогрессивную систему боссов с **четырьмя различными уровнями** сложных встреч, каждое с уникальными наградами и механиками.
+
+### Система прогрессии боссов
+
+#### **Боссы уровня 1** (6 боссов)
+
+Входные боссы, призываемые в определенных биомах с помощью обычных материалов:
+
+- **Papa Panda** (Бамбуковый биом) — выбивает коричневый осколок
+- **Король Слизней** (Болото) — выбивает зеленый осколок
+- **Кiller Кролик** (Пустыня) — выбивает серый осколок
+- **Король Зомби** (Равнины) — выбивает красный осколок
+- **Герцог Гастов** (Нижний мир) — выбивает белый осколок
+- **Король Скелетов-Иссохших** (Нижний мир) — выбивает черный осколок
+
+#### **Боссы уровня 2** (4 босса)
+
+Боссы среднего уровня, требующие созданных предметов-осколков из побед над боссами уровня 1:
+
+- **Гигант** (Равнины) — выбивает изумрудный осколок
+- **Король Иллов** (Саванна) — выбивает золотой осколок
+- **Злой Колдун** (Снежный биом) — выбивает синий осколок
+- **Демон** (Особые условия) — выбивает демонический осколок
+
+#### **Боссы-Боги уровня 3** (3 босса)
+
+Боссы высокого уровня с уникальными требованиями призыва:
+
+- **Бог Эфира** — призывается при Y=200 с помощью Запретного Плода
+- **Бог Фараонов** — призывается в пустыне с помощью Запретного Плода
+- **Глубоководный Бог** — призывается в океане при Y=-40 с помощью Запретного Плода
+
+#### **Бесмертные боссы уровня 4** (2 босса)
+
+Итоговые сражения энд-гейма:
+
+- **Дьявол** — призывается в Нижнем мире с помощью Отвратительного Плода
+- **Смерть** — призывается с помощью предмета Смертная Тетрадь
+
+### Система прогрессии боссов (Тиры)
+
+Все боссы разделены на **4 уровня сложности**. Каждый босс нижнего уровня дропает предмет, из которого крафтится предмет призыва босса следующего уровня:
+
+| Тир | Боссы | Как призывать | Что дропают |
+|-----|-------|---------------|-------------|
+| **Tier 1** | King Slime, Killer Bunny, Zombie King, Ghast Lord, Wither Skeleton King, Papa Panda | Ритуал в мире (блоки + активатор) | Базовые осколки (Зелёный, Серый, Красный, Белый, Чёрный, Коричневый) |
+| **Tier 2** | Giant, Illager King, Evil Wizard, Demon, Forest Guardian | Предмет, крафченый из осколков Tier 1 + ритуал | Улучшенные предметы (Изумрудный, Золотой, Синий, Демонический осколки, Эссенция Природы) |
+| **Tier 3** | Aether God, Pharaoh God, Drowned God, Ocean Leviathan, Frost Titan | Предмет, крафченый из предметов Tier 2 + ритуал | Редкие предметы (Запретный Плод, Ядро Льда, Чешуя Бездны, Инфернальное Ядро, Осколок Кристалла Края) |
+| **Tier 4** | Devil, Death, Nether Overlord, End Colossus | Предмет, крафченый из предметов Tier 3 + ритуал | Финальный лут (Смертная Тетрадь, Отвратительный Плод и др.) |
+
+**Крафт предметов призыва через осколки:**
+
+| Предмет призыва | Крафтится из | Для призыва босса |
+|-----------------|--------------|-------------------|
+| **Эссенция Природы** | Зелёный + Коричневый + Красный осколки | Forest Guardian (Tier 2) |
+| **Ядро Льда** | Синий + Изумрудный осколки | Frost Titan (Tier 3) |
+| **Чешуя Бездны** | Чёрный + Красный осколки | Ocean Leviathan (Tier 3) |
+| **Инфернальное Ядро** | Ядро Льда + Чешуя Бездны | Nether Overlord (Tier 4) |
+| **Осколок Кристалла Края** | Инфернальное Ядро + Ядро Льда | End Colossus (Tier 4) |
+| **Запретный Плод** | Изумрудный + Золотой + Синий осколки | Aether God, Pharaoh God, Drowned God (Tier 3) |
+| **Отвратительный Плод** | Демонический осколок + Запретный Плод | Devil (Tier 4) |
+| **Смертная Тетрадь** | Звезда Края + Книга Знаний | Death (Tier 4) |
+
+**Пример полной цепочки progresstion:**
+1. Убейте **King Slime** → получите **Зелёный осколок**
+2. Крафтите **Эссенцию Природы** из осколков Tier 1
+3. Призовите **Forest Guardian** (Tier 2) через ритуал с Эссенцией
+4. Убейте **Evil Wizard** (Tier 2) → получите **Ядро Льда** (или крафтите из осколков Tier 2)
+5. Крафтите **Ядро Льда** из Синего + Изумрудного осколков Tier 2
+6. Призовите **Frost Titan** (Tier 3) через ритуал с Ядром Льда
+7. Убейте **Aether God** (Tier 3) → получите **Инфернальное Ядро**
+8. Крафтите **Инфернальное Ядро** из Ядра Льда + Чешуи Бездны
+9. Призовите **Nether Overlord** (Tier 4) через ритуал в Низере с Инфернальным Ядром
+
+Все предметы призыва имеют curse-чару (нельзя выбросить) и могут быть получены только дропом с босса предыдущего уровня или крафтом из осколков предыдущих тиров.
+
+#### **Мини-боссы при копании**
+
+При вскапывании блоков игрок имеет шанс встретить мини-босса. Каждые N выкопанных блоков (по умолчанию 1000) дают X% шанс призыва мини-босса рядом с игроком. В чат и titolo появляется сообщение: «Вы потревожили глубинное зло!»
+
+**Уровни мини-боссов:**
+- **Обычные** — Зомби, Скелет, Паук, Крипер, Топпи и другие. Здоровье ~100 ед., шанс дропа 3%.
+- **Элитные** (10% шанс при спавне) — Ведьма, Эвокер, Равагер, Эндермен, Шалкер и другие. Здоровье ~300 ед., шанс дропа 15%, несколько предметов сразу, дополнительные эффекты résistance и absorption.
+
+Мини-боссы имеют:
+- Полоску здоровья (BossBar) над головой (обычные — красная, элитные — пурпурная)
+- Кастомное имя и заголовок на экране при aparición
+- Повышенное здоровье (зависит от `bossHealthMultiplier`)
+- Уникальные способности по типу ( regeneration у ведьмы, speed у паука, resistance у эвокера и т.д.)
+- Криперы взрываются при смерти (заряженные криперы для элитных)
+- Редкий лут: осколки боссов, которые можно использовать для призова обычных боссов
+
+**Настройка в `config.yml`:**
+```yaml
+miniboss:
+  spawnChance: 5      # шанс спавна (%) каждые blockThreshold блоков
+  eliteChance: 10     # шанс что мини-босс будет элитным (%)
+  blockThreshold: 1000 # сколько блоков нужно выкопать для проверки шанса
+  barColor: RED       # цвет полоски здоровья обычных мини-боссов
+  eliteBarColor: PURPLE # цвет полоски здоровья элитных мини-боссов
+  barStyle: SOLID     # стиль полоски здоровья
+```
 
 
+- Боссы уровня 1 и 2 выбивают магические осколки
+- Осколки используются для criação предметов призыва более высокоуровневых боссов
+- Физическая система criação — расставляйте предметы в мире, а не на верстаке
+- При удержании осколка игрок получает зельевые эффекты — хорошие и плохие
 
-## Features
+#### **Привязка к биомам**
 
-### Core Concept
-Defeated the Ender Dragon? Your journey has only begun! This plugin adds a progressive boss system with **four distinct tiers** of challenging encounters, each offering unique rewards and gameplay mechanics.
+- Каждый босс требует определенные условия биома
+- Уникальные ритуалы призыва с расположением блоков в мире
+- Нет традиционных рецептов création — все через взаимодействие с миром
 
-### Boss Progression System
+#### **Прогрессивная сложность**
 
-#### **Tier 1 Bosses** (6 Bosses)
-Entry-level bosses that can be summoned in specific biomes using vanilla materials:
+- Каждый уровень предлагает значительно большую сложность
+- Лучшее снаряжение и магические предметы получаются через прогрессию
+- Некоторые боссы доступны только после победы над другими
 
-- **Papa Panda** (Bamboo biome) - Drops brown shard
-- **Slime King** (Swamp biome) - Drops green shard  
-- **Killer Bunny** (Desert biome) - Drops grey shard
-- **Zombie King** (Plains biome) - Drops red shard
-- **Ghast Lord** (Nether) - Drops white shard
-- **Wither Skeleton King** (Nether) - Drops black shard
+## Команды
 
-#### **Tier 2 Bosses** (4 Bosses)
-Mid-tier bosses requiring crafted shard items from Tier 1 defeats:
+### Основная команда: `/bossland` или `/bl`
 
-- **Giant** (Plains biome) - Drops emerald shard
-- **Illager King** (Savana biome) - Drops gold shard
-- **Evil Wizard** (Snow biome) - Drops blue shard
-- **Demon** (Special conditions) - Drops demonic shard
+#### Доступные подкоманды:
 
-#### **Tier 3 God Bosses** (3 Bosses)
-High-tier bosses with unique summoning requirements:
+- `/bl guide` — выдает книгу-руководство
+- `/bl help` — показывает список доступных команд
+- `/bl info` — показывает информацию о плагине
 
-- **Aether God** - Summoned at Y=200 with forbidden fruit
-- **Pharaoh God** - Summoned in desert with forbidden fruit
-- **Drowned God** - Summoned in ocean at Y=-40 with forbidden fruit
+### Админ-команда: `/bosslandadmin` или `/bl-admin`
 
-#### **Tier 4 Immortal Bosses** (2 Bosses)
-Ultimate endgame encounters:
+**Права:** `bl-admin.cmds`
 
-- **Devil** - Summoned in Nether with Abhorrent Fruit
-- **Death** - Summoned with Death Note item
+#### Доступные подкоманды:
 
-### Unique Mechanics
+- `/bl-admin help` — показывает список доступных команд
+- `/bl-admin spawn <босс>` — призывает конкретного босса
+- `/bl-admin cspawn <босс> [x y z] [мир]` — призывает босса по координатам в мире
+- `/bl-admin loot <босс>` — выдает случайный лут босса
+- `/bl-admin sloot <босс> <ид лута>` — выдает конкретный лут по ID
+- `/bl-admin setLoot <босс> <ид>` — установить лут для босса
+- `/bl-admin addLoot <босс>` — добавить лут для босса
+- `/bl-admin killBosses <мир>` — удалить всех боссов в мире
+- `/bl-admin reload` — перезагрузить конфигурацию плагина
 
-#### **Shard System**
-- Tier 1 and 2 bosses drop magical shards
-- Shards are used to craft summoning items for higher-tier bosses
-- Physical crafting system - place items in the world, not crafting table
-- On holding a shard, the player will get potion effects, some good, some bad.
+## Установка
 
-#### **Biome-Specific Summoning**
-- Each boss requires specific biome conditions
-- Unique summoning rituals with vanilla block arrangements
-- No traditional crafting recipes - all done through world interaction
+1. Скачайте JAR-файл плагина
+2. Поместите его в папку `plugins` вашего сервера
+3. Перезапустите сервер
+4. Конфигурационные файлы сгенерируются автоматически
 
-#### **Progressive Difficulty**
-- Each tier offers significantly increased challenge
-- Better equipment and magical items obtained through progression
-- Some bosses locked behind defeating others
+## Зависимости
 
-## Commands
+- **Требуется:** Spigot/Paper/Purpur 1.21.5 – 26.3, Java 21+ (для Minecraft 26.x сервер требует Java 25)
+- **Опционально:** WorldGuard (защита регионов)
 
-### Primary Command: `/bossland` or `/bl`
+## Совместимость
 
-#### Available Sub-commands:
-- `/bl guide` - Provides a guide book
-- `/bl help` - Shows list of available commands
-- `/bl info` - Shows information about plugin
+Сборка проверяется автоматически на реальных серверах:
 
-### Admin Command: `/bosslandadmin` or `/bl-admin`
+| Сервер | Версия | Java | Статус |
+|--------|--------|------|--------|
+| Paper | 1.21.5 | 21 | ✅ плагин включается, все 21 босс спавнятся |
+| Purpur | 26.3 (build 2654) | 25 | ✅ плагин включается, все 21 босс спавнятся |
 
-**Permission:** `bl-admin.cmds`
+Версии Minecraft 26.x используют новую нумерацию (26.3 = третий релиз 2026 года) и требуют Java 25 на стороне сервера; сам плагин собран под Java 21, поэтому работает и на старых, и на новых сборках.
 
-#### Available Sub-commands:
-- `/bl-admin help` - Shows list of available commands
-- `/bl-admin spawn <boss>` - Spawns a specific Boss.
-- `/bl-admin cspawn <boss> [x y z] [world]` - Spawns a Boss at coords in a world.
-- `/bl-admin loot <boss>` - Drops a boss's death loot
-- `/bl-admin sloot <boss> <lootname>` - Drops specific loot
-- `/bl-admin setLoot <boss> <id>` - Set loot for a boss
-- `/bl-admin addLoot <boss>` - Add loot for a boss
-- `/bl-admin killBosses <world>` - Remove all bosses in a world
-- `/bl-admin reload` - Reload the plugin configuration
+## Сборка
 
-## Installation
+Требуется JDK 21 и Maven 3.9+:
 
-1. Download the plugin JAR file
-2. Place it in your server's `plugins` folder
-3. Restart your server
-4. Configuration files will be generated automatically
+```bash
+mvn clean package
+```
 
-## Dependencies
+Готовый плагин появится в `target/` (`bossland-<версия>.jar`, shaded — bStats уже внутри).
+Зависимости плагина (`spigot-api`, WorldGuard/WorldEdit) подтягиваются из публичных Maven-репозиториев, перечисленных в `pom.xml`.
 
-- **Required:** Spigot/Paper 1.16+
-- **Optional:** WorldGuard (for region protection)
+### Автоматическая сборка (GitHub Actions)
 
-## Technical Details
+В репозитории настроен workflow [`.github/workflows/build.yml`](.github/workflows/build.yml):
 
-- **Main Class:** `com.twistylime.BossLand.BossLand`
-- **API Version:** 1.16+
-- **Plugin Architecture:** Event-driven boss management system
-- **Data Storage:** YAML configuration files
+- собирает плагин на каждый push в любую ветку и на pull request в `main`;
+- проверяет содержимое jar (главный класс, конфиги, bStats);
+- прогоняет smoke-тест: поднимает настоящий Paper 1.21.5 и проверяет, что плагин включается без ошибок (на тегах, PR и при ручном запуске);
+- на push тега `v*` (или при ручном запуске с указанием тега) прикрепляет собранный jar к GitHub-релизу.
 
-## Version History
+## Технические подробности
 
-### Original Development (by Eliminator)
-- **v0.1-0.3:** Initial development for MC 1.13-1.15
-- **v0.4-0.6:** Updated for MC 1.16-1.18  
-- **v0.7-0.8:** Final updates for MC 1.19
-- **Status:** Discontinued after 1.19
+- **Главный класс:** `com.twistylime.bossLand.BossLand`
+- **Версия API:** 1.21 (Spigot API 1.21.5)
+- **Архитектура плагина:** event-ориентированная система управления боссами
+- **Хранение данных:** YAML-конфигурационные файлы
 
-### Continued Development
-- **Current:** Reviving and updating for modern Minecraft versions
-- **Goal:** Maintain original gameplay while adding quality-of-life improvements
-- **v2.3:** Update for MC v1.16.1 till v1.21.5
+## История версий
 
-## Contributing
+### Оригинальная разработка (от Eliminator)
 
-This is a continuation of Eliminator's original work. Contributions are welcome to help maintain and enhance the plugin for newer Minecraft versions.
+- **v0.1-0.3:** Начальная разработка для MC 1.13-1.15
+- **v0.4-0.6:** Обновлено для MC 1.16-1.18
+- **v0.7-0.8:** Финальные обновления для MC 1.19
+- **Статус:** Прекращена после 1.19
 
-## Support
+### Продолжение разработки
 
-For issues, suggestions, or questions about this continuation of the BossLand project, please use the repository's issue tracker.
+- **Текущее:** Реанимирование и обновление для современных версий Minecraft
+- **Цель:** Сохранить оригинальный геймплей, добавив улучшения качества жизни
+- **v2.4:** Обновление для MC v1.21.5 (API Spigot 1.21.5, Java 21)
+- **v2.5–v2.6:** Мини-боссы при копании, элитные мини-боссы с уникальными способностями
+- **v2.8:** Progresstion-цепочка призывающих предметов (осколки T1 → T2 → T3 → T4)
+- **v2.9:** Фиксы компиляции против Spigot API 1.21.5, совместимость с Minecraft 26.x (проверено на Purpur 26.3), исправление частиц (устаревшие имена и обязательные данные), CI со smoke-тестами на Paper 1.21.5 и Purpur 26.3
 
-## License
+## Участие
 
-This project continues the work of the original [BossLand plugin](https://bitbucket.org/Eliminator/bossland/) by Eliminator, which appears to be discontinued.
+Это продолжение оригинальной работы Eliminator. Приветствуется вклад, помогающий поддерживать и улучшать проект для новых версий Minecraft.
 
-Unless stated otherwise, this continuation is released under the MIT License. If you are the original author and wish for changes to be made regarding usage rights or attribution, please contact us via the repository’s issue tracker.
+## Поддержка
 
+По вопросам, предложениям или замечаниям об этом продолжении проекта BossLand, используйте трекер проблем репозитория.
+
+## Лицензия
+
+Это продолжение работы над оригинальным [плагином BossLand](https://bitbucket.org/Eliminator/bossland/) от Eliminator, который, кажется, прекращен.
+
+Если не оговорено иное, это продолжение выпускается по лицензии MIT. Если вы оригинальный автор и хотите внести изменения относительно использования или авторства, пожалуйста, свяжитесь с нами через трекер проблем репозитория.
 
 ---
 
-*"Your journey beyond the Ender Dragon starts here. Face the challenge, claim the rewards, and become the ultimate boss hunter!"*
+*"Твое путешествие за Краем Дракона только начинается. Прими вызов, забери награды и стань самым опытным охотником на боссов!"*

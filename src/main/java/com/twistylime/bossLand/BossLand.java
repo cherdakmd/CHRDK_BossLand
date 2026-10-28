@@ -26,6 +26,9 @@ import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeInstance;
 import org.bukkit.block.Block;
 import org.bukkit.block.Chest;
+import org.bukkit.boss.BarColor;
+import org.bukkit.boss.BarFlag;
+import org.bukkit.boss.BarStyle;
 import org.bukkit.boss.BossBar;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -43,7 +46,6 @@ import org.bukkit.entity.LargeFireball;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Panda;
 import org.bukkit.entity.Panda.Gene;
-import org.bukkit.entity.PigZombie;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Projectile;
 import org.bukkit.entity.Rabbit;
@@ -125,6 +127,14 @@ public class BossLand extends JavaPlugin implements Listener {
     static BossLandShrines shrinesManager;
     static BossLandLoot lootManager;
     static boolean lowBossHealthIndicator = false;
+
+    // Mini-boss system: track dug blocks per player
+    HashMap<UUID, Integer> dugBlocksMap = new HashMap<>();
+    HashMap<Entity, BossBar> miniBossBars = new HashMap<>();
+    // Default values (overridden by config.yml)
+    private static final int DEFAULT_DUG_BLOCKS_THRESHOLD = 1000;
+    private static final int DEFAULT_MINI_BOSS_SPAWN_CHANCE = 5;
+    private static final int DEFAULT_ELITE_MINI_BOSS_CHANCE = 10;
 
     public static BossLand getPlugin() {
         return plugin;
@@ -393,13 +403,215 @@ public class BossLand extends JavaPlugin implements Listener {
         p.updateInventory();
     }
 
+    /**
+     * Mini-boss system: track dug blocks and spawn mini-bosses randomly.
+     * Players must dig 1000 blocks to have a chance to trigger a mini-boss.
+     */
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void onBlockBreakForMiniBoss(BlockBreakEvent e) {
+        Player p = e.getPlayer();
+        if (p == null || e.isCancelled()) return;
+
+        int threshold = plugin.getConfig().getInt("miniboss.blockThreshold", DEFAULT_DUG_BLOCKS_THRESHOLD);
+        int spawnChance = plugin.getConfig().getInt("miniboss.spawnChance", DEFAULT_MINI_BOSS_SPAWN_CHANCE);
+
+        UUID uuid = p.getUniqueId();
+        int count = dugBlocksMap.getOrDefault(uuid, 0) + 1;
+        dugBlocksMap.put(uuid, count);
+
+        if (count >= threshold) {
+            dugBlocksMap.put(uuid, 0); // reset counter
+            if (UtilityCalc.rand(1, 100) <= spawnChance) {
+                spawnMiniBoss(p, p.getLocation());
+            }
+        }
+    }
+
+    private void spawnMiniBoss(Player p, Location l) {
+        try {
+            // Determine if elite mini-boss (rare, better loot, harder)
+            int eliteChance = plugin.getConfig().getInt("miniboss.eliteChance", DEFAULT_ELITE_MINI_BOSS_CHANCE);
+            boolean isElite = UtilityCalc.rand(1, 100) <= eliteChance;
+
+            // Announce to nearby players with title/actionbar
+            String spawnMsg = config.getLang("miniboss.spawn");
+            String eliteMsg = config.getLang("miniboss.eliteSpawn");
+            String titleMsg = isElite ? "§c§lЭЛИТНЫЙ МИНИ-БОСС" : "§c§lМини-босс";
+            String subtitleMsg = isElite ? eliteMsg : spawnMsg;
+
+            for (Entity ent : l.getWorld().getNearbyEntities(l, 80, 80, 80)) {
+                if (ent instanceof Player pl) {
+                    pl.sendMessage(spawnMsg);
+                    pl.getWorld().playSound(pl.getLocation(), Sound.ENTITY_WITHER_SPAWN, 1, 1);
+                    // Send title for more impact
+                    pl.sendTitle(titleMsg, subtitleMsg, 10, 40, 10);
+                }
+            }
+
+            // Pick random mini-boss type with different tiers
+            String[] commonTypes = {"ZOMBIE", "SKELETON", "SPIDER", "CAVE_SPIDER", "CREEPER", "DROWNED", "HUSK", "STRAY"};
+            String[] rareTypes = {"WITCH", "EVOKER", "RAVAGER", "ENDERMAN", "SHULKER", "VINDICATOR", "PILLAGER"};
+            String[] types = isElite ? rareTypes : commonTypes;
+            String type = types[UtilityCalc.rand(0, types.length - 1)];
+            EntityType bossType = EntityType.valueOf(type);
+
+            Entity boss = l.getWorld().spawnEntity(l, bossType);
+            if (!(boss instanceof LivingEntity)) {
+                boss.remove();
+                return;
+            }
+            LivingEntity livingBoss = (LivingEntity) boss;
+
+            // Set custom name with tier prefix
+            String typeName = config.getLang("miniboss.type." + type);
+            if (typeName == null || typeName.isEmpty()) {
+                typeName = type;
+            }
+            String displayName = isElite
+                    ? config.getLang("miniboss.nameElite").replace("<type>", typeName)
+                    : config.getLang("miniboss.name").replace("<type>", typeName);
+            boss.setCustomName(displayName);
+            boss.setCustomNameVisible(true);
+
+            // Set health based on tier
+            double baseHealth = isElite ? 300.0 : 100.0;
+            double maxHealth = baseHealth * plugin.getConfig().getDouble("bossHealthMultiplier", 1.0);
+            AttributeInstance healthAttr = livingBoss.getAttribute(CompatibilityResolver.resolveAttribute("MAX_HEALTH", "GENERIC_MAX_HEALTH"));
+            if (healthAttr != null) {
+                healthAttr.setBaseValue(maxHealth);
+                livingBoss.setHealth(maxHealth);
+            }
+
+            // Apply tier-based abilities
+            applyMiniBossAbilities(livingBoss, isElite, type);
+
+            // Prevent despawn
+            livingBoss.setRemoveWhenFarAway(false);
+
+            // Create BossBar with tier color
+            BarColor barColor = isElite
+                    ? BarColor.valueOf(plugin.getConfig().getString("miniboss.eliteBarColor", "PURPLE"))
+                    : BarColor.valueOf(plugin.getConfig().getString("miniboss.barColor", "RED"));
+            BarStyle barStyle = BarStyle.valueOf(plugin.getConfig().getString("miniboss.barStyle", "SOLID"));
+            BossBar bar = Bukkit.createBossBar(displayName, barColor, barStyle, BarFlag.CREATE_FOG);
+            bar.addPlayer(p);
+            bar.setVisible(true);
+            miniBossBars.put(boss, bar);
+
+            // Save as boss so damage events recognize it
+            config.setSaveData("bosses." + boss.getUniqueId().toString(), "MINI_BOSS:" + type + (isElite ? ":ELITE" : ""));
+            config.saveBossData();
+
+            // Start health update task
+            Bukkit.getServer().getScheduler().scheduleSyncDelayedTask(this, new Runnable() {
+                @Override
+                public void run() {
+                    updateMiniBossBar(boss);
+                }
+            }, 5L);
+
+            plugin.getLogger().log(Level.INFO, "Mini-boss spawned: " + (isElite ? "ELITE " : "") + type + " at " + l.getBlockX() + "," + l.getBlockY() + "," + l.getBlockZ());
+        } catch (Exception x) {
+            plugin.getLogger().log(Level.SEVERE, "Failed to spawn mini-boss", x);
+        }
+    }
+
+    private void applyMiniBossAbilities(LivingEntity boss, boolean isElite, String type) {
+        try {
+            switch (type) {
+                case "ZOMBIE":
+                    boss.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, 999 * 999, 1));
+                    break;
+                case "SKELETON":
+                    boss.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 999 * 999, 1));
+                    break;
+                case "SPIDER":
+                    boss.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 999 * 999, 2));
+                    boss.addPotionEffect(new PotionEffect(PotionEffectType.JUMP_BOOST, 999 * 999, 1));
+                    break;
+                case "CREEPER":
+                    // Creeper will explode on death - handled in onEntityDeath
+                    break;
+                case "WITCH":
+                    boss.addPotionEffect(new PotionEffect(PotionEffectType.REGENERATION, 999 * 999, 1));
+                    break;
+                case "EVOKER":
+                    boss.addPotionEffect(new PotionEffect(PotionEffectType.RESISTANCE, 999 * 999, 2));
+                    break;
+                case "RAVAGER":
+                    boss.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, 999 * 999, 1));
+                    boss.addPotionEffect(new PotionEffect(PotionEffectType.RESISTANCE, 999 * 999, 1));
+                    break;
+                case "ENDERMAN":
+                    boss.addPotionEffect(new PotionEffect(PotionEffectType.INVISIBILITY, 999 * 999, 1));
+                    break;
+                case "SHULKER":
+                    boss.addPotionEffect(new PotionEffect(PotionEffectType.LEVITATION, 999 * 999, 1));
+                    break;
+                case "VINDICATOR":
+                    boss.addPotionEffect(new PotionEffect(PotionEffectType.STRENGTH, 999 * 999, 2));
+                    break;
+                case "PILLAGER":
+                    boss.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 999 * 999, 1));
+                    break;
+                case "HUSK":
+                    boss.addPotionEffect(new PotionEffect(PotionEffectType.HUNGER, 999 * 999, 1));
+                    break;
+                case "STRAY":
+                    boss.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, 999 * 999, 1));
+                    break;
+                case "CAVE_SPIDER":
+                    boss.addPotionEffect(new PotionEffect(PotionEffectType.POISON, 999 * 999, 1));
+                    break;
+                case "DROWNED":
+                    boss.addPotionEffect(new PotionEffect(PotionEffectType.CONDUIT_POWER, 999 * 999, 1));
+                    break;
+            }
+
+            if (isElite) {
+                // Elite mini-bosses get extra resistance and absorption
+                boss.addPotionEffect(new PotionEffect(PotionEffectType.ABSORPTION, 999 * 999, 1));
+                boss.addPotionEffect(new PotionEffect(PotionEffectType.RESISTANCE, 999 * 999, 1));
+            }
+        } catch (Exception x) {
+            plugin.getLogger().log(Level.WARNING, "Failed to apply mini-boss abilities: " + x.getMessage());
+        }
+    }
+
+    private void updateMiniBossBar(Entity boss) {
+        BossBar bar = miniBossBars.get(boss);
+        if (bar == null || boss.isDead() || !boss.isValid()) {
+            miniBossBars.remove(boss);
+            return;
+        }
+        try {
+            LivingEntity le = (LivingEntity) boss;
+            double health = le.getHealth();
+            double maxHealth = Objects.requireNonNull(le.getAttribute(CompatibilityResolver.resolveAttribute("MAX_HEALTH", "GENERIC_MAX_HEALTH"))).getBaseValue();
+            bar.setProgress((float) (health / maxHealth));
+        } catch (Exception x) {
+            // ignore
+        }
+        // Repeat while alive
+        if (!boss.isDead() && boss.isValid()) {
+            Bukkit.getServer().getScheduler().scheduleSyncDelayedTask(this, new Runnable() {
+                @Override
+                public void run() {
+                    updateMiniBossBar(boss);
+                }
+            }, 10L);
+        } else {
+            miniBossBars.remove(boss);
+        }
+    }
+
     private void enterDeath(final Player p) {
         this.getLogger().log(Level.INFO, "Enter Death");
         if (p.getWorld().getEnvironment().equals(Environment.NORMAL)) {
             World end = getServer().getWorld(p.getWorld().getName() + "_the_end");
             assert end != null;
             p.teleport(end.getSpawnLocation());
-            p.sendMessage("§5§lPrepare to die!");
+            p.sendMessage("§5§lПриготовься умереть!");
             final Location l = new Location(end, 0, end.getHighestBlockYAt(0, 0) + 3, 0);
             p.getWorld().createExplosion(l, 4);
             Bukkit.getServer().getScheduler().scheduleSyncDelayedTask(this, () -> bossManager.spawnBoss(p, l, "Death"), (10));
@@ -476,8 +688,9 @@ public class BossLand extends JavaPlugin implements Listener {
                 String bossType = config.getDataFrom("save","bosses." + e.getTarget().getUniqueId());
                 if (bossType != null) {
                     e.setCancelled(true);
-                } else if (e.getEntity() instanceof PigZombie) {
-                    if ((!(e.getTarget() instanceof Player)) && Objects.requireNonNull(Objects.requireNonNull(((PigZombie) e.getEntity()).getEquipment()).getHelmet())
+                } else if (e.getEntity().getType() == EntityType.ZOMBIFIED_PIGLIN) {
+                    if ((!(e.getTarget() instanceof Player)) && e.getEntity() instanceof LivingEntity
+                            && Objects.requireNonNull(Objects.requireNonNull(((LivingEntity) e.getEntity()).getEquipment()).getHelmet())
                             .getType().equals(Material.PLAYER_HEAD))
                         e.setCancelled(true);
                 }
@@ -1868,10 +2081,8 @@ public class BossLand extends JavaPlugin implements Listener {
                     }
                 }
                 // Pigmen
-                if (minion.getType().equals(EntityType.PIGLIN)) {
-                    assert minion instanceof PigZombie;
-                    ((PigZombie) minion).setAngry(true);
-                    ((PigZombie) minion).setAnger(999 * 999);
+                if (minion.getType().equals(EntityType.ZOMBIFIED_PIGLIN)) {
+                    MCUtility.setZombifiedPiglinAngry(minion, 999 * 999);
                 }
                 // Mount
                 if (mountType != null) {
@@ -2074,6 +2285,25 @@ public class BossLand extends JavaPlugin implements Listener {
                 }
             }
         }
+        // Mini-boss death handling
+        if (bossType != null && bossType.startsWith("MINI_BOSS:")) {
+            miniBossBars.remove(ent);
+            String miniType = bossType.substring("MINI_BOSS:".length());
+
+            // Creeper mini-boss explodes on death
+            if (ent instanceof LivingEntity) {
+                handleCreeperMiniBossDeath((LivingEntity) ent);
+            }
+
+            ItemStack loot = getMiniBossLoot(e.getEntity().getKiller(), miniType);
+            if (loot != null && loot.getType() != Material.AIR) {
+                ent.getWorld().dropItemNaturally(ent.getLocation(), loot);
+            }
+            ent.getWorld().playSound(ent.getLocation(), Sound.ENTITY_WITHER_DEATH, 1, 1);
+            MCUtility.displayParticle("DRAGON_BREATH:1:25:0", ent.getLocation());
+            this.getLogger().log(Level.INFO, "Mini-boss " + miniType + " defeated!");
+        }
+
         // Fire List Remove
         noFireList.remove(e.getEntity().getUniqueId());
         // Material.DIAMOND_BLOCK
@@ -2551,7 +2781,7 @@ public class BossLand extends JavaPlugin implements Listener {
                 p.getWorld().strikeLightning(p.getLocation());
                 // Biome
                 final Location l = p.getLocation();
-                if (Objects.requireNonNull(l.getWorld()).getBiome((int) l.getX(), (int) l.getY(), (int) l.getZ()).toString().contains("OCEAN")
+                if (Objects.requireNonNull(l.getWorld()).getBiome(l).toString().toUpperCase().contains("OCEAN")
                         && l.getBlockY() <= getConfig().getInt("waterLevel")) {
                     MCUtility.takeItem(p, 1);
                     MCUtility.boom(this,l, 3, false);
@@ -2565,8 +2795,7 @@ public class BossLand extends JavaPlugin implements Listener {
                     l.setY(l.getY() + 5);
                     p.sendMessage(config.getLang("aetherSpawn"));
                     Bukkit.getServer().getScheduler().scheduleSyncDelayedTask(this, () -> bossManager.spawnBoss(p, l, "AetherGod"), (40));
-                } else if (l.getWorld().getBiome((int) l.getX(), (int) l.getY(), (int) l.getZ()).toString()
-                        .contains("DESERT")) {
+                } else if (l.getWorld().getBiome(l).toString().toUpperCase().contains("DESERT")) {
                     MCUtility.takeItem(p, 1);
                     // boom(l,2,false);
                     MCUtility.lightningShow(plugin,l, 4);
@@ -2751,6 +2980,88 @@ public class BossLand extends JavaPlugin implements Listener {
         return s;
     }
 
+    /**
+     * Mini-boss loot: rare chance to drop boss shards.
+     * Elite mini-bosses have higher drop chance and better items.
+     * Returns null if no loot drops (most common outcome).
+     */
+    public ItemStack getMiniBossLoot(Entity killer, String miniBossType) {
+        boolean isElite = miniBossType.endsWith(":ELITE");
+        String cleanType = isElite ? miniBossType.substring(0, miniBossType.length() - 6) : miniBossType;
+
+        // Drop chance: 3% common, 15% elite
+        int dropChance = isElite ? 15 : 3;
+        if (UtilityCalc.rand(1, 100) > dropChance) {
+            return null;
+        }
+
+        // List of all shard item names from lang.yml
+        String[] shardKeys = {
+                "items.whiteshard", "items.greenshard", "items.greyshard",
+                "items.blackshard", "items.redshard", "items.brownshard",
+                "items.emeraldshard", "items.goldshard", "items.blueshard",
+                "items.demonicshard"
+        };
+
+        // Elite mini-bosses can drop any shard including rare ones
+        String key = shardKeys[UtilityCalc.rand(0, shardKeys.length - 1)];
+        String name = config.getLang(key);
+        if (name == null || name.isEmpty()) return null;
+
+        // Pick material based on shard key
+        Material mat = getMaterialForShard(key);
+        if (mat == null) mat = Material.IRON_INGOT;
+
+        // Elite mini-bosses drop more items (1-3)
+        int amount = isElite ? UtilityCalc.rand(1, 3) : 1;
+
+        ItemStack item = new ItemStack(mat, amount);
+        org.bukkit.inventory.meta.ItemMeta meta = item.getItemMeta();
+        if (meta != null) {
+            meta.setDisplayName(name);
+            java.util.List<String> lore = new java.util.ArrayList<>();
+            if (isElite) {
+                lore.add("§c§lРедкий дроп с ЭЛИТНОГО мини-босса §e" + cleanType);
+            } else {
+                lore.add("§7Редкий дроп с мини-босса §e" + cleanType);
+            }
+            lore.add("§8Используется для призыва боссов");
+            meta.setLore(lore);
+            item.setItemMeta(meta);
+        }
+        return item;
+    }
+
+    private Material getMaterialForShard(String shardKey) {
+        return switch (shardKey) {
+            case "items.whiteshard" -> Material.QUARTZ;
+            case "items.greenshard" -> Material.GREEN_DYE;
+            case "items.greyshard" -> Material.CLAY_BALL;
+            case "items.blackshard" -> Material.COAL;
+            case "items.redshard" -> Material.RED_DYE;
+            case "items.brownshard" -> Material.BROWN_DYE;
+            case "items.emeraldshard" -> Material.EMERALD;
+            case "items.goldshard" -> Material.YELLOW_DYE;
+            case "items.blueshard" -> Material.LAPIS_LAZULI;
+            case "items.demonicshard" -> Material.FIRE_CORAL;
+            default -> Material.IRON_INGOT;
+        };
+    }
+
+    /**
+     * Handle Creeper mini-boss explosion on death
+     */
+    public void handleCreeperMiniBossDeath(LivingEntity creeper) {
+        try {
+            if (creeper.getType() != EntityType.CREEPER) return;
+            org.bukkit.entity.Creeper c = (org.bukkit.entity.Creeper) creeper;
+            c.setPowered(true); // charged creeper for bigger explosion
+            c.explode();
+        } catch (Exception x) {
+            // ignore
+        }
+    }
+
     public void setItem(ItemStack s, String path, FileConfiguration fc) {
         fc.set(path, s);
         saveConfig();
@@ -2895,8 +3206,8 @@ public class BossLand extends JavaPlugin implements Listener {
     // }
 
     public void bossError(CommandSender sender) {
-        sender.sendMessage("§cInvalid Boss Type!");
-        sender.sendMessage("§eValid Bosses are: ");
+        sender.sendMessage("§cНеверный тип босса!");
+        sender.sendMessage("§eДоступные боссы: ");
         for (String b : getConfig().getConfigurationSection("bosses").getKeys(false))
             sender.sendMessage(b);
     }

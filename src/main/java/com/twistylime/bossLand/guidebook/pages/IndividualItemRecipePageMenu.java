@@ -18,7 +18,9 @@ public class IndividualItemRecipePageMenu extends PaginatedMenu {
 
     @Override
     public String getMenuName() {
-        return "BossLand | "+super.playerMenuUtility.getItemRecipeToShow().toUpperCase().replace('_',' ');
+        String key = super.playerMenuUtility.getItemRecipeToShow();
+        if (key == null) return "BossLand | Рецепт предмета";
+        return "BossLand | " + key.toUpperCase().replace('_', ' ');
     }
 
     @Override
@@ -36,7 +38,7 @@ public class IndividualItemRecipePageMenu extends PaginatedMenu {
                     playerWhoClicked.closeInventory();
                     break;
                 case NAME_TAG:
-                    playerWhoClicked.sendMessage("This feature is work in progress and will be available in the upcoming updates.");
+                    playerWhoClicked.sendMessage("Эта функция находится в разработке и будет доступна в ближайших обновлениях.");
                     playerWhoClicked.closeInventory();
                     break;
                 case WRITABLE_BOOK:

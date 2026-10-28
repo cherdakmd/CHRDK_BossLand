@@ -167,8 +167,7 @@ public class BossLandBosses {
                 ((LivingEntity) boss).addPotionEffect(new PotionEffect(PotionEffectType.FIRE_RESISTANCE, 999 * 999, 1));
                 ((LivingEntity) boss).addPotionEffect(new PotionEffect(CompatibilityResolver.resolvePotionEffect("INCREASE_DAMAGE","STRENGTH"), 999 * 999, 5));
             } else if (bossType.equals("Devil")) {
-                ((PigZombie) boss).setAngry(true);
-                ((PigZombie) boss).setAnger(999 * 999);
+                MCUtility.setZombifiedPiglinAngry(boss, 999 * 999);
                 MCUtility.equipMob(boss, "DIAMOND");
                 ItemStack head = SkullCreator.getSkull(
                         "http://textures.minecraft.net/texture/9da39269ef45f825ec61bb4f8aa09bd3cf07996fb6fac338a6e91d6699ae425");
@@ -206,6 +205,8 @@ public class BossLandBosses {
                         EntityType.valueOf(plugin.getConfig().getString("bosses." + bossType + ".mount").toUpperCase()));
                 mount.addPassenger(boss);
                 int h = plugin.getConfig().getInt("bosses." + bossType + ".health");
+                double healthMultiplier = plugin.getConfig().getDouble("bossHealthMultiplier", 1.0);
+                h = (int) (h * healthMultiplier);
 
                 if(BossLand.isLowBossHealthIndicator() && h > 1024){
                     h = 1024;
@@ -244,6 +245,8 @@ public class BossLandBosses {
         bar.setVisible(true);
         bossMap.put(ent, bar);
         int maxHP = plugin.getConfig().getInt("bosses." + bossType + ".health");
+        double healthMultiplier = plugin.getConfig().getDouble("bossHealthMultiplier", 1.0);
+        maxHP = (int) (maxHP * healthMultiplier);
 
         // Check if max health is
 

@@ -4,6 +4,7 @@ import com.twistylime.bossLand.BossLand;
 import com.twistylime.bossLand.core.BossLandShrines;
 import com.twistylime.bossLand.guidebook.PaginatedMenu;
 import com.twistylime.bossLand.guidebook.menuutility.PlayerMenuUtility;
+import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.ItemStack;
@@ -18,7 +19,9 @@ public class IndividualBossRecipePageMenu extends PaginatedMenu {
 
     @Override
     public String getMenuName() {
-        return "BossLand | "+super.playerMenuUtility.getBossRecipeToShow().toUpperCase().replace('_',' ');
+        String key = super.playerMenuUtility.getBossRecipeToShow();
+        if (key == null) return "BossLand | Recipe";
+        return "BossLand | " + key.toUpperCase().replace('_', ' ');
     }
 
     @Override
@@ -36,7 +39,7 @@ public class IndividualBossRecipePageMenu extends PaginatedMenu {
                     playerWhoClicked.closeInventory();
                     break;
                 case NAME_TAG:
-                    playerWhoClicked.sendMessage("This feature is work in progress and will be available in the upcoming updates.");
+                    playerWhoClicked.sendMessage("Эта функция находится в разработке и будет доступна в ближайших обновлениях.");
                     playerWhoClicked.closeInventory();
                     break;
                 case WRITABLE_BOOK:
@@ -51,8 +54,21 @@ public class IndividualBossRecipePageMenu extends PaginatedMenu {
     @Override
     public void setMenuItems() {
         String recipeKey = super.playerMenuUtility.getBossRecipeToShow();
+        if (recipeKey == null) {
+            addBigMenuBorder();
+            inventory.setItem(4, createItem(Material.BARRIER, "§cРецепт не найден", false));
+            return;
+        }
         BossLandShrines shrinesManager = BossLand.getShrinesManager();
         Map<String, Object> bossRecipe = shrinesManager.getShrineRecipe(recipeKey);
+
+        if (bossRecipe == null) {
+            addBigMenuBorder();
+            inventory.setItem(4, createItem(Material.BARRIER, "§cРецепт не найден в конфиге", false));
+            return;
+        }
+
+        addBigMenuBorder();
 
         if(recipeKey.contains("god") || recipeKey.contains("devil") || recipeKey.contains("death")){
             addBossRecipeTemplateForTopTier();
@@ -114,11 +130,13 @@ public class IndividualBossRecipePageMenu extends PaginatedMenu {
         @SuppressWarnings("unchecked")
         List<ItemStack> loot = (List<ItemStack>) bossRecipe.get("loot");
 
-        for (int i = 0; i < loot.size(); i++) {
-            if(i>8) break;
-            ItemStack lootItem = loot.get(i);
-            if(lootItem != null){
-                inventory.setItem(45+i,loot.get(i));
+        if (loot != null) {
+            for (int i = 0; i < loot.size(); i++) {
+                if (i > 8) break;
+                ItemStack lootItem = loot.get(i);
+                if (lootItem != null) {
+                    inventory.setItem(45 + i, loot.get(i));
+                }
             }
         }
     }

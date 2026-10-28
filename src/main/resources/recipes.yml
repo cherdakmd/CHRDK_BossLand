@@ -10,6 +10,62 @@ item_recipes:
     ingredients:
       S: NETHER_STAR
       E: ENCHANTED_BOOK # BOOK_OF_KNOWLEDGE
+  nature_essence:
+    result:
+      item: NATURES_ESSENCE
+      amount: 1
+    shape:
+      - "GSG"
+      - "SRS"
+      - "GSG"
+    ingredients:
+      G: GREEN_DYE # GREEN_BOSS_SHARD - Slime King
+      S: BROWN_DYE # BROWN_BOSS_SHARD - Papa Panda
+      R: RED_DYE # RED_BOSS_SHARD - Zombie King
+  frost_core:
+    result:
+      item: FROST_CORE
+      amount: 1
+    shape:
+      - "SSS"
+      - "SDS"
+      - "SSS"
+    ingredients:
+      S: LAPIS_LAZULI # BLUE_BOSS_SHARD - Evil Wizard
+      D: EMERALD # EMERALD_BOSS_SHARD - Giant
+  abyssal_scale:
+    result:
+      item: ABYSSAL_SCALE
+      amount: 1
+    shape:
+      - "SSS"
+      - "SDS"
+      - "SSS"
+    ingredients:
+      S: COAL # BLACK_BOSS_SHARD - Wither Skeleton King
+      D: RED_DYE # RED_BOSS_SHARD - Zombie King
+  infernal_core:
+    result:
+      item: INFERNAL_CORE
+      amount: 1
+    shape:
+      - "SSS"
+      - "SDS"
+      - "SSS"
+    ingredients:
+      S: ICE # FROST_CORE - Frost Titan
+      D: PRISMARINE_SHARD # ABYSSAL_SCALE - Ocean Leviathan
+  ender_crystal_shard:
+    result:
+      item: ENDER_CRYSTAL_SHARD
+      amount: 1
+    shape:
+      - "SSS"
+      - "SDS"
+      - "SSS"
+    ingredients:
+      S: MAGMA_CREAM # INFERNAL_CORE - Nether Overlord
+      D: ICE # FROST_CORE - Frost Titan
   god_fruit:
     result:
       item: FORBIDDEN_FRUIT
@@ -465,3 +521,118 @@ shrine_recipes:
         - "§7» §fKeep Inventory should be on to summon Death"
     loot: [ 0,1 ]
     lootName: "Death"
+  frost_titan:
+    result:
+      item: SNIFFER_EGG
+      amount: 1
+      display_name: "§3§lFrost Titan"
+      lore:
+        - "§7Титан вечной зимы, пробудившийся ото сна."
+        - "§7Его дыхание замораживает всё вокруг."
+        - ""
+        - "§e§lБиом для призыва: §fСнежные биомы"
+        - "§6§lУровень босса: §fIV"
+    shape:
+      - "SSS"
+      - "SDS"
+      - "SSS"
+    ingredients:
+      S: BLUE_ICE
+      D: PACKED_ICE
+    activator:
+      item: FROST_CORE # Frost Core item - custom named ICE
+      amount: 1
+    loot: [ 0,1 ]
+    lootName: "FrostTitan"
+  ocean_leviathan:
+    result:
+      item: GUARDIAN_SPAWN_EGG
+      amount: 1
+      display_name: "§b§lOcean Leviathan"
+      lore:
+        - "§7Гигантский страж глубин ocean."
+        - "§7Его чешуя непроницаема для клинков."
+        - ""
+        - "§e§lБиом для призыва: §fОкеан"
+        - "§6§lУровень босса: §fIV"
+    shape:
+      - "SSS"
+      - "SDS"
+      - "SSS"
+    ingredients:
+      S: PRISMARINE_BRICKS
+      D: PRISMARINE
+    activator:
+      item: ABYSSAL_SCALE # custom named PRISMARINE_SHARD
+      amount: 1
+    loot: [ 0,1 ]
+    lootName: "OceanLeviathan"
+  nether_overlord:
+    result:
+      item: MAGMA_CUBE_SPAWN_EGG
+      amount: 1
+      display_name: "§4§lNether Overlord"
+      lore:
+        - "§7Повелитель незерских пещер и лавовых озёр."
+        - "§7Его жар раскаляет сталь докрасна."
+        - ""
+        - "§e§lБиом для призыва: §fНезер"
+        - "§6§lУровень босса: §fIV"
+    shape:
+      - "SSS"
+      - "SDS"
+      - "SSS"
+    ingredients:
+      S: MAGMA_BLOCK
+      D: NETHERRACK
+    activator:
+      item: INFERNAL_CORE # custom named MAGMA_CREAM
+      amount: 1
+    loot: [ 0,1 ]
+    lootName: "NetherOverlord"
+  end_colossus:
+    result:
+      item: ENDERMAN_SPAWN_EGG
+      amount: 1
+      display_name: "§5§lEnd Colossus"
+      lore:
+        - "§7Колосс Края, разорвавший ткань измерений."
+        - "§7Его лезвия прорезают пустоту."
+        - ""
+        - "§e§lБиом для призыва: §fКрай"
+        - "§6§lУровень босса: §fIV"
+    shape:
+      - "SSS"
+      - "SDS"
+      - "SSS"
+    ingredients:
+      S: END_STONE
+      D: OBSIDIAN
+    activator:
+      item: ENDER_CRYSTAL_SHARD # custom named ENDER_PEARL
+      amount: 1
+    loot: [ 0,1 ]
+    lootName: "EndColossus"
+  forest_guardian:
+    result:
+      item: IRON_GOLEM_SPAWN_EGG
+      amount: 1
+      display_name: "§a§lForest Guardian"
+      lore:
+        - "§7Древний страж дремучих лесов."
+        - "§7Его объятия несут жизнь и спокойствие."
+        - ""
+        - "§e§lБиом для призыва: §fЛесные биомы"
+        - "§6§lУровень босса: §fII"
+    shape:
+      - "SSS"
+      - "SDS"
+      - "SSS"
+    ingredients:
+      S: OAK_LOG
+      D: MOSS_BLOCK
+    activator:
+      item: NATURES_ESSENCE # custom named OAK_SAPLING
+      amount: 1
+    loot: [ 0,1 ]
+    lootName: "ForestGuardian"
