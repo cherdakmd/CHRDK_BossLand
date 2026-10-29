@@ -3,6 +3,7 @@ package com.twistylime.bossLand.selftest;
 import com.twistylime.bossLand.BossLand;
 import com.twistylime.bossLand.core.BossLandItems;
 import com.twistylime.bossLand.core.BossLandRecipes;
+import com.twistylime.bossLand.guidebook.search.GuideSearch;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.inventory.ItemStack;
 
@@ -75,7 +76,55 @@ public final class BossLandSelftest {
                     + notShard.getItemMeta().getDisplayName());
         }
 
-        // 3) каждый предмет призыва собирается из осколков и не собирается из обычных материалов
+        // 3) поиск по руководству должен находить страницы по названию
+        List<GuideSearch.Entry> index = GuideSearch.index();
+        int indexedBosses = 0;
+        int indexedItems = 0;
+        for (GuideSearch.Entry entry : index) {
+            if (entry.kind() == GuideSearch.Kind.BOSS) indexedBosses++;
+            else indexedItems++;
+        }
+        checks++;
+        if (indexedBosses == 0 || indexedItems == 0) {
+            failed++;
+            lines.add("§c✗ §7поиск в руководстве пуст: боссов §f" + indexedBosses + "§7, предметов §f" + indexedItems);
+        }
+
+        boolean foundBoss = false;
+        for (GuideSearch.Entry entry : index) {
+            if (entry.kind() != GuideSearch.Kind.BOSS) continue;
+            String probe = GuideSearch.normalize(entry.name());
+            if (probe.length() > 5) probe = probe.substring(0, 5);
+            if (!GuideSearch.search(probe).isEmpty()) foundBoss = true;
+            break;
+        }
+        checks++;
+        if (!foundBoss) {
+            failed++;
+            lines.add("§c✗ §7поиск в руководстве не находит боссов по названию");
+        }
+
+        boolean foundItem = false;
+        for (GuideSearch.Entry entry : index) {
+            if (entry.kind() != GuideSearch.Kind.ITEM) continue;
+            String probe = GuideSearch.normalize(entry.name());
+            if (probe.length() > 5) probe = probe.substring(0, 5);
+            if (!GuideSearch.search(probe).isEmpty()) foundItem = true;
+            break;
+        }
+        checks++;
+        if (!foundItem) {
+            failed++;
+            lines.add("§c✗ §7поиск в руководстве не находит предметы по названию");
+        }
+
+        checks++;
+        if (!GuideSearch.search("этого-точно-нет-в-руководстве").isEmpty()) {
+            failed++;
+            lines.add("§c✗ §7поиск в руководстве выдаёт результаты на бессмысленный запрос");
+        }
+
+        // 4) каждый предмет призыва собирается из осколков и не собирается из обычных материалов
         List<BossLandRecipes.CraftGuard> guards = recipes.craftGuards();
         int recipeCount = recipes.recipeCount();
         lines.add("§7Правил крафта: §f" + guards.size() + " §7из §f" + recipeCount + " §7рецептов");

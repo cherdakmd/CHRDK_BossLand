@@ -8,6 +8,7 @@ import com.twistylime.bossLand.command.BossLandCommandHandler;
 import com.twistylime.bossLand.config.BossLandConfiguration;
 import com.twistylime.bossLand.core.*;
 import com.twistylime.bossLand.guidebook.MenuListener;
+import com.twistylime.bossLand.guidebook.search.SearchPromptManager;
 import com.twistylime.bossLand.guidebook.menuutility.PlayerMenuUtilityManager;
 import com.twistylime.bossLand.guidebook.pages.GuideMainMenu;
 import com.twistylime.bossLand.utility.MCUtility;
@@ -220,6 +221,11 @@ public class BossLand extends JavaPlugin implements Listener {
         getCommand("bosslandadmin").setTabCompleter(new BossLandTabCompleter("admin",lootManager));
         getCommand("bossland").setTabCompleter(new BossLandTabCompleter("player",lootManager));
         getServer().getPluginManager().registerEvents(new MenuListener(),this);
+
+        // поиск в руководстве: перехват сообщения игрока в чат
+        boolean modernChat = SearchPromptManager.register(this);
+        getLogger().log(Level.INFO, "Поиск в руководстве включён ("
+                + (modernChat ? "современное событие чата" : "классическое событие чата") + ").");
     }
 
     private void checkMaxHealth(){

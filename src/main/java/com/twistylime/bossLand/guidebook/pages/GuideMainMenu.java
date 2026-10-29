@@ -2,6 +2,7 @@ package com.twistylime.bossLand.guidebook.pages;
 
 import com.twistylime.bossLand.guidebook.PaginatedMenu;
 import com.twistylime.bossLand.guidebook.menuutility.PlayerMenuUtility;
+import com.twistylime.bossLand.guidebook.search.SearchPromptManager;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
@@ -41,8 +42,7 @@ public class GuideMainMenu extends PaginatedMenu {
                 p.closeInventory();
                 break;
             case NAME_TAG:
-                p.sendMessage("Эта функция находится в разработке и будет доступна в ближайших обновлениях.");
-                p.closeInventory();
+                SearchPromptManager.begin(p);
                 break;
             case FIRE_CORAL:
                 new BossesPageMenu(playerMenuUtility).open();

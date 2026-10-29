@@ -7,6 +7,7 @@ import com.twistylime.bossLand.core.BossLandItems;
 import com.twistylime.bossLand.core.BossLandLoot;
 import com.twistylime.bossLand.guidebook.menuutility.PlayerMenuUtilityManager;
 import com.twistylime.bossLand.guidebook.pages.GuideMainMenu;
+import com.twistylime.bossLand.guidebook.search.SearchPromptManager;
 import com.twistylime.bossLand.selftest.BossLandSelftest;
 import org.bukkit.*;
 import org.bukkit.boss.BossBar;
@@ -229,11 +230,19 @@ public class BossLandCommandHandler implements CommandExecutor {
                     p.getInventory().addItem(guideBook);
                 }
                 return true;
+            } else if (args[0].equalsIgnoreCase("search") && args.length >= 2) {
+                if (sender instanceof Player p) {
+                    SearchPromptManager.showResults(p, String.join(" ", java.util.Arrays.copyOfRange(args, 1, args.length)));
+                } else {
+                    sender.sendMessage("§cПоиск по руководству доступен только игрокам.");
+                }
+                return true;
             } else if (args[0].equals("help") && args.length == 1) {
                 if(sender instanceof Player){
                     sender.sendMessage("§6§lBoss Land §r§bv"+version);
                     sender.sendMessage("§3===============");
                     sender.sendMessage("§8■ §e/bl guide §7→ §fВыдать книгу руководства");
+                    sender.sendMessage("§8■ §e/bl search <название> §7→ §fНайти босса или предмет");
                     sender.sendMessage("§8■ §e/bl help §7→ §fПоказать список команд");
                     sender.sendMessage("§8■ §e/bl info §7→ §fИнформация о плагине.");
                 }

@@ -4,6 +4,7 @@ import com.twistylime.bossLand.BossLand;
 import com.twistylime.bossLand.core.BossLandShrines;
 import com.twistylime.bossLand.guidebook.PaginatedMenu;
 import com.twistylime.bossLand.guidebook.menuutility.PlayerMenuUtility;
+import com.twistylime.bossLand.guidebook.search.SearchPromptManager;
 import org.bukkit.NamespacedKey;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.ItemStack;
@@ -39,8 +40,7 @@ public class BossesPageMenu extends PaginatedMenu {
                     e.getWhoClicked().closeInventory();
                     break;
                 case NAME_TAG:
-                    e.getWhoClicked().sendMessage("Эта функция находится в разработке и будет доступна в ближайших обновлениях.");
-                    e.getWhoClicked().closeInventory();
+                    SearchPromptManager.begin((Player) e.getWhoClicked());
                     break;
                 case BAMBOO:
                 case SLIME_BLOCK:
