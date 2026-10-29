@@ -6,6 +6,7 @@ import com.twistylime.bossLand.guidebook.PaginatedMenu;
 import com.twistylime.bossLand.guidebook.menuutility.PlayerMenuUtility;
 import com.twistylime.bossLand.guidebook.search.SearchPromptManager;
 import org.bukkit.NamespacedKey;
+import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
