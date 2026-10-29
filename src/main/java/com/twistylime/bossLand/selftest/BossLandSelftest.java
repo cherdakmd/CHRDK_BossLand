@@ -56,7 +56,26 @@ public final class BossLandSelftest {
             }
         }
 
-        // 2) каждый предмет призыва собирается из осколков и не собирается из обычных материалов
+        // 2) посох контроля должен отличать осколки от остального лута
+        for (String shardKey : SHARD_KEYS) {
+            checks++;
+            String shardName = plugin.getBossConfig().getLang(shardKey);
+            ItemStack shard = loot.get(shardName);
+            if (shard == null) continue; // об отсутствии осколка уже сообщили выше
+            if (!plugin.isBossShard(shard)) {
+                failed++;
+                lines.add("§c✗ §f" + shardKey + " §7— посох контроля не считает осколком предмет §f" + shardName);
+            }
+        }
+        checks++;
+        ItemStack notShard = firstNonShard(loot);
+        if (notShard != null && plugin.isBossShard(notShard)) {
+            failed++;
+            lines.add("§c✗ §7посох контроля считает осколком обычный предмет §f"
+                    + notShard.getItemMeta().getDisplayName());
+        }
+
+        // 3) каждый предмет призыва собирается из осколков и не собирается из обычных материалов
         List<BossLandRecipes.CraftGuard> guards = recipes.craftGuards();
         int recipeCount = recipes.recipeCount();
         lines.add("§7Правил крафта: §f" + guards.size() + " §7из §f" + recipeCount + " §7рецептов");
@@ -151,6 +170,15 @@ public final class BossLandSelftest {
             }
         }
         return found;
+    }
+
+    /** Первый именованный предмет дропа, который не является осколком (для проверки режима «осколки»). */
+    private static ItemStack firstNonShard(Map<String, ItemStack> loot) {
+        for (ItemStack stack : loot.values()) {
+            if (displayName(stack) == null) continue;
+            if (!BossLand.getPlugin().isBossShard(stack)) return stack;
+        }
+        return null;
     }
 
     private static String displayName(ItemStack stack) {

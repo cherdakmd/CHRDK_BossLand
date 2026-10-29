@@ -19,7 +19,8 @@ devilSpawn: "§6§lДьявол: §r§4Мудрость твоя, если см�
 hellSpawn: "§6§lНечестивые нисходят в царство мертвых, все народы, забывшие Бога."
 noteConsume: "§6§lТы заполнил свою Смертную Тетрадь."
 failSpawnWorld: "§6§lБоги отказываются входить в это проклятое место..."
-shardKeyWord: "Shard"
+# Запасной признак осколка, если имя не совпало с items.*shard (основная проверка — по списку имён)
+shardKeyWord: "осколок"
 items:
   bell: "§6§lКолокол Рока"
   belllore:
@@ -76,6 +77,11 @@ items:
   endercrystalshardlore:
     - "§dФрагмент измерения Края"
     - "§eИспользуется для создания предметов призыва"
+  # Режимы посоха контроля (Эфирный Бог). Подпись в лоре собирается из staffModeLore
+  staffModeShard: "осколок"
+  staffModeLoot: "лут"
+  staffModeControl: "контроль"
+  staffModeLore: "§bРежим: <mode>"
   naturesessence: "§2§lЭссенция Природы"
   naturesessencelore:
     - "§aЭссенция живого леса"
