@@ -131,6 +131,10 @@ public class BossLand extends JavaPlugin implements Listener {
     // Mini-boss system: track dug blocks per player
     HashMap<UUID, Integer> dugBlocksMap = new HashMap<>();
     HashMap<Entity, BossBar> miniBossBars = new HashMap<>();
+    /** С какого момента рядом с мини-боссом нет игроков (мс). */
+    private final Map<Entity, Long> miniBossAloneSince = new HashMap<>();
+    /** Кто из игроков сейчас находится в зоне сражения каждого мини-босса. */
+    private final Map<Entity, Set<UUID>> miniBossZonePlayers = new HashMap<>();
     // Last time a mini-boss was spawned for a player (cooldown, see miniboss.cooldownSeconds)
     HashMap<UUID, Long> lastMiniBossSpawnMap = new HashMap<>();
 
@@ -145,6 +149,9 @@ public class BossLand extends JavaPlugin implements Listener {
     private static final int DEFAULT_MINI_BOSS_COOLDOWN_SECONDS = 120;
     private static final int DEFAULT_MINI_BOSS_MAX_NEARBY = 2;
     private static final double DEFAULT_MINI_BOSS_NEARBY_RADIUS = 64.0;
+    private static final boolean DEFAULT_MINI_BOSS_DESPAWN_WHEN_ALONE = true;
+    private static final double DEFAULT_MINI_BOSS_DESPAWN_RADIUS = 48.0;
+    private static final int DEFAULT_MINI_BOSS_DESPAWN_SECONDS = 120;
     private static final double DEFAULT_MINI_BOSS_BASE_HEALTH = 100.0;
     private static final double DEFAULT_ELITE_MINI_BOSS_HEALTH = 300.0;
 
@@ -761,16 +768,18 @@ public class BossLand extends JavaPlugin implements Listener {
     private void updateMiniBossBar(Entity boss) {
         BossBar bar = miniBossBars.get(boss);
         if (bar == null) return;
-        if (boss.isDead() || !boss.isValid()) {
-            miniBossBars.remove(boss);
-            // мини-босс выгрузился вместе с чанком: запись в save.yml ему больше не нужна,
-            // иначе файл растёт с каждым заспавненным и брошенным мини-боссом
-            config.setSaveData("bosses." + boss.getUniqueId(), null);
-            config.saveBossData();
-            boss.remove();
-            plugin.getLogger().log(Level.FINE, "Мини-босс снят с учёта: " + boss.getType());
+
+        if (boss.isDead()) {
+            forgetMiniBoss(boss);
             return;
         }
+        if (!boss.isValid()) {
+            // мини-босс остался в выгруженном чанке: подгружаем его и убираем,
+            // иначе он вернётся «призраком» без полосы здоровья
+            discardMiniBoss(boss, "чанк был выгружен");
+            return;
+        }
+
         try {
             LivingEntity le = (LivingEntity) boss;
             double health = le.getHealth();
@@ -779,17 +788,120 @@ public class BossLand extends JavaPlugin implements Listener {
         } catch (Exception x) {
             // ignore
         }
-        // Repeat while alive
-        if (!boss.isDead() && boss.isValid()) {
-            Bukkit.getServer().getScheduler().scheduleSyncDelayedTask(this, new Runnable() {
-                @Override
-                public void run() {
-                    updateMiniBossBar(boss);
-                }
-            }, 10L);
-        } else {
-            miniBossBars.remove(boss);
+
+        if (!updateCombatZone(boss, bar)) return; // мини-босс исчез: задачу не повторяем
+
+        Bukkit.getServer().getScheduler().scheduleSyncDelayedTask(this, () -> updateMiniBossBar(boss), 10L);
+    }
+
+    /**
+     * Держит зону сражения вокруг мини-босса: игроки в радиусе видят полосу здоровья,
+     * а если рядом никого нет дольше miniboss.despawnDelaySeconds — мини-босс исчезает.
+     *
+     * @return {@code false}, если мини-босс исчез и задачу нужно остановить
+     */
+    private boolean updateCombatZone(Entity boss, BossBar bar) {
+        if (!plugin.getConfig().getBoolean("miniboss.despawnWhenAlone", DEFAULT_MINI_BOSS_DESPAWN_WHEN_ALONE)) {
+            return true;
         }
+
+        double radius = plugin.getConfig().getDouble("miniboss.despawnRadius", DEFAULT_MINI_BOSS_DESPAWN_RADIUS);
+        int delaySeconds = Math.max(1, plugin.getConfig().getInt("miniboss.despawnDelaySeconds", DEFAULT_MINI_BOSS_DESPAWN_SECONDS));
+
+        Set<UUID> inZone = new HashSet<>();
+        for (Entity nearby : boss.getWorld().getNearbyEntities(boss.getLocation(), radius, radius, radius)) {
+            if (nearby instanceof Player player && !player.isDead()
+                    && player.getGameMode() != GameMode.SPECTATOR) {
+                inZone.add(player.getUniqueId());
+            }
+        }
+
+        // полосу здоровья видят только те, кто в зоне (раньше — только тот, кто заспавнил мини-босса)
+        Set<UUID> viewers = new HashSet<>();
+        for (Player viewer : bar.getPlayers()) viewers.add(viewer.getUniqueId());
+        for (Player viewer : bar.getPlayers()) {
+            if (!inZone.contains(viewer.getUniqueId())) bar.removePlayer(viewer);
+        }
+        for (UUID id : inZone) {
+            if (viewers.contains(id)) continue;
+            Player viewer = Bukkit.getPlayer(id);
+            if (viewer != null) bar.addPlayer(viewer);
+        }
+
+        Set<UUID> wasInZone = miniBossZonePlayers.computeIfAbsent(boss, key -> new HashSet<>());
+
+        // вернулся в зону
+        for (UUID id : inZone) {
+            if (!wasInZone.add(id)) continue;
+            Player player = Bukkit.getPlayer(id);
+            if (player != null) player.sendMessage(config.getLang("miniboss.returnZone"));
+        }
+        // вышел из зоны: умер и возродился далеко, телепорт, выход из игры
+        for (UUID id : new ArrayList<>(wasInZone)) {
+            if (inZone.contains(id)) continue;
+            wasInZone.remove(id);
+            Player player = Bukkit.getPlayer(id);
+            if (player != null) {
+                player.sendMessage(config.getLang("miniboss.leaveZone")
+                        .replace("<seconds>", String.valueOf(delaySeconds)));
+            }
+        }
+
+        if (!inZone.isEmpty()) {
+            miniBossAloneSince.remove(boss);
+            return true;
+        }
+
+        long now = System.currentTimeMillis();
+        long aloneSince = miniBossAloneSince.computeIfAbsent(boss, key -> now);
+        long secondsLeft = delaySeconds - (now - aloneSince) / 1000L;
+        if (secondsLeft > 0) return true;
+
+        discardMiniBoss(boss, delaySeconds + " сек. рядом не было игроков");
+        return false;
+    }
+
+    /** Убирает мини-босса без награды: он не убит игроком, а просто остался без боя. */
+    private void discardMiniBoss(Entity boss, String reason) {
+        BossBar bar = miniBossBars.get(boss);
+        if (bar != null) {
+            for (Player viewer : new ArrayList<>(bar.getPlayers())) bar.removePlayer(viewer);
+            bar.setVisible(false);
+        }
+        forgetMiniBoss(boss);
+
+        try {
+            Location location = boss.getLocation();
+            if (location.getWorld() != null && !location.getChunk().isLoaded()) {
+                location.getChunk().load(); // иначе сущность не удалить и она вернётся вместе с чанком
+            }
+            if (location.getWorld() != null) {
+                location.getWorld().playSound(location, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
+                MCUtility.displayParticle("CLOUD:1:25:0", location);
+            }
+            boss.remove();
+        } catch (Exception x) {
+            plugin.getLogger().log(Level.FINE, "Не удалось убрать мини-босса: " + x.getMessage());
+        }
+
+        plugin.getLogger().log(Level.INFO, "Мини-босс " + miniBossTypeOf(boss) + " исчез: " + reason);
+    }
+
+    /** Снимает мини-босса со всех учётов и стирает его запись в save.yml. */
+    private void forgetMiniBoss(Entity boss) {
+        miniBossBars.remove(boss);
+        miniBossAloneSince.remove(boss);
+        miniBossZonePlayers.remove(boss);
+        config.setSaveData("bosses." + boss.getUniqueId(), null);
+        config.saveBossData();
+    }
+
+    /** Тип мини-босса из его записи в save.yml — для сообщений в консоль. */
+    private String miniBossTypeOf(Entity boss) {
+        String saved = config.getDataFrom("save", "bosses." + boss.getUniqueId());
+        if (saved == null || !saved.startsWith(MINI_BOSS_PREFIX)) return boss.getType().name();
+        String type = saved.substring(MINI_BOSS_PREFIX.length());
+        return type.endsWith(ELITE_SUFFIX) ? type.substring(0, type.length() - ELITE_SUFFIX.length()) : type;
     }
 
     private void enterDeath(final Player p) {
@@ -2499,6 +2611,8 @@ public class BossLand extends JavaPlugin implements Listener {
     /** Смерть мини-босса: награда, взрыв крипера, звук, частицы и уборка полосы здоровья. */
     private void handleMiniBossDeath(Entity ent, String miniBossType, Player killer) {
         BossBar bar = miniBossBars.remove(ent);
+        miniBossAloneSince.remove(ent);
+        miniBossZonePlayers.remove(ent);
         if (bar != null) {
             for (Player p : new ArrayList<>(bar.getPlayers())) bar.removePlayer(p);
         }
