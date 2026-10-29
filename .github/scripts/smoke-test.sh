@@ -195,8 +195,17 @@ if [ "$EXERCISE" = "1" ]; then
   if grep -q 'САМОПРОВЕРКА: OK' server.log; then
     log "self-test passed: $(grep -o 'САМОПРОВЕРКА: OK ([0-9]* проверок)' server.log | tail -1)"
   else
-    echo '::error::BossLand self-test failed (shard names / crafting)'
+    echo '::error::BossLand self-test failed (shard names / crafting / guide search)'
     grep -E 'САМОПРОВЕРКА|✗' server.log | tail -n 20 | sed 's/^/[smoke]   /'
+    status=1
+  fi
+
+  # поиск по руководству должен подключиться без ошибок
+  if grep -q 'Поиск в руководстве включён' server.log; then
+    log "guide search: $(grep -o 'Поиск в руководстве включён (.*)' server.log | tail -1)"
+  else
+    echo '::error::guide search was not registered on startup'
+    grep -iE 'поиск|SearchPrompt|reflection' server.log | tail -n 6 | while IFS= read -r line; do echo "::error::SEARCH: $line"; done
     status=1
   fi
 

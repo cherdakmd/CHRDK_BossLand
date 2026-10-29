@@ -6,6 +6,7 @@ public class PlayerMenuUtility {
     private Player owner;
     private String bossRecipeToShow;
     private String itemRecipeToShow;
+    private String searchQuery = "";
 
     public String getBossRecipeToShow() {
         return bossRecipeToShow;
@@ -21,6 +22,14 @@ public class PlayerMenuUtility {
 
     public void setItemRecipeToShow(String itemRecipeToShow) {
         this.itemRecipeToShow = itemRecipeToShow;
+    }
+
+    public String getSearchQuery() {
+        return searchQuery;
+    }
+
+    public void setSearchQuery(String searchQuery) {
+        this.searchQuery = searchQuery == null ? "" : searchQuery;
     }
 
     public PlayerMenuUtility(Player owner) {

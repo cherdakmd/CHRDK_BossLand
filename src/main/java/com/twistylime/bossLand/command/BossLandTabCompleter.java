@@ -90,7 +90,7 @@ public class BossLandTabCompleter implements TabCompleter {
 
         }else if(Objects.equals(this.commandType, "player")){
             if (args.length == 1) {
-                suggestions.addAll(Arrays.asList("guide","help","info"));
+                suggestions.addAll(Arrays.asList("guide","search","help","info"));
             }
             if (args.length > 0) {
                 String currentArg = args[args.length - 1].toLowerCase();

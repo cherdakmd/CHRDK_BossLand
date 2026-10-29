@@ -2,8 +2,10 @@ package com.twistylime.bossLand.guidebook.pages;
 
 import com.twistylime.bossLand.guidebook.PaginatedMenu;
 import com.twistylime.bossLand.guidebook.menuutility.PlayerMenuUtility;
+import com.twistylime.bossLand.guidebook.search.SearchPromptManager;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
+import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -38,9 +40,9 @@ public class CreditsPageMenu extends PaginatedMenu {
                     break;
                 case BARRIER:
                     e.getWhoClicked().closeInventory();
+                    break;
                 case NAME_TAG:
-                    e.getWhoClicked().sendMessage("Эта функция находится в разработке и будет доступна в ближайших обновлениях.");
-                    e.getWhoClicked().closeInventory();
+                    SearchPromptManager.begin((Player) e.getWhoClicked());
                     break;
                 default:
                     break;
