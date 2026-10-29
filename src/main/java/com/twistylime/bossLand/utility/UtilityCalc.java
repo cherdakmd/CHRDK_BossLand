@@ -1,6 +1,8 @@
 package com.twistylime.bossLand.utility;
 
 import java.util.Random;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class UtilityCalc {
 
@@ -13,7 +15,8 @@ public class UtilityCalc {
                 int maxSetAmount = Integer.parseInt(split[1]);
                 setAmount = new Random().nextInt(maxSetAmount - minSetAmount + 1) + minSetAmount;
             } catch (Exception e) {
-                System.out.println("getIntFromString: " + e);
+                // битое значение в конфиге: несоответствие видно в консоли, но без спама
+                Logger.getLogger("BossLand").log(Level.FINE, "Не удалось разобрать количество: " + setAmountString, e);
             }
         } else {
             setAmount = Integer.parseInt(setAmountString);

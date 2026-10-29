@@ -271,8 +271,8 @@ public class BossLandItems {
                                     enchList.add(le);
                                 }
                             } else {
-                                System.out.println("Error: No valid drops found!");
-                                System.out.println("Error: " + enchantment + " is not a valid enchantment!");
+                                plugin.getLogger().warning("Не найдено подходящих зачарований для предмета.");
+                                plugin.getLogger().warning("Неизвестное зачарование в конфиге: " + enchantment);
                                 return null;
                             }
                         }
@@ -283,8 +283,8 @@ public class BossLandItems {
                         safety++;
                     }
                     if (safety >= enchAmount * 100) {
-                        System.out.println("Error: No valid drops found!");
-                        System.out.println("Error: Please increase chance for enchantments on item " + loot);
+                        plugin.getLogger().warning("Не удалось подобрать зачарования для предмета: " + loot);
+                        plugin.getLogger().warning("Увеличьте шанс зачарований (chance) для этого предмета в config.yml.");
                         return null;
                     }
                 } while (enchList.size() != enchNeeded);

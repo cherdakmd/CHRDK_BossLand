@@ -1,5 +1,6 @@
 package com.twistylime.bossLand.guidebook.pages;
 
+import com.twistylime.bossLand.BossLand;
 import com.twistylime.bossLand.guidebook.PaginatedMenu;
 import com.twistylime.bossLand.guidebook.menuutility.PlayerMenuUtility;
 import org.bukkit.ChatColor;
@@ -58,6 +59,13 @@ public class InfoPageMenu extends PaginatedMenu {
         }
     }
 
+    /** Версия берётся из plugin.yml: раньше здесь была жёсткая строка, которая отставала от релизов. */
+    private static String pluginVersion() {
+        var plugin = BossLand.getPlugin();
+        if (plugin == null || plugin.getDescription() == null) return "?";
+        return plugin.getDescription().getVersion();
+    }
+
     @Override
     public void setMenuItems() {
         addSmallCreditMenuBorder();
@@ -66,9 +74,9 @@ public class InfoPageMenu extends PaginatedMenu {
 
         Map<String, List<String>> creditData = new LinkedHashMap<>();
         creditData.put(ChatColor.GOLD + "" + ChatColor.BOLD + "Версия плагина",
-                List.of(ChatColor.YELLOW + "BossLand v3.0"));
+                List.of(ChatColor.YELLOW + "BossLand v" + pluginVersion()));
         creditData.put(ChatColor.AQUA + "" + ChatColor.BOLD + "Поддерживаемые версии Minecraft",
-                List.of(ChatColor.GREEN + "v1.16.1 - v1.21.5"));
+                List.of(ChatColor.GREEN + "1.21.5 – 26.3"));
         creditData.put(ChatColor.LIGHT_PURPLE + "" + ChatColor.BOLD + "Страница плагина",
                 List.of(ChatColor.WHITE + "MIT License"));
 

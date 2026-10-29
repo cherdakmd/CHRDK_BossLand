@@ -236,7 +236,7 @@ public class BossLandBosses {
     }
 
     public void makeBoss(Entity ent, String bossType) {
-        System.out.println("Make Boss");
+        plugin.getLogger().fine("Создание босса: " + bossType);
         String title = ChatColor.translateAlternateColorCodes('&',
                 plugin.getConfig().getString("bosses." + bossType + ".name"));
         BossBar bar = Bukkit.createBossBar(title,

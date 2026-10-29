@@ -2675,7 +2675,7 @@ public class BossLand extends JavaPlugin implements Listener {
             removeBLockList.remove(e.getEntity());
             e.setCancelled(true);
             e.getEntity().remove();
-            System.out.println("Block Cancel Land");
+            plugin.getLogger().fine("Отменено изменение блока сущностью " + e.getEntityType());
         }
     }
 
