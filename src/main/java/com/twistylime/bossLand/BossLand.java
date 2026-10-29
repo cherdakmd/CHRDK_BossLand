@@ -868,6 +868,17 @@ public class BossLand extends JavaPlugin implements Listener {
             for (Player viewer : new ArrayList<>(bar.getPlayers())) bar.removePlayer(viewer);
             bar.setVisible(false);
         }
+
+        // те, кто был в зоне и отошёл, должны узнать, что бой закончился
+        Set<UUID> formerFighters = miniBossZonePlayers.get(boss);
+        if (formerFighters != null) {
+            String gone = config.getLang("miniboss.despawned");
+            for (UUID id : formerFighters) {
+                Player player = Bukkit.getPlayer(id);
+                if (player != null) player.sendMessage(gone);
+            }
+        }
+
         forgetMiniBoss(boss);
 
         try {
