@@ -1,3 +1,5 @@
+# Составные предметы (ядро льда, чешуя бездны, инфернальное ядро, осколок Края) собираются
+# из двух предметов в среднем ряду. Раньше требовалось кольцо из 8 штук, и цена росла лавиной.
 item_recipes:
   death_note:
     result:
@@ -27,9 +29,9 @@ item_recipes:
       item: FROST_CORE
       amount: 1
     shape:
-      - "SSS"
+      - "   "
       - "SDS"
-      - "SSS"
+      - "   "
     ingredients:
       S: LAPIS_LAZULI # BLUE_BOSS_SHARD - Evil Wizard
       D: EMERALD # EMERALD_BOSS_SHARD - Giant
@@ -38,9 +40,9 @@ item_recipes:
       item: ABYSSAL_SCALE
       amount: 1
     shape:
-      - "SSS"
+      - "   "
       - "SDS"
-      - "SSS"
+      - "   "
     ingredients:
       S: COAL # BLACK_BOSS_SHARD - Wither Skeleton King
       D: RED_DYE # RED_BOSS_SHARD - Zombie King
@@ -49,9 +51,9 @@ item_recipes:
       item: INFERNAL_CORE
       amount: 1
     shape:
-      - "SSS"
+      - "   "
       - "SDS"
-      - "SSS"
+      - "   "
     ingredients:
       S: ICE # FROST_CORE - Frost Titan
       D: PRISMARINE_SHARD # ABYSSAL_SCALE - Ocean Leviathan
@@ -60,9 +62,9 @@ item_recipes:
       item: ENDER_CRYSTAL_SHARD
       amount: 1
     shape:
-      - "SSS"
+      - "   "
       - "SDS"
-      - "SSS"
+      - "   "
     ingredients:
       S: MAGMA_CREAM # INFERNAL_CORE - Nether Overlord
       D: ICE # FROST_CORE - Frost Titan

@@ -200,6 +200,15 @@ if [ "$EXERCISE" = "1" ]; then
     status=1
   fi
 
+  # отладочный вывод не должен попадать в консоль сервера
+  DEBUG_LINES="$(grep -nE 'Make Boss|Block Cancel Land|Error: No valid drops found|getIntFromString' <<< "$PRE_STOP" || true)"
+  if [ -n "$DEBUG_LINES" ]; then
+    echo '::error::debug output leaked into the server console'
+    printf '%s\n' "$DEBUG_LINES" | head -n 5 | while IFS= read -r line; do echo "::error::DEBUG: $line"; done
+    status=1
+  fi
+  log "no debug output in the server console"
+
   # мини-босс, оставшийся без игроков, должен исчезнуть
   if grep -q 'исчез:' server.log; then
     log "combat zone: $(grep -o 'Мини-босс .* исчез:.*' server.log | tail -1)"

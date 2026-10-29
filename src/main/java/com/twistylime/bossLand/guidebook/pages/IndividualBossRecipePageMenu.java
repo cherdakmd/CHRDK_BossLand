@@ -20,7 +20,7 @@ public class IndividualBossRecipePageMenu extends PaginatedMenu {
     @Override
     public String getMenuName() {
         String key = super.playerMenuUtility.getBossRecipeToShow();
-        if (key == null) return "BossLand | Recipe";
+        if (key == null) return "BossLand | Рецепт";
         return "BossLand | " + key.toUpperCase().replace('_', ' ');
     }
 
