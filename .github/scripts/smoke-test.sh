@@ -124,6 +124,18 @@ PY
       # (раньше он падал с NullPointerException и лут не выдавался)
       echo "bl-admin killMiniBosses world"
       sleep 3
+      # зона сражения: мини-босс без игроков должен исчезнуть через despawnDelaySeconds
+      python3 - <<'PY'
+import re, pathlib
+path = pathlib.Path('plugins/BossLand/config.yml')
+text = path.read_text(encoding='utf-8')
+text = re.sub(r'(?m)^  despawnDelaySeconds: .*$', '  despawnDelaySeconds: 3', text)
+path.write_text(text, encoding='utf-8')
+PY
+      echo "bl-admin reload"
+      sleep 2
+      echo "bl-admin miniboss ZOMBIE"
+      sleep 8
       echo "forceload remove 0 0"
       # самопроверка: дроп осколков + сборка предметов призыва в сетке крафта
       echo "bl-admin selftest"
@@ -188,6 +200,15 @@ if [ "$EXERCISE" = "1" ]; then
     status=1
   fi
 
+  # мини-босс, оставшийся без игроков, должен исчезнуть
+  if grep -q 'исчез:' server.log; then
+    log "combat zone: $(grep -o 'Мини-босс .* исчез:.*' server.log | tail -1)"
+  else
+    echo '::error::mini-boss was not despawned when no players were left in the combat zone'
+    grep -iE 'Мини-босс|despawn' server.log | tail -n 6 | while IFS= read -r line; do echo "::error::ZONE: $line"; done
+    status=1
+  fi
+
   # смерть мини-босса должна отработать штатно и выдать награду
   if grep -q 'Мини-босс WITCH повержен' server.log; then
     log "mini-boss death handled: $(grep -o 'Мини-босс WITCH повержен' server.log | tail -1)"
@@ -217,6 +238,14 @@ if [ "$EXERCISE" = "1" ]; then
   fi
   if ! grep -q 'blockThreshold: 200' plugins/BossLand/config.yml 2>/dev/null; then
     echo '::error::new miniboss section missing from the generated config'
+    status=1
+  fi
+  if ! grep -q 'despawnWhenAlone' plugins/BossLand/config.yml 2>/dev/null; then
+    echo '::error::combat zone keys missing from the generated config'
+    status=1
+  fi
+  if ! grep -q 'leaveZone' plugins/BossLand/lang.yml 2>/dev/null; then
+    echo '::error::zone messages missing from the generated lang.yml'
     status=1
   fi
   log "generated config contains translated names and the miniboss section"
