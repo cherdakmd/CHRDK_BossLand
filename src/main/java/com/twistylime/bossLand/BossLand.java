@@ -13,6 +13,7 @@ import com.twistylime.bossLand.guidebook.pages.GuideMainMenu;
 import com.twistylime.bossLand.utility.MCUtility;
 import com.twistylime.bossLand.utility.UtilityCalc;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.Color;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
@@ -154,6 +155,19 @@ public class BossLand extends JavaPlugin implements Listener {
     private static final int DEFAULT_MINI_BOSS_DESPAWN_SECONDS = 120;
     private static final double DEFAULT_MINI_BOSS_BASE_HEALTH = 100.0;
     private static final double DEFAULT_ELITE_MINI_BOSS_HEALTH = 300.0;
+
+    /** Режимы посоха контроля AetherGod (внутренние идентификаторы). */
+    private static final String STAFF_MODE_SHARD = "Shard";
+    private static final String STAFF_MODE_LOOT = "Loot";
+    private static final String STAFF_MODE_CONTROL = "Control";
+    private static final String[] STAFF_MODES = {STAFF_MODE_SHARD, STAFF_MODE_LOOT, STAFF_MODE_CONTROL};
+
+    /** Ключи lang.yml с именами осколков боссов — по ним определяется осколок в инвентаре. */
+    private static final String[] SHARD_LANG_KEYS = {
+            "items.whiteshard", "items.greenshard", "items.greyshard", "items.blackshard",
+            "items.redshard", "items.brownshard", "items.emeraldshard", "items.goldshard",
+            "items.blueshard", "items.demonicshard", "items.endercrystalshard"
+    };
 
     private static final String[] COMMON_MINI_BOSS_TYPES =
             {"ZOMBIE", "SKELETON", "SPIDER", "CAVE_SPIDER", "CREEPER", "DROWNED", "HUSK", "STRAY"};
@@ -2666,16 +2680,78 @@ public class BossLand extends JavaPlugin implements Listener {
     }
 
     private String getStaffMode(Player p) {
-        for (ItemStack s : p.getInventory())
-            if (s != null)
-                try {
-                    if (Objects.requireNonNull(s.getItemMeta()).getDisplayName().equals(getBossItemName("AetherGod", 1))) {
-                        String[] sp = Objects.requireNonNull(s.getItemMeta().getLore()).get(0).split(": ");
-                        return sp[1].trim();
-                    }
-                } catch (Exception x) {
-                }
+        for (ItemStack s : p.getInventory()) {
+            if (s == null) continue;
+            try {
+                ItemMeta meta = s.getItemMeta();
+                if (meta == null || !meta.getDisplayName().equals(getBossItemName("AetherGod", 1))) continue;
+                List<String> lore = meta.getLore();
+                if (lore == null || lore.isEmpty()) continue;
+                return normaliseStaffMode(lore.get(0));
+            } catch (Exception ignored) {
+            }
+        }
         return null;
+    }
+
+    /**
+     * Приводит подпись режима из лора посоха к внутреннему идентификатору.
+     * Понимает и русские названия («осколок», «лут», «контроль»), и старые английские
+     * (Shard / Loot / Control) — у игроков уже есть посохи со старой подписью.
+     */
+    private String normaliseStaffMode(String label) {
+        if (label == null) return null;
+        String value = ChatColor.stripColor(label);
+        int colon = value.lastIndexOf(':');
+        if (colon >= 0) value = value.substring(colon + 1);
+        value = value.trim().toLowerCase(Locale.ROOT);
+        if (value.isEmpty()) return null;
+
+        for (String mode : STAFF_MODES) {
+            if (value.equals(mode.toLowerCase(Locale.ROOT))) return mode;
+            String localized = ChatColor.stripColor(config.getLang(staffModeLangKey(mode))).trim().toLowerCase(Locale.ROOT);
+            if (!localized.isEmpty() && value.equals(localized)) return mode;
+        }
+        return null;
+    }
+
+    private String staffModeLangKey(String mode) {
+        return switch (mode) {
+            case STAFF_MODE_LOOT -> "items.staffModeLoot";
+            case STAFF_MODE_CONTROL -> "items.staffModeControl";
+            default -> "items.staffModeShard";
+        };
+    }
+
+    /** Подпись режима для лора посоха: «Режим: осколок». */
+    private String staffModeLore(String mode) {
+        return config.getLang("items.staffModeLore")
+                .replace("<mode>", config.getLang(staffModeLangKey(mode)));
+    }
+
+    /** Подпись режима для сообщений в чат. */
+    private String staffModeName(String mode) {
+        return config.getLang(staffModeLangKey(mode));
+    }
+
+    /** Осколок ли это босса: сверяем имя с lang.yml, а не с устаревшим английским ключом «Shard». */
+    public boolean isBossShard(ItemStack stack) {
+        if (stack == null || stack.getType() == Material.AIR || stack.getItemMeta() == null) return false;
+        String name = stack.getItemMeta().getDisplayName();
+        if (name == null || name.isEmpty()) return false;
+
+        for (String key : SHARD_LANG_KEYS) {
+            if (name.equals(config.getLang(key))) return true;
+        }
+
+        // запасной путь для изменённых конфигов: своё ключевое слово или встроенные варианты
+        String keyword = config.getLang("shardKeyWord");
+        String lowerName = ChatColor.stripColor(name).toLowerCase(Locale.ROOT);
+        for (String candidate : new String[]{keyword, "осколок", "shard"}) {
+            if (candidate == null || candidate.isBlank()) continue;
+            if (lowerName.contains(candidate.toLowerCase(Locale.ROOT))) return true;
+        }
+        return false;
     }
 
     private boolean hasDeathNote(Player p) {
@@ -2790,27 +2866,25 @@ public class BossLand extends JavaPlugin implements Listener {
                     .equals(getBossItemName("AetherGod", 1))) {
                 String mode = getStaffMode(p);
                 if (p.isSneaking()) {
-                    // Mode Change
-                    // System.out.println("Mode: " + mode + " - " + mode.equals("Shard"));
-                    String nMode = "Shard";
-                    assert mode != null;
-                    if (mode.equals("Shard")) {
-                        nMode = "Loot";
-                        // System.out.println("Loot");
-                    } else if (mode.equals("Loot")) {
-                        nMode = "Control";
-                        // System.out.println("Control");
+                    // смена режима: осколки → лут → контроль → осколки
+                    String nMode = STAFF_MODE_SHARD;
+                    if (STAFF_MODE_SHARD.equals(mode)) {
+                        nMode = STAFF_MODE_LOOT;
+                    } else if (STAFF_MODE_LOOT.equals(mode)) {
+                        nMode = STAFF_MODE_CONTROL;
                     }
                     ItemStack s = p.getInventory().getItemInMainHand().clone();
                     ItemMeta m = s.getItemMeta();
-                    assert m != null;
-                    List<String> lore = m.getLore();
-                    assert lore != null;
-                    lore.set(0, "§8Mode: " + nMode);
-                    m.setLore(lore);
-                    s.setItemMeta(m);
-                    p.getInventory().setItemInMainHand(s);
-                    p.sendMessage(config.getLang("modeChange") + nMode);
+                    if (m != null) {
+                        List<String> lore = m.getLore();
+                        if (lore != null && !lore.isEmpty()) {
+                            lore.set(0, staffModeLore(nMode));
+                            m.setLore(lore);
+                            s.setItemMeta(m);
+                            p.getInventory().setItemInMainHand(s);
+                        }
+                    }
+                    p.sendMessage(config.getLang("modeChange") + staffModeName(nMode));
                 } else {
                     controlCheck(p);
                 }
@@ -3031,8 +3105,7 @@ public class BossLand extends JavaPlugin implements Listener {
         if ((!p.isSneaking()) && Objects.requireNonNull(p.getInventory().getItemInMainHand().getItemMeta()).getDisplayName()
                 .equals(getBossItemName("AetherGod", 1))) {
             String mode = getStaffMode(p);
-            assert mode != null;
-            if (mode.equals("Control")) {
+            if (STAFF_MODE_CONTROL.equals(mode)) {
                 // Control
                 Entity ce = getControling(p);
                 // System.out.println("CE: " + ce);
@@ -3304,18 +3377,12 @@ public class BossLand extends JavaPlugin implements Listener {
             // Staff
             if (!bossType.contains("God") && p != null && (p instanceof Player)) {
                 String mode = getStaffMode(((Player) p));
-                if (mode != null) {
-                    if (mode.equals("Shard")) {
-                        if (s.getItemMeta() == null || s.getItemMeta().getDisplayName() == null
-                                || (!s.getItemMeta().getDisplayName().contains(config.getLang("shardKeyWord")))) {
-                            s = null;
-                        }
-                    } else if (mode.equals("Loot")) {
-                        if (s.getItemMeta() != null && s.getItemMeta().getDisplayName() != null
-                                && s.getItemMeta().getDisplayName().contains(config.getLang("shardKeyWord"))) {
-                            s = null;
-                        }
-                    }
+                if (STAFF_MODE_SHARD.equals(mode)) {
+                    // режим «осколки»: всё, что не осколок, отбрасываем
+                    if (!isBossShard(s)) s = null;
+                } else if (STAFF_MODE_LOOT.equals(mode)) {
+                    // режим «лут»: осколки не выдаём
+                    if (isBossShard(s)) s = null;
                 }
             }
         } while (s == null && i > 0);
