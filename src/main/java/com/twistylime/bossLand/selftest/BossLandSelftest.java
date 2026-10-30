@@ -549,6 +549,9 @@ public final class BossLandSelftest {
             ConfigurationSection loot = bosses.getConfigurationSection(boss + ".loot");
             if (loot == null) continue;
             for (String lootId : loot.getKeys(false)) {
+                // имя из списка выбирается случайно при каждом getItem: сравнивать его нельзя,
+                // иначе самопроверка будет падать на чём угодно (getString у списка — не null)
+                if (loot.isList(lootId + ".name")) continue;
                 if (loot.getString(lootId + ".name") == null) continue;
                 try {
                     ItemStack stack = BossLand.getItemsManager().getItem(boss, lootId);
