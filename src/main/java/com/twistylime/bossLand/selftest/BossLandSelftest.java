@@ -271,6 +271,34 @@ public final class BossLandSelftest {
             }
         }
 
+        // 6) осколок должен во что-то крафтиться: иначе он бесполезен, а игрок про это не узнает
+        for (String shardKey : SHARD_KEYS) {
+            checks++;
+            ItemStack shard = loot.get(plugin.getBossConfig().getLang(shardKey));
+            if (shard == null) continue; // об отсутствии осколка сообщили в проверке 1
+            List<String> crafts = recipes.craftsFrom(shard);
+            if (crafts.isEmpty()) {
+                failed++;
+                lines.add("§c✗ §f" + shardKey + " §7— осколок §f" + displayName(shard)
+                        + " §7не идёт ни в один рецепт из recipes.yml");
+            }
+        }
+
+        // 7) у каждого рецепта должен быть понятный результат: иначе страница в руководстве пустая
+        ConfigurationSection itemRecipes = plugin.getBossConfig().getRecipeConfiguration("item_recipes");
+        if (itemRecipes != null) {
+            for (String key : itemRecipes.getKeys(false)) {
+                checks++;
+                Map<String, Object> recipe = recipes.getRecipes(key);
+                ItemStack result = recipe == null ? null : (ItemStack) recipe.get("result");
+                if (result == null || displayName(result) == null) {
+                    failed++;
+                    lines.add("§c✗ §f" + key
+                            + " §7— рецепт не показывается в руководстве: у результата нет названия");
+                }
+            }
+        }
+
         boolean ok = failed == 0;
         lines.add(ok
                 ? "§aСАМОПРОВЕРКА: OK §7(" + checks + " проверок)"

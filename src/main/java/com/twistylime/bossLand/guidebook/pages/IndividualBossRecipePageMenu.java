@@ -1,14 +1,19 @@
 package com.twistylime.bossLand.guidebook.pages;
 
 import com.twistylime.bossLand.BossLand;
+import com.twistylime.bossLand.core.BossLandRecipes;
 import com.twistylime.bossLand.core.BossLandShrines;
 import com.twistylime.bossLand.guidebook.PaginatedMenu;
 import com.twistylime.bossLand.guidebook.menuutility.PlayerMenuUtility;
 import com.twistylime.bossLand.guidebook.search.SearchPromptManager;
 import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.persistence.PersistentDataType;
 
 import java.util.List;
 import java.util.Map;
@@ -46,6 +51,12 @@ public class IndividualBossRecipePageMenu extends PaginatedMenu {
                     new BossesPageMenu(playerMenuUtility).open();
                     break;
                 default:
+                    // предмет призыва: открываем страницу его крафта
+                    String itemRecipe = recipeKeyOf(itemClicked);
+                    if (itemRecipe == null)
+                        break;
+                    playerMenuUtility.setItemRecipeToShow(itemRecipe);
+                    new IndividualItemRecipePageMenu(playerMenuUtility).open();
                     break;
             }
         }
@@ -53,6 +64,7 @@ public class IndividualBossRecipePageMenu extends PaginatedMenu {
 
     @Override
     public void setMenuItems() {
+        boolean requireShrine = BossLand.getPlugin().getConfig().getBoolean("rituals.requireShrine", false);
         String recipeKey = super.playerMenuUtility.getBossRecipeToShow();
         if (recipeKey == null) {
             addBigMenuBorder();
@@ -87,23 +99,54 @@ public class IndividualBossRecipePageMenu extends PaginatedMenu {
 
             int[] reservedSlotsForRecipe = {10,11,12,19,20,21,28,29,30};
 
-            @SuppressWarnings("unchecked")
-            Map<String, Object> recipeMap = (Map<String, Object>) bossRecipe.get("recipe");
-            @SuppressWarnings("unchecked")
-            List<List<String>> shape = (List<List<String>>) recipeMap.get("shape");
-            @SuppressWarnings("unchecked")
-            Map<String, ItemStack> ingredients = (Map<String, ItemStack>) recipeMap.get("items");
+            // Показываем то, что игроку реально нужно сделать: если святилище строиить не надо —
+            // сетка крафта предмета призыва, иначе — схема постройки из recipes.yml
+            BossLandRecipes recipesManager = BossLand.getRecipeManager();
+            String activatorId = shrineActivatorId(recipeKey);
+            String itemRecipeKey = recipesManager == null ? null : recipesManager.recipeKeyFor(activatorId);
+            Map<String, Object> craftRecipe = itemRecipeKey == null || recipesManager == null
+                    ? null : recipesManager.getRecipes(itemRecipeKey);
 
-            for (int row = 0; row < shape.size(); row++) {
-                for (int col = 0; col < shape.get(row).size(); col++) {
-                    int slotIndex = reservedSlotsForRecipe[row * 3 + col]; // map shape[row][col] → slot
-                    String key = shape.get(row).get(col);
+            if (!requireShrine && craftRecipe != null) {
+                @SuppressWarnings("unchecked")
+                Map<String, Object> craftDetails = (Map<String, Object>) craftRecipe.get("recipe");
+                @SuppressWarnings("unchecked")
+                List<List<String>> craftShape = (List<List<String>>) craftDetails.get("shape");
+                @SuppressWarnings("unchecked")
+                Map<String, ItemStack> craftIngredients = (Map<String, ItemStack>) craftDetails.get("items");
 
-                    if (key.equalsIgnoreCase(" ")) continue; // skip empty spaces
+                for (int row = 0; row < craftShape.size(); row++) {
+                    for (int col = 0; col < craftShape.get(row).size(); col++) {
+                        int slotIndex = reservedSlotsForRecipe[row * 3 + col];
+                        String key = craftShape.get(row).get(col);
 
-                    ItemStack ingItem = ingredients.get(key.toLowerCase());
-                    if (ingItem != null) {
-                        inventory.setItem(slotIndex, ingItem);
+                        if (key.equalsIgnoreCase(" ")) continue; // skip empty spaces
+
+                        ItemStack ingItem = craftIngredients.get(key.toLowerCase());
+                        if (ingItem != null) {
+                            inventory.setItem(slotIndex, ingItem);
+                        }
+                    }
+                }
+            } else if (bossRecipe.get("recipe") != null) {
+                @SuppressWarnings("unchecked")
+                Map<String, Object> recipeMap = (Map<String, Object>) bossRecipe.get("recipe");
+                @SuppressWarnings("unchecked")
+                List<List<String>> shape = (List<List<String>>) recipeMap.get("shape");
+                @SuppressWarnings("unchecked")
+                Map<String, ItemStack> ingredients = (Map<String, ItemStack>) recipeMap.get("items");
+
+                for (int row = 0; row < shape.size(); row++) {
+                    for (int col = 0; col < shape.get(row).size(); col++) {
+                        int slotIndex = reservedSlotsForRecipe[row * 3 + col]; // map shape[row][col] → slot
+                        String key = shape.get(row).get(col);
+
+                        if (key.equalsIgnoreCase(" ")) continue; // skip empty spaces
+
+                        ItemStack ingItem = ingredients.get(key.toLowerCase());
+                        if (ingItem != null) {
+                            inventory.setItem(slotIndex, ingItem);
+                        }
                     }
                 }
             }
@@ -113,7 +156,9 @@ public class IndividualBossRecipePageMenu extends PaginatedMenu {
             if (activatorMap != null) {
                 ItemStack activatorItem = (ItemStack) activatorMap.get("item");
                 if (activatorItem != null) {
-                    inventory.setItem(23, activatorItem);
+                    // по клику открываем страницу крафта этого предмета
+                    inventory.setItem(23, itemRecipeKey == null ? activatorItem
+                            : withRecipeKey(activatorItem, itemRecipeKey));
                 }
             }
 
@@ -139,5 +184,32 @@ public class IndividualBossRecipePageMenu extends PaginatedMenu {
                 }
             }
         }
+    }
+    /** Идентификатор предмета призыва из записи святилища (например SLIME_CORE). */
+    private String shrineActivatorId(String recipeKey) {
+        if (recipeKey == null)
+            return null;
+        ConfigurationSection shrines = BossLand.getPlugin().getBossConfig()
+                .getRecipeConfiguration("shrine_recipes");
+        return shrines == null ? null : shrines.getString(recipeKey + ".activator.item");
+    }
+
+    /** Ключ рецепта предмета, записанный в сам предмет, или {@code null}. */
+    private String recipeKeyOf(ItemStack item) {
+        ItemMeta meta = item.getItemMeta();
+        if (meta == null)
+            return null;
+        NamespacedKey key = new NamespacedKey(BossLand.getPlugin(), "data");
+        return meta.getPersistentDataContainer().get(key, PersistentDataType.STRING);
+    }
+
+    private ItemStack withRecipeKey(ItemStack item, String recipeKey) {
+        ItemMeta meta = item.getItemMeta();
+        if (meta == null)
+            return item;
+        NamespacedKey key = new NamespacedKey(BossLand.getPlugin(), "data");
+        meta.getPersistentDataContainer().set(key, PersistentDataType.STRING, recipeKey);
+        item.setItemMeta(meta);
+        return item;
     }
 }
