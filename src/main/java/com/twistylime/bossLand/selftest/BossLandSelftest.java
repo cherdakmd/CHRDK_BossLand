@@ -3,20 +3,30 @@ package com.twistylime.bossLand.selftest;
 import com.twistylime.bossLand.BossLand;
 import com.twistylime.bossLand.core.BossLandItems;
 import com.twistylime.bossLand.core.BossLandRecipes;
+import com.twistylime.bossLand.core.BossLandShrines;
+import com.twistylime.bossLand.core.BossLandShrines.Ritual;
 import com.twistylime.bossLand.guidebook.search.GuideSearch;
+import com.twistylime.bossLand.utility.CompatibilityResolver;
+import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Самопроверка установки: проверяет то, что не видно при обычном старте сервера —
  * что осколки, выпадающие с боссов, называются ровно так, как ожидает проверка крафта,
  * и что каждый предмет призыва действительно собирается из осколков
- * (валидатор крафта не отбрасывает результат и не пропускает обычные материалы).
+ * (валидатор крафта не отбрасывает результат и не пропускает обычные материалы),
+ * а также что ритуалы призыва ждут ровно те предметы и структуры, которые плагин выдаёт
+ * и показывает в руководстве.
  *
  * Запуск: /bl-admin selftest
  */
@@ -153,11 +163,143 @@ public final class BossLandSelftest {
             }
         }
 
+        // 5) ритуалы призыва: предмет в руке, структура блоков и страница руководства должны совпадать.
+        //    Здесь ловится главная беда ритуалов: код ждёт одно имя предмета, а плагин выдаёт другое,
+        //    либо в книге нарисована одна структура, а в мире требуется другая.
+        BossLandShrines shrines = BossLand.getShrinesManager();
+        List<Ritual> rituals = shrines == null ? Collections.emptyList() : shrines.rituals();
+        ConfigurationSection shrineSection = plugin.getBossConfig().getRecipeConfiguration("shrine_recipes");
+        lines.add("§7Ритуалов призыва: §f" + rituals.size());
+        checks++;
+        if (rituals.isEmpty()) {
+            failed++;
+            lines.add("§c✗ §7не зарегистрировано ни одного ритуала призыва");
+        }
+        Set<String> covered = new HashSet<>();
+        for (Ritual ritual : rituals) {
+            // 5.1 босс ритуала есть в config.yml
+            checks++;
+            if (plugin.getConfig().getConfigurationSection("bosses." + ritual.boss()) == null) {
+                failed++;
+                lines.add("§c✗ §f" + ritual.label() + " §7— в config.yml нет босса §f" + ritual.boss());
+            }
+
+            // 5.2 предмет призыва: материал и имя совпадают с тем, что реально выдаёт плагин
+            checks++;
+            ItemStack activator = shrines == null ? null : shrines.getMentionedItem(ritual.activatorId(),
+                    ritual.activatorAmount());
+            if (ritual.activatorMaterial() == null || activator == null
+                    || activator.getType() != ritual.activatorMaterial()) {
+                failed++;
+                lines.add("§c✗ §f" + ritual.label() + " §7— ритуал ждёт предмет §f" + ritual.activatorId()
+                        + " §7(материал §f" + ritual.activatorMaterial() + "§7), а плагин выдаёт §f"
+                        + (activator == null ? "ничего" : activator.getType().name()));
+            }
+            if (ritual.customActivator()) {
+                checks++;
+                String expected = displayName(activator);
+                if (expected == null || expected.isBlank() || !expected.equals(ritual.activatorName())) {
+                    failed++;
+                    lines.add("§c✗ §f" + ritual.label() + " §7— имя предмета призыва разошлось: ритуал ждёт §f"
+                            + ritual.activatorName() + "§7, плагин выдаёт §f" + expected);
+                }
+            }
+
+            // 5.3 структура блоков совпадает с той, что нарисована в руководстве
+            checks++;
+            String blocksProblem = verifyShrineBlocks(shrineSection, ritual);
+            if (blocksProblem != null) {
+                failed++;
+                lines.add("§c✗ §f" + ritual.label() + " §7— " + blocksProblem);
+            }
+
+            // 5.4 в руководстве показан тот же активатор, что требует ритуал
+            checks++;
+            ConfigurationSection entry = shrineSection == null ? null
+                    : shrineSection.getConfigurationSection(ritual.recipe());
+            String bookActivator = entry == null ? null : entry.getString("activator.item");
+            if (bookActivator == null || !bookActivator.equalsIgnoreCase(ritual.activatorId())) {
+                failed++;
+                lines.add("§c✗ §f" + ritual.label() + " §7— в руководстве активатор §f" + bookActivator
+                        + "§7, а ритуал требует §f" + ritual.activatorId());
+            }
+            if (entry != null)
+                covered.add(ritual.recipe());
+        }
+
+        // 5.5 у каждой страницы руководства со структурой должен быть работающий ритуал
+        if (shrineSection != null) {
+            for (String key : shrineSection.getKeys(false)) {
+                if (shrineSection.getStringList(key + ".shape").isEmpty())
+                    continue;
+                checks++;
+                if (!covered.contains(key)) {
+                    failed++;
+                    lines.add("§c✗ §f" + key + " §7— страница руководства без работающего ритуала");
+                }
+            }
+        }
+
         boolean ok = failed == 0;
         lines.add(ok
                 ? "§aСАМОПРОВЕРКА: OK §7(" + checks + " проверок)"
                 : "§cСАМОПРОВЕРКА: ОШИБОК " + failed + " из " + checks);
         return new Outcome(ok, checks, failed, lines);
+    }
+
+    /**
+     * Сверяет структуру, которую ждёт ритуал, с сеткой из recipes.yml — той самой, что нарисована
+     * в руководстве. Сетку разбираем заново, не reused код плагина: иначе рассинхрон не найти.
+     *
+     * @return описание расхождения или {@code null}, если структура совпадает
+     */
+    private static String verifyShrineBlocks(ConfigurationSection section, Ritual ritual) {
+        if (section == null)
+            return "в recipes.yml нет секции shrine_recipes";
+        ConfigurationSection entry = section.getConfigurationSection(ritual.recipe());
+        if (entry == null)
+            return "в recipes.yml нет записи «" + ritual.recipe() + "»";
+        List<String> shape = entry.getStringList("shape");
+        if (shape.size() != 3)
+            return "в recipes.yml у записи «" + ritual.recipe() + "» сетка не 3×3";
+        if (ritual.blocks().length != 3)
+            return "у ритуала не задана структура блоков";
+
+        for (int row = 0; row < 3; row++) {
+            String expected = shrineBlockRow(entry, shape.get(row));
+            if (expected == null)
+                return "в recipes.yml не читается строка " + (row + 1) + " структуры «" + ritual.recipe() + "»";
+            if (!expected.equals(ritual.blocks()[row])) {
+                return "структура разошлась с руководством: в строке " + (row + 1) + " ритуал ждёт §f"
+                        + ritual.blocks()[row] + "§7, а в книге §f" + expected;
+            }
+        }
+        return null;
+    }
+
+    /** Одна строка структуры в том виде, в котором её проверяет ритуал: MATERIAL:MATERIAL:MATERIAL. */
+    private static String shrineBlockRow(ConfigurationSection entry, String shapeRow) {
+        ConfigurationSection ingredients = entry.getConfigurationSection("ingredients");
+        if (ingredients == null || shapeRow.length() != 3)
+            return null;
+        StringBuilder line = new StringBuilder();
+        for (int col = 0; col < 3; col++) {
+            String id = ingredients.getString(String.valueOf(shapeRow.charAt(col)));
+            if (id == null)
+                return null;
+            // в книге ингредиенты записаны предметами, а в мире стоят блоками
+            Material material = switch (id.toUpperCase(Locale.ROOT)) {
+                case "REDSTONE" -> CompatibilityResolver.resolveMaterial("REDSTONE_WIRE", "REDSTONE");
+                case "CARROT" -> CompatibilityResolver.resolveMaterial("CARROTS", "CARROT");
+                default -> CompatibilityResolver.resolveMaterial(id.toUpperCase(Locale.ROOT));
+            };
+            if (material == null)
+                return null;
+            if (col > 0)
+                line.append(':');
+            line.append(material.name());
+        }
+        return line.toString();
     }
 
     /**

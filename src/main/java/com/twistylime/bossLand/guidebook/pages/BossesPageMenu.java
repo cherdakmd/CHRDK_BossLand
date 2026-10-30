@@ -6,6 +6,7 @@ import com.twistylime.bossLand.guidebook.PaginatedMenu;
 import com.twistylime.bossLand.guidebook.menuutility.PlayerMenuUtility;
 import com.twistylime.bossLand.guidebook.search.SearchPromptManager;
 import org.bukkit.NamespacedKey;
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.ItemStack;
@@ -58,6 +59,7 @@ public class BossesPageMenu extends PaginatedMenu {
                 case HEART_OF_THE_SEA:
                 case COAL:
                 case CHARCOAL:
+                case COPPER_INGOT:
                     ItemMeta clickedItemMeta = e.getCurrentItem().getItemMeta();
                     if (clickedItemMeta != null) {
                         NamespacedKey key = new NamespacedKey(BossLand.getPlugin(),"data");
@@ -79,34 +81,21 @@ public class BossesPageMenu extends PaginatedMenu {
         addBigMenuBorder();
 
         BossLandShrines shrinesManager = BossLand.getShrinesManager();
-        ArrayList<String> bossData = new ArrayList<>(List.of(
-                "papa_panda",
-                "slime_king",
-                "killer_bunny",
-                "zombie_king",
-                "ghast_lord",
-                "wither_skeleton_king",
-                "giant",
-                "illager_king",
-                "evil_wizard",
-                "demon",
-                "aether_god",
-                "pharaoh_god",
-                "drowned_god",
-                "the_devil",
-                "death",
-                "frost_titan",
-                "ocean_leviathan",
-                "nether_overlord",
-                "end_colossus",
-                "forest_guardian"
-        ));
+        // Список берём из recipes.yml: раньше он был вписан в код, и новые боссы (например Гнев)
+        // просто не попадали в руководство. Порядок страниц — как в файле.
+        ConfigurationSection shrineRecipes = BossLand.getPlugin().getBossConfig()
+                .getRecipeConfiguration("shrine_recipes");
+        ArrayList<String> bossData = new ArrayList<>();
+        if (shrineRecipes != null)
+            bossData.addAll(shrineRecipes.getKeys(false));
         ArrayList<ItemStack> bosses = new ArrayList<>();
 
         for(String boss: bossData){
             Map<String, Object> bossRecipe = shrinesManager.getShrineRecipe(boss);
+            if (bossRecipe == null) continue;
             if(boss.contains("god") || boss.contains("devil") || boss.contains("death")){
                 ItemStack resultBoss = (ItemStack) bossRecipe.get("result");
+                if (resultBoss == null) continue;
                 bosses.add(addDataToItem(resultBoss,boss));
             }
             else{
@@ -114,6 +103,7 @@ public class BossesPageMenu extends PaginatedMenu {
                 Map<String, Object> resultMap = (Map<String, Object>) bossRecipe.get("result");
                 if (resultMap != null) {
                     ItemStack resultBoss = (ItemStack) resultMap.get("item");
+                    if (resultBoss == null) continue;
                     bosses.add(addDataToItem(resultBoss,boss));
                 }
             }
