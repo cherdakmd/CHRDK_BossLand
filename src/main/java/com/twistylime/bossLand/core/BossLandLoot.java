@@ -5,6 +5,7 @@ import com.twistylime.bossLand.config.BossLandConfiguration;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.*;
+import java.util.function.Predicate;
 
 public class BossLandLoot {
     private final BossLandItems itemManager;
@@ -15,51 +16,23 @@ public class BossLandLoot {
         bossLootMap = config.getBossLootIdMap();
     }
 
+    /**
+     * Броня из дропа боссов. Раньше список был вписан в код девятью парами «босс — номер лута»,
+     * из-за чего вещи новых боссов в руководство не попадали.
+     */
     public List<ItemStack> getArmors(){
-        List<ItemStack> armors = new ArrayList<>();
-        Map<String, String> bossWithArmorIds = new HashMap<>();
-        bossWithArmorIds.put("KingSlime","0");
-        bossWithArmorIds.put("KillerBunny","2");
-        bossWithArmorIds.put("PapaPanda","1");
-        bossWithArmorIds.put("WitherSkeletonKing","2");
-        bossWithArmorIds.put("IllagerKing","3");
-        bossWithArmorIds.put("DrownedGod","2");
-        bossWithArmorIds.put("PharaohGod","2");
-        bossWithArmorIds.put("AetherGod","0");
-        bossWithArmorIds.put("Devil","0");
-
-        for (Map.Entry<String, String> entry : bossWithArmorIds.entrySet()) {
-            String boss = entry.getKey();
-            String armorId = entry.getValue();
-            armors.add(getLoot(boss,armorId));
-        }
-        return armors;
+        return lootMatching(BossLandLoot::isArmor);
     }
 
+    /**
+     * Оружие и прочие вещи из дропа боссов: всё, что не осколок и не броня.
+     *
+     * Список ищется по всему луту, а не перечислен в коде: из-за перечисления в руководстве
+     * не было ни Морозного Клинка, ни Зова Прилива, ни Тесака Инферно, ни Клинка Пустоты,
+     * ни Зелёного Стража, ни мечей Гнева — то есть всего оружия боссов 3.8.
+     */
     public List<ItemStack> getWeaponsAndItems(){
-        List<ItemStack> itemsAndWeapons = new ArrayList<>();
-        Map<String, List<String>> bossWithItemAndWeaponIds = new HashMap<>();
-        bossWithItemAndWeaponIds.put("GhastLord",List.of("2","3"));
-        bossWithItemAndWeaponIds.put("WitherSkeletonKing",List.of("1"));
-        bossWithItemAndWeaponIds.put("ZombieKing",List.of("1","2","3"));
-        bossWithItemAndWeaponIds.put("IllagerKing",List.of("4"));
-        bossWithItemAndWeaponIds.put("EvilWizard",List.of("3"));
-        bossWithItemAndWeaponIds.put("Giant",List.of("1","2"));
-        bossWithItemAndWeaponIds.put("DrownedGod",List.of("0","1"));
-        bossWithItemAndWeaponIds.put("PharaohGod",List.of("0","1"));
-        bossWithItemAndWeaponIds.put("AetherGod",List.of("1","2"));
-        bossWithItemAndWeaponIds.put("Demon",List.of("1"));
-        bossWithItemAndWeaponIds.put("Devil",List.of("1"));
-        bossWithItemAndWeaponIds.put("Death",List.of("0","1"));
-
-        for (Map.Entry<String, List<String>> entry : bossWithItemAndWeaponIds.entrySet()) {
-            String boss = entry.getKey();
-            List<String> weaponAndItemIds = entry.getValue();
-            for(String itemId: weaponAndItemIds){
-                itemsAndWeapons.add(getLoot(boss,itemId));
-            }
-        }
-        return itemsAndWeapons;
+        return lootMatching(item -> !isArmor(item) && !isShard(item));
     }
 
     /**
@@ -69,7 +42,29 @@ public class BossLandLoot {
      * «босс — номер лута», и осколок любого нового босса в руководство просто не попадал.
      */
     public List<ItemStack> getShards(){
-        List<ItemStack> shards = new ArrayList<>();
+        List<ItemStack> shards = lootMatching(this::isShard);
+
+        // осколок Края не падает с боссов — его крафтят, но в руководстве он тоже должен быть
+        ItemStack crystalShard = itemManager.getEnderCrystalShard();
+        if (crystalShard == null || crystalShard.getItemMeta() == null)
+            return shards;
+        String crystalName = crystalShard.getItemMeta().getDisplayName();
+        if (crystalName == null || crystalName.isBlank())
+            return shards;
+        for (ItemStack shard : shards) {
+            if (crystalName.equals(displayNameOf(shard)))
+                return shards;
+        }
+        shards.add(crystalShard);
+        return shards;
+    }
+
+    /**
+     * Перебирает весь лут боссов и собирает подходящие под условия предметы.
+     * Одинаковые по имени вещи попадают в список один раз.
+     */
+    private List<ItemStack> lootMatching(Predicate<ItemStack> filter) {
+        List<ItemStack> found = new ArrayList<>();
         Set<String> seen = new LinkedHashSet<>();
 
         for (String bossWithId : new TreeSet<>(bossLootMap.keySet())) {
@@ -79,21 +74,28 @@ public class BossLandLoot {
             if (item == null || item.getItemMeta() == null) continue;
             String name = item.getItemMeta().getDisplayName();
             if (name == null || name.isBlank() || !seen.add(name)) continue;
-            if (isShard(item)) shards.add(item);
+            if (filter.test(item)) found.add(item);
         }
+        return found;
+    }
 
-        // осколок Края не падает с боссов — его крафтят, но в руководстве он тоже должен быть
-        ItemStack crystalShard = itemManager.getEnderCrystalShard();
-        if (crystalShard != null && crystalShard.getItemMeta() != null) {
-            String name = crystalShard.getItemMeta().getDisplayName();
-            if (name != null && !seen.contains(name)) shards.add(crystalShard);
-        }
-        return shards;
+    private static boolean isArmor(ItemStack item) {
+        if (item == null) return false;
+        String type = item.getType().name();
+        return type.endsWith("_HELMET") || type.endsWith("_CHESTPLATE")
+                || type.endsWith("_LEGGINGS") || type.endsWith("_BOOTS")
+                || type.equals("ELYTRA");
     }
 
     private boolean isShard(ItemStack item) {
         BossLand plugin = BossLand.getPlugin();
         return plugin != null && plugin.isBossShard(item);
+    }
+
+    private static String displayNameOf(ItemStack item) {
+        if (item == null || item.getItemMeta() == null) return null;
+        String name = item.getItemMeta().getDisplayName();
+        return name == null || name.isBlank() ? null : name;
     }
 
     public List<String> getLootNames(String bossName){
