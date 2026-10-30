@@ -2,6 +2,7 @@ package com.twistylime.bossLand.selftest;
 
 import com.twistylime.bossLand.BossLand;
 import com.twistylime.bossLand.core.BossLandItems;
+import com.twistylime.bossLand.core.BossLandLoot;
 import com.twistylime.bossLand.core.BossLandRecipes;
 import com.twistylime.bossLand.core.BossLandShrines;
 import com.twistylime.bossLand.core.BossLandShrines.Ritual;
@@ -406,6 +407,26 @@ public final class BossLandSelftest {
             }
         }
 
+        // 11) весь именованный лут боссов должен быть виден в руководстве: иначе разделы
+        //     «Осколки», «Брони» и «Предметы» молча теряют вещи новых боссов
+        BossLandLoot lootManager = BossLand.getLootManager();
+        if (lootManager != null) {
+            Set<String> inBook = new HashSet<>();
+            for (ItemStack item : lootManager.getShards()) addName(inBook, item);
+            for (ItemStack item : lootManager.getArmors()) addName(inBook, item);
+            for (ItemStack item : lootManager.getWeaponsAndItems()) addName(inBook, item);
+
+            List<String> missing = new ArrayList<>();
+            for (String name : loot.keySet()) {
+                if (!inBook.contains(name)) missing.add(name);
+            }
+            checks++;
+            if (!missing.isEmpty()) {
+                failed++;
+                lines.add("§c✗ §7в руководстве не показаны предметы дропа: §f" + String.join(", ", missing));
+            }
+        }
+
         boolean ok = failed == 0;
         lines.add(ok
                 ? "§aСАМОПРОВЕРКА: OK §7(" + checks + " проверок)"
@@ -528,6 +549,9 @@ public final class BossLandSelftest {
             ConfigurationSection loot = bosses.getConfigurationSection(boss + ".loot");
             if (loot == null) continue;
             for (String lootId : loot.getKeys(false)) {
+                // имя из списка выбирается случайно при каждом getItem: сравнивать его нельзя,
+                // иначе самопроверка будет падать на чём угодно (getString у списка — не null)
+                if (loot.isList(lootId + ".name")) continue;
                 if (loot.getString(lootId + ".name") == null) continue;
                 try {
                     ItemStack stack = BossLand.getItemsManager().getItem(boss, lootId);
@@ -539,6 +563,11 @@ public final class BossLandSelftest {
             }
         }
         return found;
+    }
+
+    private static void addName(Set<String> names, ItemStack item) {
+        String name = displayName(item);
+        if (name != null) names.add(name);
     }
 
     /** Первый именованный предмет дропа, который не является осколком (для проверки режима «осколки»). */
