@@ -19,6 +19,7 @@ import org.bukkit.Color;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
 import org.bukkit.Particle;
 import org.bukkit.Sound;
 import org.bukkit.World;
@@ -73,6 +74,7 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.PrepareItemCraftEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
+import org.bukkit.event.entity.EntityPickupItemEvent;
 import org.bukkit.event.entity.EntityTargetEvent;
 import org.bukkit.event.entity.ProjectileHitEvent;
 import org.bukkit.event.entity.ProjectileLaunchEvent;
@@ -90,6 +92,7 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.PotionMeta;
+import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
@@ -3091,6 +3094,47 @@ public class BossLand extends JavaPlugin implements Listener {
             }
         } catch (Exception x) {
         }
+        // лут босса падает в сундук, так что чаще всего осколок берут именно оттуда
+        hintOnFirstShard(p);
+    }
+
+    /** Осколок подняли с земли: сюда попадает дроп с мини-боссов. */
+    @EventHandler
+    public void onPlayerPickupShard(EntityPickupItemEvent e) {
+        if (e.getEntity() instanceof Player p) {
+            hintOnFirstShard(p);
+        }
+    }
+
+    /**
+     * Первый осколок в инвентаре: говорим, где смотреть рецепты. Больше не повторяем —
+     * отметка хранится на самом игроке, так что переживает рестарт сервера.
+     */
+    private void hintOnFirstShard(Player player) {
+        try {
+            if (!getConfig().getBoolean("hints.firstShard", true)) return;
+            if (hasShardHint(player) || !hasShard(player)) return;
+
+            NamespacedKey key = new NamespacedKey(plugin, "shardhint");
+            player.getPersistentDataContainer().set(key, PersistentDataType.BYTE, (byte) 1);
+            String message = config.getLang("shardFirstHint");
+            if (message != null && !message.isBlank()) player.sendMessage(message);
+        } catch (Exception x) {
+            // подсказка — не поведение плагина, молчим
+        }
+    }
+
+    private boolean hasShardHint(Player player) {
+        NamespacedKey key = new NamespacedKey(plugin, "shardhint");
+        return player.getPersistentDataContainer().get(key, PersistentDataType.BYTE) != null;
+    }
+
+    /** Есть ли в инвентаре осколок босса. */
+    private boolean hasShard(Player player) {
+        for (ItemStack item : player.getInventory().getContents()) {
+            if (isBossShard(item)) return true;
+        }
+        return false;
     }
 
     @EventHandler(priority = EventPriority.HIGH)
@@ -3448,6 +3492,8 @@ public class BossLand extends JavaPlugin implements Listener {
                 lore.add("§7Редкий дроп с мини-босса §e" + cleanType);
             }
             lore.add("§8Используется для призыва боссов");
+            String guideHint = config.getLang("shardGuideHint");
+            if (guideHint != null && !guideHint.isBlank()) lore.add(guideHint);
             meta.setLore(lore);
             item.setItemMeta(meta);
         }

@@ -9,6 +9,8 @@ import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.event.Event;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.entity.HumanEntity;
+import org.bukkit.entity.Player;
 import org.bukkit.inventory.*;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.EventExecutor;
@@ -27,6 +29,10 @@ public class BossLandRecipes {
     private final BossLandItems itemManager;
     private final ConfigurationSection recipesSection;
     private final BossLandLoot lootManager;
+
+    /** Как часто можно повторять подсказку про осколки в верстаке, мс. */
+    private static final long CRAFT_HINT_COOLDOWN_MS = 15_000;
+    private final Map<java.util.UUID, Long> craftHintShownAt = new HashMap<>();
 
     public BossLandRecipes(JavaPlugin plugin, BossLandConfiguration config, BossLandItems itemManager, ConfigurationSection recipesSection, BossLandLoot lootManager) {
         this.plugin = plugin;
@@ -369,9 +375,61 @@ public class BossLandRecipes {
             for (int slot = 0; slot < size; slot++) {
                 grid[slot] = ci.getItem(slot);
             }
-            if (!isValidCraft(result, grid)) ci.setResult(null);
+            if (isValidCraft(result, grid)) return;
+            ci.setResult(null);
+            // верстак просто опустел и ничего не объяснил — подсказываем, в чём дело
+            if (isCompleteButInvalidCraft(result, grid)) {
+                notifyCraftBlocked(ci);
+            }
         } catch (Exception localException) {
             plugin.getLogger().log(Level.WARNING, "Ошибка при ограничении крафта предметами-заменителями вместо осколков.");
+        }
+    }
+
+    /**
+     * Рецепт BossLand собран целиком, но обычными материалами вместо осколков: игрок видит
+     * пустой результат и не понимает почему. Такое состояние и нужно объяснить — в отличие от
+     * недособранного рецепта, где подсказка только мешала бы.
+     */
+    public boolean isCompleteButInvalidCraft(ItemStack result, ItemStack[] grid) {
+        String resultName = displayName(result);
+        if (resultName == null) return false;
+
+        for (CraftGuard guard : craftGuards()) {
+            if (!resultName.equals(displayName(guard.result()))) continue;
+            boolean complete = true;
+            boolean invalid = false;
+            for (Map.Entry<Integer, ItemStack> required : guard.ingredients().entrySet()) {
+                ItemStack item = required.getKey() < grid.length ? grid[required.getKey()] : null;
+                if (item == null || item.getType() == Material.AIR) {
+                    complete = false;
+                    break;
+                }
+                if (isInvalidShard(item, displayName(required.getValue()))) invalid = true;
+            }
+            return complete && invalid;
+        }
+        return false;
+    }
+
+    /** Подсказка тому, кто крафтит: предметы призыва требуют именно осколки с именем. */
+    private void notifyCraftBlocked(CraftingInventory inventory) {
+        try {
+            if (!plugin.getConfig().getBoolean("hints.craftBlocked", true)) return;
+
+            String message = config.getLang("craftShardsRequired");
+            if (message == null || message.isBlank()) return;
+
+            long now = System.currentTimeMillis();
+            for (HumanEntity viewer : inventory.getViewers()) {
+                if (!(viewer instanceof Player player)) continue;
+                Long last = craftHintShownAt.get(player.getUniqueId());
+                if (last != null && now - last < CRAFT_HINT_COOLDOWN_MS) continue;
+                craftHintShownAt.put(player.getUniqueId(), now);
+                player.sendMessage(message);
+            }
+        } catch (Exception x) {
+            // подсказка — не поведение плагина, молчим
         }
     }
 
