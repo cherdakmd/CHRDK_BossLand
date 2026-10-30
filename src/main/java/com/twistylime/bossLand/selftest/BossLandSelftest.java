@@ -299,6 +299,24 @@ public final class BossLandSelftest {
             }
         }
 
+        // 8) рецепт из обычных материалов должен не только отбрасываться, но и объясняться:
+        //    иначе игрок видит пустой верстак и не понимает, что нужны именно осколки
+        for (BossLandRecipes.CraftGuard guard : recipes.craftGuards()) {
+            checks++;
+            ItemStack[] plainGrid = new ItemStack[9];
+            for (Map.Entry<Integer, ItemStack> required : guard.ingredients().entrySet()) {
+                ItemStack requiredItem = required.getValue();
+                plainGrid[required.getKey()] = new ItemStack(requiredItem.getType(), requiredItem.getAmount());
+            }
+            if (recipes.isValidCraft(guard.result(), plainGrid)) {
+                failed++;
+                lines.add("§c✗ §f" + guard.name() + " §7— обычные материалы проходят крафт, хотя должны требоваться осколки");
+            } else if (!recipes.isCompleteButInvalidCraft(guard.result(), plainGrid)) {
+                failed++;
+                lines.add("§c✗ §f" + guard.name() + " §7— игрок не получит подсказку, почему крафт не прошёл");
+            }
+        }
+
         boolean ok = failed == 0;
         lines.add(ok
                 ? "§aСАМОПРОВЕРКА: OK §7(" + checks + " проверок)"
