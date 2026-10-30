@@ -116,6 +116,16 @@ waterLevel: 40
 skyLevel: 200
 maxKBEnchantLevel: 10
 deathNoteConsumeChance: 10
+# Ритуалы призыва (BossLand 3.8).
+# По умолчанию босс призывается предметом: скрафтил предмет призыва из осколков —
+# нажал правую кнопку — босс появился. Ни строить, ни искать биом не нужно.
+rituals:
+  # true — старый режим: предмет сработает, только если под ногами построена структура
+  #        из recipes.yml (кольцо/крест блоков). Руководство покажет эту структуру.
+  requireShrine: false
+  # true — старый режим: учитывать измерение, биом и высоту, прописанные для босса
+  #        (например, Ледяной Титан только в снежных биомах).
+  requireBiome: false
 update-check:
   enabled: true
   version-url: "https://gist.githubusercontent.com/TwistyLime/334114c49e15e97bcfeea6f724201109/raw/BossLandCurrentVersion.json"

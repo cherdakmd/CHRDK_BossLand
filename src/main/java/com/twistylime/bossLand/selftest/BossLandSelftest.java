@@ -163,12 +163,15 @@ public final class BossLandSelftest {
             }
         }
 
-        // 5) ритуалы призыва: предмет в руке, структура блоков и страница руководства должны совпадать.
-        //    Здесь ловится главная беда ритуалов: код ждёт одно имя предмета, а плагин выдаёт другое,
-        //    либо в книге нарисована одна структура, а в мире требуется другая.
+        // 5) призыв боссов: каждый ритуал требует крафтовый предмет, а не постройку и не ванильный материал.
+        //    Здесь ловится главная беда призыва: код ждёт одно имя предмета, а плагин выдаёт другое,
+        //    предмет нельзя скрафтить, или два босса делят один и тот же предмет призыва.
         BossLandShrines shrines = BossLand.getShrinesManager();
         List<Ritual> rituals = shrines == null ? Collections.emptyList() : shrines.rituals();
         ConfigurationSection shrineSection = plugin.getBossConfig().getRecipeConfiguration("shrine_recipes");
+        boolean requireShrine = plugin.getConfig().getBoolean("rituals.requireShrine", false);
+        Set<String> craftable = craftableItemIds(plugin);
+        Map<String, String> activatorOwner = new LinkedHashMap<>();
         lines.add("§7Ритуалов призыва: §f" + rituals.size());
         checks++;
         if (rituals.isEmpty()) {
@@ -206,14 +209,33 @@ public final class BossLandSelftest {
             }
 
             // 5.3 структура блоков совпадает с той, что нарисована в руководстве
-            checks++;
-            String blocksProblem = verifyShrineBlocks(shrineSection, ritual);
-            if (blocksProblem != null) {
-                failed++;
-                lines.add("§c✗ §f" + ritual.label() + " §7— " + blocksProblem);
+            //     (проверяем, только когда постройка святилища включена настройкой rituals.requireShrine)
+            if (requireShrine) {
+                checks++;
+                String blocksProblem = verifyShrineBlocks(shrineSection, ritual);
+                if (blocksProblem != null) {
+                    failed++;
+                    lines.add("§c✗ §f" + ritual.label() + " §7— " + blocksProblem);
+                }
             }
 
-            // 5.4 в руководстве показан тот же активатор, что требует ритуал
+            // 5.4 призыв идёт крафтовым предметом BossLand, а не ванильным материалом
+            checks++;
+            if (!ritual.customActivator()) {
+                failed++;
+                lines.add("§c✗ §f" + ritual.label() + " §7— призыв требует ванильный предмет §f"
+                        + ritual.activatorId() + "§7, а должен крафтовый предмет призыва");
+            }
+
+            // 5.5 предмет призыва должен реально крафтиться: иначе босса не призвать
+            checks++;
+            if (!craftable.contains(ritual.activatorId())) {
+                failed++;
+                lines.add("§c✗ §f" + ritual.label() + " §7— предмет призыва §f" + ritual.activatorId()
+                        + " §7нельзя скрафтить: его нет в результатах item_recipes");
+            }
+
+            // 5.6 в руководстве показан тот же активатор, что требует ритуал
             checks++;
             ConfigurationSection entry = shrineSection == null ? null
                     : shrineSection.getConfigurationSection(ritual.recipe());
@@ -225,9 +247,18 @@ public final class BossLandSelftest {
             }
             if (entry != null)
                 covered.add(ritual.recipe());
+
+            // 5.8 предмет призыва не должен принадлежать двум боссам сразу
+            String previous = activatorOwner.put(ritual.activatorId(), ritual.boss());
+            checks++;
+            if (previous != null) {
+                failed++;
+                lines.add("§c✗ §7предмет призыва §f" + ritual.activatorId() + " §7призывает и §f" + previous
+                        + "§7, и §f" + ritual.boss() + " §7— у каждого босса должен быть свой предмет");
+            }
         }
 
-        // 5.5 у каждой страницы руководства со структурой должен быть работающий ритуал
+        // 5.7 у каждой страницы руководства со структурой должен быть работающий ритуал
         if (shrineSection != null) {
             for (String key : shrineSection.getKeys(false)) {
                 if (shrineSection.getStringList(key + ".shape").isEmpty())
@@ -245,6 +276,18 @@ public final class BossLandSelftest {
                 ? "§aСАМОПРОВЕРКА: OK §7(" + checks + " проверок)"
                 : "§cСАМОПРОВЕРКА: ОШИБОК " + failed + " из " + checks);
         return new Outcome(ok, checks, failed, lines);
+    }
+
+    /** Идентификаторы предметов, которые реально можно скрафтить (результаты item_recipes). */
+    private static Set<String> craftableItemIds(BossLand plugin) {
+        Set<String> ids = new HashSet<>();
+        ConfigurationSection items = plugin.getBossConfig().getRecipeConfiguration("item_recipes");
+        if (items == null) return ids;
+        for (String recipe : items.getKeys(false)) {
+            String result = items.getString(recipe + ".result.item");
+            if (result != null && !result.isBlank()) ids.add(result);
+        }
+        return ids;
     }
 
     /**

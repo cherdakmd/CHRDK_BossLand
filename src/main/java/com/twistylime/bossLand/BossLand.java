@@ -3195,53 +3195,54 @@ public class BossLand extends JavaPlugin implements Listener {
     // return false;
     // }
 
+    /**
+     * Плоды призывают богов и дьявола. С 3.8 место не важно: какой плод съел — тот босс и придёт,
+     * поэтому у каждого бога свой плод вместо общего Запретного Плода.
+     */
     @EventHandler(priority = EventPriority.HIGH)
     public void onPlayerEat(PlayerItemConsumeEvent e) {
         final Player p = e.getPlayer();
         try {
-            if (Objects.requireNonNull(p.getInventory().getItemInMainHand().getItemMeta()).getDisplayName()
-                    .equals(config.getLang("items.forbiddenfruit"))) {
+            String held = Objects.requireNonNull(p.getInventory().getItemInMainHand().getItemMeta())
+                    .getDisplayName();
+            final Location l = p.getLocation();
+            if (held.equals(config.getLang("items.aetherfruit"))) {
                 e.setCancelled(true);
-                p.getWorld().strikeLightning(p.getLocation());
-                // Biome
-                final Location l = p.getLocation();
-                if (Objects.requireNonNull(l.getWorld()).getBiome(l).toString().toUpperCase().contains("OCEAN")
-                        && l.getBlockY() <= getConfig().getInt("waterLevel")) {
-                    MCUtility.takeItem(p, 1);
-                    MCUtility.boom(this,l, 3, false);
-                    p.sendMessage(config.getLang("drownSpawn"));
-                    Bukkit.getServer().getScheduler().scheduleSyncDelayedTask(this, () -> bossManager.spawnBoss(p, l, "DrownedGod"), (40));
-                } else if (l.getWorld().getEnvironment().equals(Environment.NORMAL)
-                        && l.getBlockY() >= getConfig().getInt("skyLevel")) {
-                    MCUtility.takeItem(p, 1);
-                    // boom(l,3,false);
-                    MCUtility.lightningShow(plugin,l, 3);
-                    l.setY(l.getY() + 5);
-                    p.sendMessage(config.getLang("aetherSpawn"));
-                    Bukkit.getServer().getScheduler().scheduleSyncDelayedTask(this, () -> bossManager.spawnBoss(p, l, "AetherGod"), (40));
-                } else if (l.getWorld().getBiome(l).toString().toUpperCase().contains("DESERT")) {
-                    MCUtility.takeItem(p, 1);
-                    // boom(l,2,false);
-                    MCUtility.lightningShow(plugin,l, 4);
-                    p.sendMessage(config.getLang("pharaohSpawn"));
-                    Bukkit.getServer().getScheduler().scheduleSyncDelayedTask(this, () -> bossManager.spawnBoss(p, l, "PharaohGod"), (40));
-                } else
-                    p.sendMessage(config.getLang("failSpawn"));
-            } else if (p.getInventory().getItemInMainHand().getItemMeta().getDisplayName()
-                    .equals(config.getLang("items.abhorrentfruit"))) {
+                MCUtility.takeItem(p, 1);
+                MCUtility.lightningShow(plugin, l, 3);
+                l.setY(l.getY() + 5);
+                p.sendMessage(config.getLang("aetherSpawn"));
+                Bukkit.getServer().getScheduler().scheduleSyncDelayedTask(this,
+                        () -> bossManager.spawnBoss(p, l, "AetherGod"), (40));
+            } else if (held.equals(config.getLang("items.pharaohfruit"))) {
+                e.setCancelled(true);
+                MCUtility.takeItem(p, 1);
+                MCUtility.lightningShow(plugin, l, 4);
+                p.sendMessage(config.getLang("pharaohSpawn"));
+                Bukkit.getServer().getScheduler().scheduleSyncDelayedTask(this,
+                        () -> bossManager.spawnBoss(p, l, "PharaohGod"), (40));
+            } else if (held.equals(config.getLang("items.drownedfruit"))) {
+                e.setCancelled(true);
+                MCUtility.takeItem(p, 1);
+                MCUtility.boom(plugin, l, 3, false);
+                p.sendMessage(config.getLang("drownSpawn"));
+                Bukkit.getServer().getScheduler().scheduleSyncDelayedTask(this,
+                        () -> bossManager.spawnBoss(p, l, "DrownedGod"), (40));
+            } else if (held.equals(config.getLang("items.forbiddenfruit"))) {
+                // Запретный Плод — больше не призыв, а основа для плодов богов и дьявола
+                e.setCancelled(true);
+                p.sendMessage(config.getLang("godFruitHint"));
+            } else if (held.equals(config.getLang("items.abhorrentfruit"))) {
                 e.setCancelled(true);
                 p.setFireTicks(60 * 20);
-                // Biome
-                final Location l = p.getLocation();
-                if (l.getWorld().getEnvironment().equals(Environment.NETHER)) {
-                    MCUtility.takeItem(p, 1);
-                    MCUtility.boom(plugin,l, 8, false);
-                    p.sendMessage(config.getLang("devilSpawn"));
-                    Bukkit.getServer().getScheduler().scheduleSyncDelayedTask(this, () -> bossManager.spawnBoss(p, l, "Devil"), (40));
-                } else
-                    p.sendMessage(config.getLang("hellSpawn"));
+                MCUtility.takeItem(p, 1);
+                MCUtility.boom(plugin, l, 8, false);
+                p.sendMessage(config.getLang("devilSpawn"));
+                Bukkit.getServer().getScheduler().scheduleSyncDelayedTask(this,
+                        () -> bossManager.spawnBoss(p, l, "Devil"), (40));
             }
         } catch (Exception x) {
+            getLogger().log(Level.WARNING, "Не удалось обработать плод призыва: " + x, x);
         }
     }
 
