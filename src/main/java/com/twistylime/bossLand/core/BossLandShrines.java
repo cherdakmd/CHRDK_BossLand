@@ -4,6 +4,7 @@ import com.twistylime.bossLand.config.BossLandConfiguration;
 import com.twistylime.bossLand.utility.CompatibilityResolver;
 import com.twistylime.bossLand.utility.MCUtility;
 import org.bukkit.*;
+import org.bukkit.block.Block;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
@@ -228,7 +229,7 @@ public class BossLandShrines {
                          boolean clearCenter, boolean needsDeadGods, String[] blocks) {
 
         /** Как ритуал подписывается в самопроверке и в логах. */
-        String label() {
+        public String label() {
             return boss + " (" + recipe + ")";
         }
     }
