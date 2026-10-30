@@ -218,11 +218,12 @@ public class BossLandRecipes {
      * Что можно скрафтить из этого предмета: отображаемые имена результатов тех рецептов,
      * где этот предмет лежит в сетке. Строится из recipes.yml, поэтому не расходится с крафтом.
      */
-    public List<String> craftsFrom(ItemStack ingredient) {
-        List<String> names = new ArrayList<>();
+    /** Ключи рецептов, в которых этот предмет лежит в сетке. */
+    public List<String> recipeKeysUsing(ItemStack ingredient) {
+        List<String> keys = new ArrayList<>();
         String wanted = displayName(ingredient);
         if (wanted == null || recipesSection == null)
-            return names;
+            return keys;
         for (String key : recipesSection.getKeys(false)) {
             ConfigurationSection recipe = recipesSection.getConfigurationSection(key);
             if (recipe == null)
@@ -230,18 +231,27 @@ public class BossLandRecipes {
             ConfigurationSection ingredients = recipe.getConfigurationSection("ingredients");
             if (ingredients == null)
                 continue;
-            boolean used = false;
             for (String charKey : ingredients.getKeys(false)) {
                 String material = ingredients.getString(charKey);
                 if (material == null || material.equalsIgnoreCase("AIR"))
                     continue;
                 ItemStack custom = customIngredientFor(material);
                 if (custom != null && wanted.equals(displayName(custom))) {
-                    used = true;
+                    keys.add(key);
                     break;
                 }
             }
-            if (!used)
+        }
+        return keys;
+    }
+
+    public List<String> craftsFrom(ItemStack ingredient) {
+        List<String> names = new ArrayList<>();
+        if (recipesSection == null)
+            return names;
+        for (String key : recipeKeysUsing(ingredient)) {
+            ConfigurationSection recipe = recipesSection.getConfigurationSection(key);
+            if (recipe == null)
                 continue;
             String resultItemName = recipe.getString("result.item", "");
             if (resultItemName.isBlank())

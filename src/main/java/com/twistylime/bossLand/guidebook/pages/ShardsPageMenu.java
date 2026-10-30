@@ -61,6 +61,14 @@ public class ShardsPageMenu extends PaginatedMenu {
                     new GuideMainMenu(playerMenuUtility).open();
                     break;
                 default:
+                    // осколок: показываем, с каких боссов он падает и что из него крафтится
+                    if (!BossLand.getPlugin().isBossShard(itemClicked))
+                        break;
+                    ItemMeta clickedMeta = itemClicked.getItemMeta();
+                    if (clickedMeta == null)
+                        break;
+                    playerMenuUtility.setShardToShow(clickedMeta.getDisplayName());
+                    new IndividualShardPageMenu(playerMenuUtility).open();
                     break;
             }
         }

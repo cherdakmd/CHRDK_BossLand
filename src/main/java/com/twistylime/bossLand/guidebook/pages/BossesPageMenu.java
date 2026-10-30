@@ -44,33 +44,21 @@ public class BossesPageMenu extends PaginatedMenu {
                 case NAME_TAG:
                     SearchPromptManager.begin((Player) e.getWhoClicked());
                     break;
-                case BAMBOO:
-                case SLIME_BLOCK:
-                case RABBIT_FOOT:
-                case ROTTEN_FLESH:
-                case GHAST_TEAR:
-                case WITHER_SKELETON_SKULL:
-                case ZOMBIE_HEAD:
-                case BELL:
-                case ENCHANTED_BOOK:
-                case NETHER_STAR:
-                case FEATHER:
-                case BLAZE_POWDER:
-                case HEART_OF_THE_SEA:
-                case COAL:
-                case CHARCOAL:
-                case COPPER_INGOT:
-                    ItemMeta clickedItemMeta = e.getCurrentItem().getItemMeta();
-                    if (clickedItemMeta != null) {
-                        NamespacedKey key = new NamespacedKey(BossLand.getPlugin(),"data");
-                        playerMenuUtility.setBossRecipeToShow(clickedItemMeta.getPersistentDataContainer().get(key, PersistentDataType.STRING));
-                    }
-                    new IndividualBossRecipePageMenu(playerMenuUtility).open();
-                    break;
                 case WRITABLE_BOOK:
                     new GuideMainMenu(playerMenuUtility).open();
                     break;
                 default:
+                    // Раньше страница открывалась по типу материала иконки, из-за чего
+                    // Ледяной Титан, Левиафан, Повелитель Нижнего мира, Колосс Края и
+                    // Хранитель Леса не открывались вовсе. Теперь страница записана в
+                    // саму иконку, так что работает любой босс из recipes.yml.
+                    ItemMeta clickedItemMeta = e.getCurrentItem().getItemMeta();
+                    if (clickedItemMeta == null) break;
+                    NamespacedKey key = new NamespacedKey(BossLand.getPlugin(),"data");
+                    String bossRecipe = clickedItemMeta.getPersistentDataContainer().get(key, PersistentDataType.STRING);
+                    if (bossRecipe == null) break;
+                    playerMenuUtility.setBossRecipeToShow(bossRecipe);
+                    new IndividualBossRecipePageMenu(playerMenuUtility).open();
                     break;
             }
         }

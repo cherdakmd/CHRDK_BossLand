@@ -317,6 +317,32 @@ public final class BossLandSelftest {
             }
         }
 
+        // 9) у осколка должна быть страница в книге: иначе клик по нему ведёт в пустоту
+        if (shrines != null && shrineSection != null) {
+            for (String shardKey : SHARD_KEYS) {
+                checks++;
+                String shardName = plugin.getBossConfig().getLang(shardKey);
+                boolean dropped = false;
+                for (String bossKey : shrineSection.getKeys(false)) {
+                    Map<String, Object> bossRecipe = shrines.getShrineRecipe(bossKey);
+                    if (bossRecipe == null) continue;
+                    if (!(bossRecipe.get("loot") instanceof List<?> drops)) continue;
+                    for (Object drop : drops) {
+                        if (drop instanceof ItemStack item && shardName.equals(displayName(item))) {
+                            dropped = true;
+                            break;
+                        }
+                    }
+                    if (dropped) break;
+                }
+                if (!dropped) {
+                    failed++;
+                    lines.add("§c✗ §f" + shardKey + " §7— осколок §f" + shardName
+                            + " §7не падает ни с одного босса: на странице осколка будет пусто");
+                }
+            }
+        }
+
         boolean ok = failed == 0;
         lines.add(ok
                 ? "§aСАМОПРОВЕРКА: OK §7(" + checks + " проверок)"

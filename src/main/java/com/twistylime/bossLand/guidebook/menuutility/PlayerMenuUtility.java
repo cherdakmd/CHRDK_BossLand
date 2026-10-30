@@ -6,6 +6,7 @@ public class PlayerMenuUtility {
     private Player owner;
     private String bossRecipeToShow;
     private String itemRecipeToShow;
+    private String shardToShow;
     private String searchQuery = "";
 
     public String getBossRecipeToShow() {
@@ -22,6 +23,15 @@ public class PlayerMenuUtility {
 
     public void setItemRecipeToShow(String itemRecipeToShow) {
         this.itemRecipeToShow = itemRecipeToShow;
+    }
+
+    /** Отображаемое имя осколка, страницу которого показываем. */
+    public String getShardToShow() {
+        return shardToShow;
+    }
+
+    public void setShardToShow(String shardToShow) {
+        this.shardToShow = shardToShow;
     }
 
     public String getSearchQuery() {

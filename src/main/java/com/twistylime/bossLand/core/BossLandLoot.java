@@ -1,5 +1,6 @@
 package com.twistylime.bossLand.core;
 
+import com.twistylime.bossLand.BossLand;
 import com.twistylime.bossLand.config.BossLandConfiguration;
 import org.bukkit.inventory.ItemStack;
 
@@ -61,26 +62,38 @@ public class BossLandLoot {
         return itemsAndWeapons;
     }
 
+    /**
+     * Все осколки, которые должен видеть игрок.
+     *
+     * Список ищется по всему дропу боссов, а не вписан в код: раньше он перечислял десять пар
+     * «босс — номер лута», и осколок любого нового босса в руководство просто не попадал.
+     */
     public List<ItemStack> getShards(){
         List<ItemStack> shards = new ArrayList<>();
-        Map<String, String> bossWithShardIds = new HashMap<>();
-        bossWithShardIds.put("GhastLord","1");
-        bossWithShardIds.put("KingSlime","2");
-        bossWithShardIds.put("KillerBunny","1");
-        bossWithShardIds.put("PapaPanda","0");
-        bossWithShardIds.put("WitherSkeletonKing","0");
-        bossWithShardIds.put("ZombieKing","0");
-        bossWithShardIds.put("EvilWizard","0");
-        bossWithShardIds.put("IllagerKing","0");
-        bossWithShardIds.put("Giant","0");
-        bossWithShardIds.put("Demon","0");
+        Set<String> seen = new LinkedHashSet<>();
 
-        for (Map.Entry<String, String> entry : bossWithShardIds.entrySet()) {
-            String boss = entry.getKey();
-            String shardId = entry.getValue();
-            shards.add(getLoot(boss, shardId));
+        for (String bossWithId : new TreeSet<>(bossLootMap.keySet())) {
+            int colon = bossWithId.lastIndexOf(':');
+            if (colon <= 0) continue;
+            ItemStack item = getLoot(bossWithId.substring(0, colon), bossWithId.substring(colon + 1));
+            if (item == null || item.getItemMeta() == null) continue;
+            String name = item.getItemMeta().getDisplayName();
+            if (name == null || name.isBlank() || !seen.add(name)) continue;
+            if (isShard(item)) shards.add(item);
+        }
+
+        // осколок Края не падает с боссов — его крафтят, но в руководстве он тоже должен быть
+        ItemStack crystalShard = itemManager.getEnderCrystalShard();
+        if (crystalShard != null && crystalShard.getItemMeta() != null) {
+            String name = crystalShard.getItemMeta().getDisplayName();
+            if (name != null && !seen.contains(name)) shards.add(crystalShard);
         }
         return shards;
+    }
+
+    private boolean isShard(ItemStack item) {
+        BossLand plugin = BossLand.getPlugin();
+        return plugin != null && plugin.isBossShard(item);
     }
 
     public List<String> getLootNames(String bossName){
