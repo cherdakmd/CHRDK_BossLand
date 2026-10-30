@@ -41,6 +41,35 @@ public final class BossLandSelftest {
     public record Outcome(boolean ok, int checks, int failed, List<String> lines) {
     }
 
+    /**
+     * Сетка верстака по рецепту из руководства.
+     *
+     * @param named {@code true} — положить настоящие осколки, {@code false} — те же материалы без имени
+     */
+    @SuppressWarnings("unchecked")
+    private static ItemStack[] craftGrid(Map<String, Object> recipe, boolean named) {
+        ItemStack[] grid = new ItemStack[9];
+        Object details = recipe.get("recipe");
+        if (!(details instanceof Map<?, ?> recipeDetails))
+            return grid;
+        Object shape = recipeDetails.get("shape");
+        Object items = recipeDetails.get("items");
+        if (!(shape instanceof List<?> rows) || !(items instanceof Map<?, ?> ingredientItems))
+            return grid;
+        for (int row = 0; row < rows.size() && row < 3; row++) {
+            Object cells = rows.get(row);
+            if (!(cells instanceof List<?> columns))
+                continue;
+            for (int column = 0; column < columns.size() && column < 3; column++) {
+                Object ingredient = ingredientItems.get(String.valueOf(columns.get(column)).toLowerCase(Locale.ROOT));
+                if (!(ingredient instanceof ItemStack item) || item.getType() == Material.AIR)
+                    continue;
+                grid[row * 3 + column] = named ? item.clone() : new ItemStack(item.getType(), 1);
+            }
+        }
+        return grid;
+    }
+
     public static Outcome run(BossLand plugin) {
         List<String> lines = new ArrayList<>();
         int checks = 0;
@@ -340,6 +369,40 @@ public final class BossLandSelftest {
                     lines.add("§c✗ §f" + shardKey + " §7— осколок §f" + shardName
                             + " §7не падает ни с одного босса: на странице осколка будет пусто");
                 }
+            }
+        }
+
+        // 10) подбор рецептов в верстаке: настоящие осколки дают результат,
+        //     обычные материалы — не дают ничего, но объясняются
+        Set<String> guarded = new HashSet<>();
+        for (BossLandRecipes.CraftGuard guard : recipes.craftGuards())
+            guarded.add(guard.name());
+        for (String key : recipes.recipeKeys()) {
+            Map<String, Object> recipe = recipes.getRecipes(key);
+            if (recipe == null || recipe.get("result") == null)
+                continue;
+
+            checks++;
+            BossLandRecipes.CraftMatch good = recipes.matchCraft(craftGrid(recipe, true), 3);
+            if (good == null || !good.namesValid() || !key.equals(good.recipeKey())) {
+                failed++;
+                lines.add("§c✗ §f" + key + " §7— рецепт из настоящих осколков не собирается: верстак молча пустеет");
+                continue;
+            }
+            ItemStack crafted = recipes.resultOf(key);
+            if (crafted == null) {
+                failed++;
+                lines.add("§c✗ §f" + key + " §7— у рецепта нет результата, хотя узор находится");
+                continue;
+            }
+
+            if (!guarded.contains(key))
+                continue; // рецепту не нужны осколки с именем — обычные материалы в нём законны
+            checks++;
+            BossLandRecipes.CraftMatch wrong = recipes.matchCraft(craftGrid(recipe, false), 3);
+            if (wrong == null || wrong.namesValid()) {
+                failed++;
+                lines.add("§c✗ §f" + key + " §7— обычные материалы проходят крафт, либо подсказка не сработает");
             }
         }
 

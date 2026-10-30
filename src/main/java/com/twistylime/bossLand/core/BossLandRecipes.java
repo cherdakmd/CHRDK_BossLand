@@ -83,8 +83,19 @@ public class BossLandRecipes {
                     String materialName = ingredientsSection.getString(charKey);
                     if(materialName == null) return;
                     if(materialName.equals("AIR")) continue;
-                    Material mat = CompatibilityResolver.resolveMaterial(materialName);
-                    shapedRecipe.setIngredient(charKey.charAt(0), mat);
+                    // Точный предмет, а не материал: раньше сервер знал рецепт как «2 красителя
+                    // и блок», ванильная книга показывала его доступным, а крафт молча пустел.
+                    // Теперь книга видит настоящий осколок и подсвечивает рецепт, только когда
+                    // он действительно есть в инвентаре.
+                    ItemStack custom = customIngredientFor(materialName);
+                    if (custom != null) {
+                        ItemStack template = custom.clone();
+                        template.setAmount(1);
+                        shapedRecipe.setIngredient(charKey.charAt(0), new RecipeChoice.ExactChoice(template));
+                    } else {
+                        Material mat = CompatibilityResolver.resolveMaterial(materialName);
+                        shapedRecipe.setIngredient(charKey.charAt(0), mat);
+                    }
                 }
             }
 
@@ -352,6 +363,148 @@ public class BossLandRecipes {
         };
     }
 
+    /** Рецепт BossLand, найденный в сетке верстака. */
+    public record CraftMatch(String recipeKey, boolean namesValid) {
+    }
+
+    /** Результат рецепта: предмет и количество из recipes.yml. */
+    public ItemStack resultOf(String recipeKey) {
+        if (recipesSection == null)
+            return null;
+        ConfigurationSection recipe = recipesSection.getConfigurationSection(recipeKey);
+        if (recipe == null)
+            return null;
+        String resultItemName = recipe.getString("result.item", "");
+        if (resultItemName.isBlank())
+            return null;
+        ItemStack result = getResultItem(resultItemName, false);
+        if (result == null)
+            return null;
+        result.setAmount(Math.max(1, recipe.getInt("result.amount", 1)));
+        return result;
+    }
+
+    /**
+     * Ищет рецепт BossLand в сетке верстака, сравнивая узор с recipes.yml.
+     *
+     * @param grid  содержимое сетки: 4 слота у инвентаря игрока, 9 у верстака
+     * @param width ширина сетки — 2 или 3
+     * @return найденный рецепт; {@code namesValid == false} означает «узор собран верно,
+     *         но обычными материалами вместо осколков»
+     */
+    public CraftMatch matchCraft(ItemStack[] grid, int width) {
+        if (recipesSection == null || grid == null || width <= 0)
+            return null;
+        int height = grid.length / width;
+        if (height <= 0)
+            return null;
+
+        CraftMatch wrongNames = null;
+        for (String key : recipesSection.getKeys(false)) {
+            CraftMatch match = matchRecipe(key, grid, width, height);
+            if (match == null)
+                continue;
+            if (match.namesValid())
+                return match;
+            if (wrongNames == null)
+                wrongNames = match;
+        }
+        return wrongNames;
+    }
+
+    private CraftMatch matchRecipe(String key, ItemStack[] grid, int width, int height) {
+        ConfigurationSection recipe = recipesSection.getConfigurationSection(key);
+        if (recipe == null)
+            return null;
+        ConfigurationSection ingredients = recipe.getConfigurationSection("ingredients");
+        List<String> shape = recipe.getStringList("shape");
+        if (ingredients == null || shape.size() != 3)
+            return null;
+
+        char[][] pattern = new char[3][3];
+        for (int row = 0; row < 3; row++) {
+            String line = shape.get(row) == null ? "" : shape.get(row);
+            for (int column = 0; column < 3; column++)
+                pattern[row][column] = column < line.length() ? line.charAt(column) : ' ';
+        }
+
+        // узор в recipes.yml может занимать не всю сетку — считаем его настоящие границы,
+        // чтобы рецепт можно было собрать в любом месте верстака
+        int top = 3, bottom = -1, left = 3, right = -1;
+        for (int row = 0; row < 3; row++) {
+            for (int column = 0; column < 3; column++) {
+                if (materialOf(ingredients, pattern[row][column]) == null) continue;
+                top = Math.min(top, row);
+                bottom = Math.max(bottom, row);
+                left = Math.min(left, column);
+                right = Math.max(right, column);
+            }
+        }
+        if (bottom < 0) return null;
+
+        int patternHeight = bottom - top + 1;
+        int patternWidth = right - left + 1;
+        if (patternHeight > height || patternWidth > width) return null;
+
+        for (int shiftY = 0; shiftY + patternHeight <= height; shiftY++) {
+            for (int shiftX = 0; shiftX + patternWidth <= width; shiftX++) {
+                if (!fits(ingredients, pattern, top, left, grid, width, height, shiftY, shiftX, false))
+                    continue;
+                boolean namesValid = fits(ingredients, pattern, top, left, grid, width, height, shiftY, shiftX, true);
+                return new CraftMatch(key, namesValid);
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Сравнивает сетку с узором при заданном сдвиге.
+     *
+     * @param checkNames {@code false} — сравнивать только материалы, {@code true} — ещё и имена осколков
+     */
+    private boolean fits(ConfigurationSection ingredients, char[][] pattern, int top, int left,
+                         ItemStack[] grid, int width, int height, int shiftY, int shiftX, boolean checkNames) {
+        for (int row = 0; row < height; row++) {
+            for (int column = 0; column < width; column++) {
+                int patternRow = row - shiftY;
+                int patternColumn = column - shiftX;
+                boolean inside = patternRow >= 0 && patternRow < pattern.length
+                        && patternColumn >= 0 && patternColumn < pattern[0].length;
+                String material = inside ? materialOf(ingredients, pattern[top + patternRow][left + patternColumn]) : null;
+                ItemStack actual = grid[row * width + column];
+
+                if (material == null) {
+                    if (!isEmpty(actual)) return false;
+                    continue;
+                }
+                Material expected = CompatibilityResolver.resolveMaterial(material);
+                if (expected == null || actual == null || actual.getType() != expected)
+                    return false;
+                if (!checkNames)
+                    continue;
+
+                ItemStack custom = customIngredientFor(material);
+                String expectedName = custom == null ? null : displayName(custom);
+                if (expectedName == null)
+                    continue;
+                if (!expectedName.equals(displayName(actual)))
+                    return false;
+            }
+        }
+        return true;
+    }
+
+    private String materialOf(ConfigurationSection ingredients, char symbol) {
+        if (symbol == ' ') return null;
+        String material = ingredients.getString(String.valueOf(symbol));
+        if (material == null || material.isBlank() || material.equalsIgnoreCase("AIR")) return null;
+        return material;
+    }
+
+    private static boolean isEmpty(ItemStack item) {
+        return item == null || item.getType() == Material.AIR;
+    }
+
     /**
      * Проверяет результат крафта по правилам из recipes.yml. Обычные предметы не ограничиваются.
      *
@@ -378,13 +531,30 @@ public class BossLandRecipes {
     public void restrictCraftingForBossLandItems(CraftingInventory ci) {
         try {
             ItemStack result = ci.getResult();
-            if (result == null) return;
 
-            ItemStack[] grid = new ItemStack[9];
             int size = Math.min(9, ci.getSize());
+            int width = size == 4 ? 2 : 3;
+            ItemStack[] grid = new ItemStack[9];
             for (int slot = 0; slot < size; slot++) {
                 grid[slot] = ci.getItem(slot);
             }
+
+            // Свой подбор: сервер знает рецепт как точный предмет, поэтому осколок с мини-босса
+            // (другой лор) сервер не примет, а игрок должен получить предмет призыва всё равно.
+            CraftMatch match = matchCraft(grid, width);
+            if (match != null && match.namesValid()) {
+                ItemStack matched = resultOf(match.recipeKey());
+                if (matched != null) {
+                    ci.setResult(matched);
+                    return;
+                }
+            }
+            if (result == null) {
+                // узор собран, но обычными материалами: объясняем, а не оставляем пустой верстак
+                if (match != null) notifyCraftBlocked(ci);
+                return;
+            }
+
             if (isValidCraft(result, grid)) return;
             ci.setResult(null);
             // верстак просто опустел и ничего не объяснил — подсказываем, в чём дело
