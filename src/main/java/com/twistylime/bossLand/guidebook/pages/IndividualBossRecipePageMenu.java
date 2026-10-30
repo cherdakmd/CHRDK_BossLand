@@ -51,6 +51,12 @@ public class IndividualBossRecipePageMenu extends PaginatedMenu {
                     new BossesPageMenu(playerMenuUtility).open();
                     break;
                 default:
+                    // осколок из дропа ведёт на его страницу: кто роняет и что из него крафтится
+                    if ("shard".equals(tagOf(itemClicked, "kind"))) {
+                        playerMenuUtility.setShardToShow(tagOf(itemClicked, "data"));
+                        new IndividualShardPageMenu(playerMenuUtility).open();
+                        break;
+                    }
                     // предмет призыва: открываем страницу его крафта
                     String itemRecipe = recipeKeyOf(itemClicked);
                     if (itemRecipe == null)
@@ -180,7 +186,10 @@ public class IndividualBossRecipePageMenu extends PaginatedMenu {
                 if (i > 8) break;
                 ItemStack lootItem = loot.get(i);
                 if (lootItem != null) {
-                    inventory.setItem(45 + i, loot.get(i));
+                    // по осколку можно перейти на его страницу: с каких боссов падает и что из него крафтится
+                    inventory.setItem(45 + i, BossLand.getPlugin().isBossShard(lootItem)
+                            ? IndividualShardPageMenu.markShard(lootItem)
+                            : lootItem);
                 }
             }
         }
@@ -192,6 +201,15 @@ public class IndividualBossRecipePageMenu extends PaginatedMenu {
         ConfigurationSection shrines = BossLand.getPlugin().getBossConfig()
                 .getRecipeConfiguration("shrine_recipes");
         return shrines == null ? null : shrines.getString(recipeKey + ".activator.item");
+    }
+
+    /** Значение метки предмета (kind/data) или {@code null}. */
+    private String tagOf(ItemStack item, String tag) {
+        ItemMeta meta = item == null ? null : item.getItemMeta();
+        if (meta == null)
+            return null;
+        NamespacedKey key = new NamespacedKey(BossLand.getPlugin(), tag);
+        return meta.getPersistentDataContainer().get(key, PersistentDataType.STRING);
     }
 
     /** Ключ рецепта предмета, записанный в сам предмет, или {@code null}. */
