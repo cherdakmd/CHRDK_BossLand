@@ -393,6 +393,29 @@ shrine_recipes:
       amount: 1
     loot: [ 0,1 ]
     lootName: "Demon"
+  anger:
+    result:
+      item: COPPER_INGOT
+      amount: 1
+      display_name: "§c§lВоплощение Гнева"
+      lore:
+        - "§7Древний голем, в котором кипит ярость."
+        - "§7Его кулаки пробивают камень, а взгляд обжигает."
+        - ""
+        - "§e§lМесто для призыва: §fглубина, Y ниже -40"
+        - "§6§lУровень босса: §fIII"
+    shape:
+      - "SSS"
+      - "SDS"
+      - "SSS"
+    ingredients:
+      S: COPPER_BLOCK
+      D: IRON_BLOCK
+    activator:
+      item: JACK_O_LANTERN
+      amount: 1
+    loot: [ 0,1,2 ]
+    lootName: "Anger"
   aether_god:
     result:
       item: FEATHER
