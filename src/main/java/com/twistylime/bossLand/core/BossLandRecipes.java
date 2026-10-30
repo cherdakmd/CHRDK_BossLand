@@ -415,6 +415,18 @@ public class BossLandRecipes {
             case "ABYSSAL_SCALE" -> itemManager.getAbyssalScale();
             case "INFERNAL_CORE" -> itemManager.getInfernalCore();
             case "ENDER_CRYSTAL_SHARD" -> itemManager.getEnderCrystalShard();
+            // предметы призыва 3.8: строить святилище не нужно, босс призывается самим предметом
+            case "SLIME_CORE" -> itemManager.getSlimeCore();
+            case "PANDA_CHARM" -> itemManager.getPandaCharm();
+            case "BUNNY_FOOT" -> itemManager.getBunnyFoot();
+            case "UNDEAD_SIGIL" -> itemManager.getUndeadSigil();
+            case "WITHER_SIGIL" -> itemManager.getWitherSigil();
+            case "GHAST_SIGIL" -> itemManager.getGhastSigil();
+            case "ANGER_SEAL" -> itemManager.getAngerSeal();
+            case "DEMON_SEAL" -> itemManager.getDemonSeal();
+            case "AETHER_FRUIT" -> itemManager.getAetherFruit();
+            case "PHARAOH_FRUIT" -> itemManager.getPharaohFruit();
+            case "DROWNED_FRUIT" -> itemManager.getDrownedFruit();
             default -> null;
         };
     }

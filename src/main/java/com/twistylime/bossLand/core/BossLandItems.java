@@ -435,4 +435,68 @@ public class BossLandItems {
         s.setItemMeta(m);
         return s;
     }
+
+    // ------------------------------------------------------------------
+    //  Предметы призыва (3.8): крафтятся из осколков и призывают босса сами,
+    //  строить святилище не нужно
+    // ------------------------------------------------------------------
+
+    /** Общий конструктор предмета призыва: материал, имя из lang.yml и проклятье исчезновения. */
+    private ItemStack getSummoningItem(Material material, String nameKey, String loreKey) {
+        ItemStack s = getItem(material, config.getLang(nameKey), 1, config.getLangList(loreKey));
+        ItemMeta m = s.getItemMeta();
+        m.addEnchant(Enchantment.VANISHING_CURSE, 1, true);
+        s.setItemMeta(m);
+        return s;
+    }
+
+    /** Общий конструктор плода призыва: без проклятий, плод съедается. */
+    private ItemStack getSummoningFruit(String nameKey, String loreKey) {
+        return getItem(Material.ENCHANTED_GOLDEN_APPLE, config.getLang(nameKey), 1,
+                config.getLangList(loreKey));
+    }
+
+    public ItemStack getSlimeCore() {
+        return getSummoningItem(Material.SLIME_BALL, "items.slimecore", "items.slimecorelore");
+    }
+
+    public ItemStack getPandaCharm() {
+        return getSummoningItem(Material.BAMBOO, "items.pandacharm", "items.pandacharmlore");
+    }
+
+    public ItemStack getBunnyFoot() {
+        return getSummoningItem(Material.RABBIT_FOOT, "items.bunnyfoot", "items.bunnyfootlore");
+    }
+
+    public ItemStack getUndeadSigil() {
+        return getSummoningItem(Material.BRAIN_CORAL, "items.undeadsigil", "items.undeadsigillore");
+    }
+
+    public ItemStack getWitherSigil() {
+        return getSummoningItem(Material.WITHER_SKELETON_SKULL, "items.withersigil", "items.withersigillore");
+    }
+
+    public ItemStack getGhastSigil() {
+        return getSummoningItem(Material.GHAST_TEAR, "items.ghastsigil", "items.ghastsigillore");
+    }
+
+    public ItemStack getAngerSeal() {
+        return getSummoningItem(Material.COPPER_INGOT, "items.angerseal", "items.angerseallore");
+    }
+
+    public ItemStack getDemonSeal() {
+        return getSummoningItem(Material.NETHER_STAR, "items.demonseal", "items.demonseallore");
+    }
+
+    public ItemStack getAetherFruit() {
+        return getSummoningFruit("items.aetherfruit", "items.aetherfruitlore");
+    }
+
+    public ItemStack getPharaohFruit() {
+        return getSummoningFruit("items.pharaohfruit", "items.pharaohfruitlore");
+    }
+
+    public ItemStack getDrownedFruit() {
+        return getSummoningFruit("items.drownedfruit", "items.drownedfruitlore");
+    }
 }

@@ -5,6 +5,7 @@ import com.twistylime.bossLand.utility.CompatibilityResolver;
 import com.twistylime.bossLand.utility.MCUtility;
 import org.bukkit.*;
 import org.bukkit.block.Block;
+import org.bukkit.event.block.Action;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
@@ -27,6 +28,8 @@ public class BossLandShrines {
     private final List<Ritual> rituals;
     /** Кому и когда последний раз подсказывали, что структура святилища не та. */
     private final Map<UUID, Long> lastHint = new HashMap<>();
+    /** Кто и когда призвал босса: защита от двойного срабатывания предмета призыва. */
+    private final Map<UUID, Long> lastSummon = new HashMap<>();
     /** Ошибки ритуалов пишем в консоль по одному разу, чтобы не засорять логи. */
     private final Set<String> warnedRituals = new HashSet<>();
 
@@ -188,6 +191,18 @@ public class BossLandShrines {
             case "INFERNAL_CORE" -> itemManager.getInfernalCore();
             case "ENDER_CRYSTAL_SHARD" -> itemManager.getEnderCrystalShard();
             case "NATURES_ESSENCE" -> itemManager.getNaturesEssence();
+            // предметы призыва 3.8: строить святилище не нужно, босс призывается самим предметом
+            case "SLIME_CORE" -> itemManager.getSlimeCore();
+            case "PANDA_CHARM" -> itemManager.getPandaCharm();
+            case "BUNNY_FOOT" -> itemManager.getBunnyFoot();
+            case "UNDEAD_SIGIL" -> itemManager.getUndeadSigil();
+            case "WITHER_SIGIL" -> itemManager.getWitherSigil();
+            case "GHAST_SIGIL" -> itemManager.getGhastSigil();
+            case "ANGER_SEAL" -> itemManager.getAngerSeal();
+            case "DEMON_SEAL" -> itemManager.getDemonSeal();
+            case "AETHER_FRUIT" -> itemManager.getAetherFruit();
+            case "PHARAOH_FRUIT" -> itemManager.getPharaohFruit();
+            case "DROWNED_FRUIT" -> itemManager.getDrownedFruit();
             case "FIRE" -> representFireItem();
             default -> new ItemStack(CompatibilityResolver.resolveMaterial(name), amount);
         };
@@ -379,19 +394,19 @@ public class BossLandShrines {
     private List<Ritual> buildRituals() {
         List<Shrine> shrines = List.of(
                 ritual("KingSlime", "slime_king")
-                        .hand(Material.ENDER_EYE).world(World.Environment.NORMAL).biomes("SWAMP")
+                        .hand("SLIME_CORE").world(World.Environment.NORMAL).biomes("SWAMP")
                         .ring("SLIME_BLOCK", "DIAMOND_BLOCK").explosion(3, false).rise(2).delay(40),
                 ritual("WitherSkeletonKing", "wither_skeleton_king")
-                        .hand(Material.MAGMA_CREAM).world(World.Environment.NETHER)
+                        .hand("WITHER_SIGIL").world(World.Environment.NETHER)
                         .ring("FIRE", "WITHER_SKELETON_SKULL").explosion(2, true).delay(20),
                 ritual("PapaPanda", "papa_panda")
-                        .hand(Material.CAKE).world(World.Environment.NORMAL).biomes("BAMBOO")
+                        .hand("PANDA_CHARM").world(World.Environment.NORMAL).biomes("BAMBOO")
                         .ring("MOSSY_COBBLESTONE", "CHISELED_STONE_BRICKS").explosion(2, false).delay(20),
                 ritual("Anger", "anger")
-                        .hand(Material.JACK_O_LANTERN).world(World.Environment.NORMAL).below(-40)
+                        .hand("ANGER_SEAL").world(World.Environment.NORMAL).below(-40)
                         .ring("COPPER_BLOCK", "IRON_BLOCK").sound(Sound.ENTITY_IRON_GOLEM_REPAIR).delay(20),
                 ritual("ZombieKing", "zombie_king")
-                        .hand(Material.BRAIN_CORAL).world(World.Environment.NORMAL).biomes("PLAINS")
+                        .hand("UNDEAD_SIGIL").world(World.Environment.NORMAL).biomes("PLAINS")
                         .ring("SOUL_SAND", "EMERALD_BLOCK").explosion(2, false).delay(20),
                 ritual("EvilWizard", "evil_wizard")
                         .hand("BOOK_OF_SPELLS").world(World.Environment.NORMAL)
@@ -404,15 +419,15 @@ public class BossLandShrines {
                         .hand("POTION_OF_GIANT_GROWTH").world(World.Environment.NORMAL).biomes("PLAINS")
                         .cross("REDSTONE_TORCH", "REDSTONE_WIRE", "CAMPFIRE").lightning(5).delay(20),
                 ritual("Demon", "demon")
-                        .hand(Material.NETHER_STAR)
+                        .hand("DEMON_SEAL")
                         .cross("REDSTONE_TORCH", "REDSTONE_WIRE", "CAMPFIRE")
                         .explosion(4, false).needsDeadGods().delay(10),
                 ritual("GhastLord", "ghast_lord")
-                        .hand(Material.GOLD_INGOT).amount(16).world(World.Environment.NETHER)
+                        .hand("GHAST_SIGIL").world(World.Environment.NETHER)
                         .ring("REDSTONE_WIRE", "MAGMA_BLOCK")
                         .keepBlocks().clearCenter().boom(5, true).delay(40),
                 ritual("KillerBunny", "killer_bunny")
-                        .hand(Material.GOLDEN_CARROT).amount(16).world(World.Environment.NORMAL)
+                        .hand("BUNNY_FOOT").world(World.Environment.NORMAL)
                         .biomes("DESERT").ring("CARROTS", "MAGMA_BLOCK")
                         .keepBlocks().clearCenter().strike().delay(40),
                 ritual("ForestGuardian", "forest_guardian")
@@ -530,54 +545,72 @@ public class BossLandShrines {
         return meta != null && meta.hasDisplayName() && meta.getDisplayName().equals(ritual.activatorName());
     }
 
+    /**
+     * Призыв босса предметом. По умолчанию (настройки {@code rituals.*} в config.yml) строить святилище
+     * не нужно и место не важно: скрафтил предмет призыва — нажал правую кнопку — босс появился.
+     */
     public void detectShrineRecipe(PlayerInteractEvent e) {
+        Action action = e.getAction();
+        if (action != Action.RIGHT_CLICK_BLOCK && action != Action.RIGHT_CLICK_AIR)
+            return;
         final Player p = e.getPlayer();
-        Block clicked = e.getClickedBlock();
-        if (clicked == null)
-            return;
-        final Location l = clicked.getLocation();
-        final World w = l.getWorld();
-        if (w == null)
-            return;
         final ItemStack hand = p.getInventory().getItemInMainHand();
         if (hand.getType().isAir())
             return;
+        // кликнули по блоку — босс встанет на него, кликнули в воздух — прямо на месте игрока
+        Block clicked = e.getClickedBlock();
+        final Location l = clicked != null ? clicked.getLocation().add(0, 1, 0) : p.getLocation();
+        final World w = l.getWorld();
+        if (w == null)
+            return;
         final String biome = w.getBiome(l).toString().toUpperCase(Locale.ROOT);
+        final boolean requireShrine = plugin.getConfig().getBoolean("rituals.requireShrine", false);
+        final boolean requireBiome = plugin.getConfig().getBoolean("rituals.requireBiome", false);
         try {
             boolean almostThere = false;
             for (Ritual ritual : rituals) {
                 if (!holdsActivator(hand, ritual))
                     continue;
-                if (ritual.environment() != null && w.getEnvironment() != ritual.environment())
-                    continue;
-                if (!ritual.biomes().isEmpty() && ritual.biomes().stream().noneMatch(biome::contains))
-                    continue;
-                if (ritual.maxY() != null && l.getY() > ritual.maxY())
-                    continue;
-                if (ritual.minY() != null && l.getY() < ritual.minY())
-                    continue;
-                // предмет и место подходят, не хватает только структуры — подскажем игроку
+                if (requireBiome) {
+                    if (ritual.environment() != null && w.getEnvironment() != ritual.environment())
+                        continue;
+                    if (!ritual.biomes().isEmpty() && ritual.biomes().stream().noneMatch(biome::contains))
+                        continue;
+                    if (ritual.maxY() != null && l.getY() > ritual.maxY())
+                        continue;
+                    if (ritual.minY() != null && l.getY() < ritual.minY())
+                        continue;
+                }
+                // предмет подходит, не хватает только структуры — подскажем игроку
                 almostThere = true;
-                if (!checkBlockRecipe(l, ritual.blocks()[0], ritual.blocks()[1], ritual.blocks()[2],
-                        ritual.consumeBlocks()))
+                if (requireShrine && !checkBlockRecipe(l, ritual.blocks()[0], ritual.blocks()[1],
+                        ritual.blocks()[2], ritual.consumeBlocks()))
                     continue;
-                performRitual(p, e, l, w, ritual);
+                performRitual(p, e, l, w, ritual, requireShrine);
                 return;
             }
-            if (almostThere)
+            if (almostThere && requireShrine)
                 hintRitualFailed(p);
         } catch (Exception x) {
             warnOnce("Не удалось выполнить ритуал призыва: " + x, x);
         }
     }
 
-    private void performRitual(Player p, PlayerInteractEvent e, Location l, World w, Ritual ritual) {
+    private void performRitual(Player p, PlayerInteractEvent e, Location l, World w, Ritual ritual,
+                               boolean requireShrine) {
+        // PlayerInteractEvent успевает прилететь дважды (по руке и по второй руке) — призываем один раз
+        long now = System.currentTimeMillis();
+        Long last = lastSummon.get(p.getUniqueId());
+        if (last != null && now - last < 1000)
+            return;
+        lastSummon.put(p.getUniqueId(), now);
         e.setCancelled(true);
         if (ritual.needsDeadGods() && !config.godsDead()) {
             p.sendMessage(config.getLang("noPower"));
             return;
         }
-        if (ritual.clearCenter() && !l.getBlock().getType().equals(Material.BEDROCK))
+        // центр святилища убираем, только когда он действительно построен
+        if (requireShrine && ritual.clearCenter() && !l.getBlock().getType().equals(Material.BEDROCK))
             l.getBlock().setType(Material.AIR);
         if (ritual.explosion() > 0)
             w.createExplosion(l, ritual.explosion(), ritual.explosionFire());
