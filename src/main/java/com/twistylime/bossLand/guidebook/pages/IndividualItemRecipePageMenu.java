@@ -21,7 +21,19 @@ public class IndividualItemRecipePageMenu extends PaginatedMenu {
     public String getMenuName() {
         String key = super.playerMenuUtility.getItemRecipeToShow();
         if (key == null) return "BossLand | Рецепт предмета";
-        return "BossLand | " + key.toUpperCase().replace('_', ' ');
+        // игроку понятнее название предмета, чем ключ рецепта из конфига
+        ItemStack result = resultOf(key);
+        String name = result == null || result.getItemMeta() == null ? null : result.getItemMeta().getDisplayName();
+        if (name == null || name.isBlank()) return "BossLand | " + key.toUpperCase().replace('_', ' ');
+        return "BossLand | " + name;
+    }
+
+    /** Результат рецепта — для заголовка страницы. */
+    private ItemStack resultOf(String recipeKey) {
+        BossLandRecipes recipesManager = BossLand.getRecipeManager();
+        if (recipesManager == null) return null;
+        Map<String, Object> recipe = recipesManager.getRecipes(recipeKey);
+        return recipe == null ? null : (ItemStack) recipe.get("result");
     }
 
     @Override
@@ -55,9 +67,14 @@ public class IndividualItemRecipePageMenu extends PaginatedMenu {
 
         String recipeKey = super.playerMenuUtility.getItemRecipeToShow();
         BossLandRecipes recipesManager = BossLand.getRecipeManager();
-        Map<String, Object> itemRecipe = recipesManager.getRecipes(recipeKey);
+        Map<String, Object> itemRecipe = recipesManager == null ? null : recipesManager.getRecipes(recipeKey);
 
         addItemRecipeTemplate();
+
+        if (itemRecipe == null || itemRecipe.get("recipe") == null) {
+            inventory.setItem(22, new ItemStack(org.bukkit.Material.BARRIER, 1));
+            return;
+        }
 
         int[] reservedSlotsForRecipe = {12,13,14,21,22,23,30,31,32};
 

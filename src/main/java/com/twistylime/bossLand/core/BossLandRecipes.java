@@ -188,6 +188,66 @@ public class BossLandRecipes {
         return recipesSection == null ? 0 : recipesSection.getKeys(false).size();
     }
 
+    /** @return ключи всех рецептов предметов призыва — в том порядке, в каком они в recipes.yml */
+    public List<String> recipeKeys() {
+        return recipesSection == null ? List.of() : List.copyOf(recipesSection.getKeys(false));
+    }
+
+    /**
+     * Ключ рецепта по идентификатору результата: {@code SLIME_CORE} → {@code slime_core}.
+     * Нужен, чтобы из страницы босса открыть страницу крафта его предмета призыва.
+     */
+    public String recipeKeyFor(String resultItemId) {
+        if (resultItemId == null || resultItemId.isBlank() || recipesSection == null)
+            return null;
+        for (String key : recipesSection.getKeys(false)) {
+            String result = recipesSection.getString(key + ".result.item");
+            if (result != null && result.equalsIgnoreCase(resultItemId))
+                return key;
+        }
+        return null;
+    }
+
+    /**
+     * Что можно скрафтить из этого предмета: отображаемые имена результатов тех рецептов,
+     * где этот предмет лежит в сетке. Строится из recipes.yml, поэтому не расходится с крафтом.
+     */
+    public List<String> craftsFrom(ItemStack ingredient) {
+        List<String> names = new ArrayList<>();
+        String wanted = displayName(ingredient);
+        if (wanted == null || recipesSection == null)
+            return names;
+        for (String key : recipesSection.getKeys(false)) {
+            ConfigurationSection recipe = recipesSection.getConfigurationSection(key);
+            if (recipe == null)
+                continue;
+            ConfigurationSection ingredients = recipe.getConfigurationSection("ingredients");
+            if (ingredients == null)
+                continue;
+            boolean used = false;
+            for (String charKey : ingredients.getKeys(false)) {
+                String material = ingredients.getString(charKey);
+                if (material == null || material.equalsIgnoreCase("AIR"))
+                    continue;
+                ItemStack custom = customIngredientFor(material);
+                if (custom != null && wanted.equals(displayName(custom))) {
+                    used = true;
+                    break;
+                }
+            }
+            if (!used)
+                continue;
+            String resultItemName = recipe.getString("result.item", "");
+            if (resultItemName.isBlank())
+                continue;
+            ItemStack result = getResultItem(resultItemName, false);
+            String name = displayName(result);
+            if (name != null && !names.contains(name))
+                names.add(name);
+        }
+        return names;
+    }
+
     /** @return правила крафта, собранные из recipes.yml (слоты 0–8 — сетка верстака) */
     public List<CraftGuard> craftGuards() {
         if (craftGuards != null) return craftGuards;
