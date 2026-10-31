@@ -170,8 +170,9 @@ public class BossLandShrines {
 
         List<ItemStack> loot = new ArrayList<>();
         for(String id: lootIds){
-            ItemStack lootItem = itemManager.getItem(lootName,id);
-            loot.add(lootItem);
+            // все варианты имени (мечи Гнева): иначе на странице босса был бы один случайный
+            // меч из четырёх, и страница такого меча не нашла бы босса, который его роняет
+            loot.addAll(itemManager.getItemVariants(lootName,id));
         }
         recipeMap.put("loot",loot);
 

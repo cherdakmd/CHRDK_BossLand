@@ -193,17 +193,7 @@ public class IndividualShardPageMenu extends PaginatedMenu {
     /** Есть ли рецепт, результатом которого является этот осколок. */
     private boolean isCrafted(ItemStack shard) {
         BossLandRecipes recipesManager = BossLand.getRecipeManager();
-        if (recipesManager == null)
-            return false;
-        String wanted = displayName(shard);
-        for (String key : recipesManager.recipeKeys()) {
-            Map<String, Object> recipe = recipesManager.getRecipes(key);
-            if (recipe == null)
-                continue;
-            if (recipe.get("result") instanceof ItemStack result && wanted.equals(displayName(result)))
-                return true;
-        }
-        return false;
+        return recipesManager != null && recipesManager.recipeKeyByResult(shard) != null;
     }
 
     /** Предметы, которые крафтятся из этого осколка: по клику открывается их рецепт. */
@@ -248,24 +238,5 @@ public class IndividualShardPageMenu extends PaginatedMenu {
             return null;
         String name = stack.getItemMeta().getDisplayName();
         return name == null || name.isBlank() ? null : name;
-    }
-
-    /** Помечает осколок в дропе босса так, чтобы клик открывал его страницу. */
-    public static ItemStack markShard(ItemStack shard) {
-        if (shard == null)
-            return null;
-        ItemStack marked = shard.clone();
-        ItemMeta meta = marked.getItemMeta();
-        if (meta == null)
-            return marked;
-        String name = meta.getDisplayName();
-        if (name == null || name.isBlank())
-            return marked;
-        NamespacedKey kind = new NamespacedKey(BossLand.getPlugin(), "kind");
-        NamespacedKey data = new NamespacedKey(BossLand.getPlugin(), "data");
-        meta.getPersistentDataContainer().set(kind, PersistentDataType.STRING, "shard");
-        meta.getPersistentDataContainer().set(data, PersistentDataType.STRING, name);
-        marked.setItemMeta(meta);
-        return marked;
     }
 }

@@ -1,5 +1,6 @@
 package com.twistylime.bossLand.guidebook.pages;
 
+import com.twistylime.bossLand.BossLand;
 import com.twistylime.bossLand.guidebook.PaginatedMenu;
 import com.twistylime.bossLand.guidebook.menuutility.PlayerMenuUtility;
 import com.twistylime.bossLand.guidebook.search.SearchPromptManager;
@@ -80,7 +81,8 @@ public class GuideMainMenu extends PaginatedMenu {
         inventory.setItem(13, decorateItem(Material.ENCHANTED_GOLDEN_APPLE, "Рецепты", false, "Узнайте как крафтить", "Мощные предметы"));
         inventory.setItem(14, decorateItem(Material.NETHERITE_CHESTPLATE, "Броня", true, "Наборы брони", "С особыми способностями"));
         inventory.setItem(15, decorateItem(Material.PAPER, "Авторы", false, "Разработано", "§eTwistyLime"));
-        inventory.setItem(16, decorateItem(Material.NETHER_STAR, "О плагине", false, "§7BossLand", "§7Версия 2.4"));
+        inventory.setItem(16, decorateItem(Material.NETHER_STAR, "О плагине", false, "§7BossLand",
+                "§7Версия " + pluginVersion()));
     }
 
 
@@ -107,4 +109,9 @@ public class GuideMainMenu extends PaginatedMenu {
         return item;
     }
 
+    /** Версия из plugin.yml: раньше в книге была вписана «2.4» и давно не соответствовала правде. */
+    private static String pluginVersion() {
+        BossLand plugin = BossLand.getPlugin();
+        return plugin == null ? "?" : plugin.getDescription().getVersion();
+    }
 }

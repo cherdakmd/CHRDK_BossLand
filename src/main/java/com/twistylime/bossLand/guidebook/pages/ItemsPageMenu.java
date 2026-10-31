@@ -15,6 +15,8 @@ import java.util.List;
 
 public class ItemsPageMenu extends PaginatedMenu {
 
+    private ArrayList<ItemStack> items = new ArrayList<>();
+
     public ItemsPageMenu(PlayerMenuUtility playerMenuUtility) {
         super(playerMenuUtility);
     }
@@ -43,7 +45,21 @@ public class ItemsPageMenu extends PaginatedMenu {
                 case WRITABLE_BOOK:
                     new GuideMainMenu(playerMenuUtility).open();
                     break;
+                case ARROW:
+                    if (page > 0) {
+                        page = page - 1;
+                        super.open();
+                    }
+                    break;
+                case SPECTRAL_ARROW:
+                    if (!((index + 1) >= items.size())) {
+                        page = page + 1;
+                        super.open();
+                    }
+                    break;
                 default:
+                    // вещь: показываем, с каких боссов падает и как её скрафтить
+                    openLoot(e.getCurrentItem());
                     break;
             }
         }
@@ -54,7 +70,7 @@ public class ItemsPageMenu extends PaginatedMenu {
         addBigMenuBorder();
 
         BossLandLoot lootManager = BossLand.getLootManager();
-        ArrayList<ItemStack> items = new ArrayList<>(lootManager.getWeaponsAndItems());
+        items = new ArrayList<>(lootManager.getWeaponsAndItems());
 
         if(!items.isEmpty()) {
             for(int i = 0; i < getMaxItemsPerPage(); i++) {
@@ -67,5 +83,12 @@ public class ItemsPageMenu extends PaginatedMenu {
             }
         }
 
+    }
+    private void openLoot(ItemStack clicked) {
+        if (clicked == null || clicked.getItemMeta() == null) return;
+        String name = clicked.getItemMeta().getDisplayName();
+        if (name == null || name.isBlank()) return;
+        playerMenuUtility.setLootToShow(name);
+        new IndividualLootPageMenu(playerMenuUtility).open();
     }
 }

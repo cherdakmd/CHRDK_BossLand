@@ -59,6 +59,14 @@ public class ArmorsPageMenu extends PaginatedMenu {
                     new GuideMainMenu(playerMenuUtility).open();
                     break;
                 default:
+                    // броня: показываем, с каких боссов падает
+                    if (itemClicked.getItemMeta() != null) {
+                        String name = itemClicked.getItemMeta().getDisplayName();
+                        if (name != null && !name.isBlank()) {
+                            playerMenuUtility.setLootToShow(name);
+                            new IndividualLootPageMenu(playerMenuUtility).open();
+                        }
+                    }
                     break;
             }
         }

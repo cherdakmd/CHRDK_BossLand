@@ -412,8 +412,8 @@ public final class BossLandSelftest {
         // 11) весь именованный лут боссов должен быть виден в руководстве: иначе разделы
         //     «Осколки», «Брони» и «Предметы» молча теряют вещи новых боссов
         BossLandLoot lootManager = BossLand.getLootManager();
+        Set<String> inBook = new HashSet<>();
         if (lootManager != null) {
-            Set<String> inBook = new HashSet<>();
             for (ItemStack item : lootManager.getShards()) addName(inBook, item);
             for (ItemStack item : lootManager.getArmors()) addName(inBook, item);
             for (ItemStack item : lootManager.getWeaponsAndItems()) addName(inBook, item);
@@ -441,6 +441,21 @@ public final class BossLandSelftest {
             lines.add("§c✗ §7книга руководства " + (!recognized
                     ? "не распознаётся плагином — правый клик не откроет меню"
                     : "пустая: ни страниц, ни названия"));
+        }
+
+        // 13) всё, что показано в руководстве, должно находиться поиском: иначе игрок видит
+        //     вещь в книге, а /bl search про неё молчит (так было с осколками и всем оружием)
+        Set<String> searchable = new HashSet<>();
+        for (GuideSearch.Entry entry : index) addName(searchable, entry.icon());
+
+        List<String> notFound = new ArrayList<>();
+        for (String name : inBook) {
+            if (!searchable.contains(name)) notFound.add(name);
+        }
+        checks++;
+        if (!notFound.isEmpty()) {
+            failed++;
+            lines.add("§c✗ §7поиск не находит то, что показано в руководстве: §f" + String.join(", ", notFound));
         }
 
         boolean ok = failed == 0;

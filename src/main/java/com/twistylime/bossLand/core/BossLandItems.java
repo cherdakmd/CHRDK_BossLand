@@ -48,6 +48,62 @@ public class BossLandItems {
         return s;
     }
 
+    /**
+     * Все варианты вещи дропа для руководства.
+     *
+     * В конфиге у одной вещи может быть список имён: мечи Гнева выпадают как Wither Sword,
+     * Nether Sword, Ghast Sword или Magma Sword, и {@link #getItem(String, String)} каждый
+     * раз выбирает одно из них случайно. Из-за этого содержимое руководства зависело от
+     * случая: при каждом открытии в «Предметах» был другой меч, а поиск не находил тот,
+     * что игрок только что видел. Здесь возвращаются все варианты сразу — их и показывает
+     * книга, их же ищет поиск.
+     */
+    public List<ItemStack> getItemVariants(String bossType, String loot) {
+        List<ItemStack> variants = new ArrayList<>();
+        ItemStack base = getItem(bossType, loot);
+        if (base == null)
+            return variants;
+
+        List<String> names = configuredNames(bossType, loot);
+        // имя одно или его нет в конфиге — вариант ровно один, тот, что собрал getItem()
+        if (names.size() <= 1) {
+            variants.add(base);
+            return variants;
+        }
+
+        for (String name : names) {
+            ItemStack variant = base.clone();
+            ItemMeta meta = variant.getItemMeta();
+            if (meta == null)
+                continue;
+            meta.setDisplayName(prosessLootName(name, variant));
+            variant.setItemMeta(meta);
+            variants.add(variant);
+        }
+        return variants;
+    }
+
+    /** Имена вещи дропа, прописанные в конфиге: строка или список (у мечей Гнева — четыре). */
+    private List<String> configuredNames(String bossType, String loot) {
+        List<String> names = new ArrayList<>();
+        String path = "bosses." + bossType + ".loot." + loot + ".name";
+        // getString() на списке вернёт его строковое представление — сначала проверяем список
+        if (plugin.getConfig().isList(path)) {
+            List<?> raw = plugin.getConfig().getList(path);
+            if (raw != null) {
+                for (Object value : raw) {
+                    if (value != null)
+                        names.add(value.toString());
+                }
+            }
+        } else {
+            String single = plugin.getConfig().getString(path);
+            if (single != null)
+                names.add(single);
+        }
+        return names;
+    }
+
     public ItemStack getItemOld(String bossType, String loot) {
         try {
             String setItem = plugin.getConfig().getString("bosses." + bossType + ".loot." + loot + ".item");

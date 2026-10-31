@@ -170,6 +170,10 @@ public class BossLand extends JavaPlugin implements Listener {
     private static final String[] STAFF_MODES = {STAFF_MODE_SHARD, STAFF_MODE_LOOT, STAFF_MODE_CONTROL};
 
     /** Ключи lang.yml с именами осколков боссов — по ним определяется осколок в инвентаре. */
+    /** Как часто повторять подсказку про осколок в руке, мс. */
+    private static final long SHARD_INFO_COOLDOWN_MS = 5_000;
+    private final java.util.Map<java.util.UUID, Long> shardInfoShownAt = new java.util.HashMap<>();
+
     private static final String[] SHARD_LANG_KEYS = {
             "items.whiteshard", "items.greenshard", "items.greyshard", "items.blackshard",
             "items.redshard", "items.brownshard", "items.emeraldshard", "items.goldshard",
@@ -2838,6 +2842,12 @@ public class BossLand extends JavaPlugin implements Listener {
                 new GuideMainMenu(PlayerMenuUtilityManager.getPlayerMenuUtility(p)).open();
                 return;
             }
+            // осколок в руке: говорим, во что он идёт, вместо того чтобы молча дать
+            // покрасить им овцу (осколок при этом просто тратится)
+            if (used != null && isBossShard(used)) {
+                if (action == Action.RIGHT_CLICK_AIR) e.setCancelled(true);
+                tellAboutShard(p, used);
+            }
         }
 
         shrinesManager.detectShrineRecipe(e);
@@ -3132,6 +3142,28 @@ public class BossLand extends JavaPlugin implements Listener {
             NamespacedKey key = new NamespacedKey(plugin, "shardhint");
             player.getPersistentDataContainer().set(key, PersistentDataType.BYTE, (byte) 1);
             String message = config.getLang("shardFirstHint");
+            if (message != null && !message.isBlank()) player.sendMessage(message);
+        } catch (Exception x) {
+            // подсказка — не поведение плагина, молчим
+        }
+    }
+
+    /**
+     * Что делать с осколком: во что он идёт и где смотреть рецепты.
+     * Повторяем не чаще раза в несколько секунд — правый клик прилетает дважды.
+     */
+    private void tellAboutShard(Player player, ItemStack shard) {
+        try {
+            long now = System.currentTimeMillis();
+            Long last = shardInfoShownAt.get(player.getUniqueId());
+            if (last != null && now - last < SHARD_INFO_COOLDOWN_MS) return;
+            shardInfoShownAt.put(player.getUniqueId(), now);
+
+            BossLandRecipes recipesManager = BossLand.getRecipeManager();
+            List<String> crafts = recipesManager == null ? List.of() : recipesManager.craftsFrom(shard);
+            String message = crafts.isEmpty()
+                    ? config.getLang("shardInHandNoCraft")
+                    : config.getLang("shardInHand").replace("<crafts>", String.join("§7, §f", crafts));
             if (message != null && !message.isBlank()) player.sendMessage(message);
         } catch (Exception x) {
             // подсказка — не поведение плагина, молчим

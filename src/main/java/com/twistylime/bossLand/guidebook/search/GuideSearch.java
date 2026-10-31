@@ -1,6 +1,7 @@
 package com.twistylime.bossLand.guidebook.search;
 
 import com.twistylime.bossLand.BossLand;
+import com.twistylime.bossLand.core.BossLandLoot;
 import com.twistylime.bossLand.core.BossLandRecipes;
 import com.twistylime.bossLand.core.BossLandShrines;
 import org.bukkit.ChatColor;
@@ -10,20 +11,27 @@ import org.bukkit.inventory.meta.ItemMeta;
 
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 
 /**
- * Поиск по руководству: индексирует боссов (рецепты святилищ) и предметы призыва,
+ * Поиск по руководству: индексирует боссов, рецепты, осколки и весь именованный лут,
  * чтобы игрок мог найти нужную страницу по названию, а не листать меню.
+ *
+ * Раньше ищлись только боссы да предметы призыва, из-за чего «Морозный Клинок» или
+ * «Зеленый осколок» поиск не находил — хотя в книге они были показаны.
  */
 public final class GuideSearch {
 
-    /** Что нашлось: страница рецепта босса или рецепта предмета. */
+    /** Что нашлось и куда ведёт клик по результату. */
     public enum Kind {
         BOSS("Босс"),
-        ITEM("Предмет");
+        ITEM("Предмет"),
+        SHARD("Осколок"),
+        LOOT("Добыча");
 
         private final String label;
 
@@ -45,9 +53,52 @@ public final class GuideSearch {
 
     /** Полный список того, что можно найти. Строится заново: рецепты могут перезагружаться командой. */
     public static List<Entry> index() {
+        // Имя встречается и среди рецептов, и среди лута (ядро льда, чешуя бездны) —
+        // в поиске такая вещь должна быть один раз, и первым делом ведём на рецепт.
         List<Entry> entries = new ArrayList<>();
-        entries.addAll(bossEntries());
-        entries.addAll(itemEntries());
+        Set<String> seen = new HashSet<>();
+        for (Entry entry : bossEntries()) {
+            if (seen.add(entry.name())) entries.add(entry);
+        }
+        for (Entry entry : itemEntries()) {
+            if (seen.add(entry.name())) entries.add(entry);
+        }
+        for (Entry entry : shardEntries()) {
+            if (seen.add(entry.name())) entries.add(entry);
+        }
+        for (Entry entry : lootEntries()) {
+            if (seen.add(entry.name())) entries.add(entry);
+        }
+        return entries;
+    }
+
+    /** Осколки: ведут на страницу осколка — кто роняет и что из него крафтится. */
+    private static List<Entry> shardEntries() {
+        List<Entry> entries = new ArrayList<>();
+        BossLandLoot lootManager = BossLand.getLootManager();
+        if (lootManager == null) return entries;
+
+        for (ItemStack shard : lootManager.getShards()) {
+            String name = displayName(shard);
+            if (name == null || name.isBlank()) continue;
+            entries.add(new Entry(name, name, Kind.SHARD, shard));
+        }
+        return entries;
+    }
+
+    /** Вещи из дропа боссов: оружие, броня, артефакты. */
+    private static List<Entry> lootEntries() {
+        List<Entry> entries = new ArrayList<>();
+        BossLandLoot lootManager = BossLand.getLootManager();
+        if (lootManager == null) return entries;
+
+        List<ItemStack> all = new ArrayList<>(lootManager.getWeaponsAndItems());
+        all.addAll(lootManager.getArmors());
+        for (ItemStack item : all) {
+            String name = displayName(item);
+            if (name == null || name.isBlank()) continue;
+            entries.add(new Entry(name, name, Kind.LOOT, item));
+        }
         return entries;
     }
 
