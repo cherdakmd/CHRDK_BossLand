@@ -139,8 +139,12 @@ hints:
   # материалы вместо осколков с именем (lang.yml, craftShardsRequired)
   craftBlocked: true
 update-check:
+  # Проверять при старте, не вышла ли новая версия (сообщение в консоль)
   enabled: true
-  version-url: "https://gist.githubusercontent.com/TwistyLime/334114c49e15e97bcfeea6f724201109/raw/BossLandCurrentVersion.json"
+  # Откуда брать последнюю версию. По умолчанию — последний релиз нашего репозитория,
+  # поэтому ничего править не нужно: версия берётся из опубликованного релиза.
+  # Можно указать свой JSON с ключом full_version (и необязательным changelog).
+  version-url: "https://api.github.com/repos/cherdakmd/CHRDK_BossLand/releases/latest"
 disabledWorlds:
   - MyTownWorld
 bosses:
