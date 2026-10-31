@@ -70,11 +70,15 @@ public class BossLandLoot {
         for (String bossWithId : new TreeSet<>(bossLootMap.keySet())) {
             int colon = bossWithId.lastIndexOf(':');
             if (colon <= 0) continue;
-            ItemStack item = getLoot(bossWithId.substring(0, colon), bossWithId.substring(colon + 1));
-            if (item == null || item.getItemMeta() == null) continue;
-            String name = item.getItemMeta().getDisplayName();
-            if (name == null || name.isBlank() || !seen.add(name)) continue;
-            if (filter.test(item)) found.add(item);
+            // вещь с несколькими именами в конфиге (мечи Гнева) приходит всеми вариантами:
+            // иначе в руководстве каждый раз был бы другой меч, и поиск бы его не находил
+            for (ItemStack item : itemManager.getItemVariants(bossWithId.substring(0, colon),
+                    bossWithId.substring(colon + 1))) {
+                if (item == null || item.getItemMeta() == null) continue;
+                String name = item.getItemMeta().getDisplayName();
+                if (name == null || name.isBlank() || !seen.add(name)) continue;
+                if (filter.test(item)) found.add(item);
+            }
         }
         return found;
     }
