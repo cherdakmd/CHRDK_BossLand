@@ -79,7 +79,8 @@ public class BossLandLoot {
         return found;
     }
 
-    private static boolean isArmor(ItemStack item) {
+    /** Броня ли это: шлем, нагрудник, поножи, ботинки или элитры. */
+    public static boolean isArmor(ItemStack item) {
         if (item == null) return false;
         String type = item.getType().name();
         return type.endsWith("_HELMET") || type.endsWith("_CHESTPLATE")

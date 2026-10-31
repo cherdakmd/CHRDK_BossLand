@@ -57,6 +57,12 @@ public class IndividualBossRecipePageMenu extends PaginatedMenu {
                         new IndividualShardPageMenu(playerMenuUtility).open();
                         break;
                     }
+                    // остальной дроп — на страницу вещи: с каких боссов падает и как крафтится
+                    if ("loot".equals(tagOf(itemClicked, "kind"))) {
+                        playerMenuUtility.setLootToShow(tagOf(itemClicked, "data"));
+                        new IndividualLootPageMenu(playerMenuUtility).open();
+                        break;
+                    }
                     // предмет призыва: открываем страницу его крафта
                     String itemRecipe = recipeKeyOf(itemClicked);
                     if (itemRecipe == null)
@@ -187,9 +193,7 @@ public class IndividualBossRecipePageMenu extends PaginatedMenu {
                 ItemStack lootItem = loot.get(i);
                 if (lootItem != null) {
                     // по осколку можно перейти на его страницу: с каких боссов падает и что из него крафтится
-                    inventory.setItem(45 + i, BossLand.getPlugin().isBossShard(lootItem)
-                            ? IndividualShardPageMenu.markShard(lootItem)
-                            : lootItem);
+                    inventory.setItem(45 + i, IndividualLootPageMenu.mark(lootItem));
                 }
             }
         }

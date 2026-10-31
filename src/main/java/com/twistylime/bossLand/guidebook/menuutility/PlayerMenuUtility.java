@@ -7,6 +7,7 @@ public class PlayerMenuUtility {
     private String bossRecipeToShow;
     private String itemRecipeToShow;
     private String shardToShow;
+    private String lootToShow;
     private String searchQuery = "";
 
     public String getBossRecipeToShow() {
@@ -32,6 +33,15 @@ public class PlayerMenuUtility {
 
     public void setShardToShow(String shardToShow) {
         this.shardToShow = shardToShow;
+    }
+
+    /** Отображаемое имя предмета дропа, страницу которого показываем. */
+    public String getLootToShow() {
+        return lootToShow;
+    }
+
+    public void setLootToShow(String lootToShow) {
+        this.lootToShow = lootToShow;
     }
 
     public String getSearchQuery() {

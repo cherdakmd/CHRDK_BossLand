@@ -229,6 +229,21 @@ public class BossLandRecipes {
      * Что можно скрафтить из этого предмета: отображаемые имена результатов тех рецептов,
      * где этот предмет лежит в сетке. Строится из recipes.yml, поэтому не расходится с крафтом.
      */
+    /** Ключ рецепта, результатом которого является этот предмет, или {@code null}. */
+    public String recipeKeyByResult(ItemStack result) {
+        String wanted = displayName(result);
+        if (wanted == null)
+            return null;
+        for (String key : recipeKeys()) {
+            Map<String, Object> recipe = getRecipes(key);
+            if (recipe == null)
+                continue;
+            if (recipe.get("result") instanceof ItemStack candidate && wanted.equals(displayName(candidate)))
+                return key;
+        }
+        return null;
+    }
+
     /** Ключи рецептов, в которых этот предмет лежит в сетке. */
     public List<String> recipeKeysUsing(ItemStack ingredient) {
         List<String> keys = new ArrayList<>();

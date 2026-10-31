@@ -53,6 +53,12 @@ public class SearchResultsPageMenu extends PaginatedMenu {
                 if (GuideSearch.Kind.BOSS.name().equals(kind)) {
                     playerMenuUtility.setBossRecipeToShow(key);
                     new IndividualBossRecipePageMenu(playerMenuUtility).open();
+                } else if (GuideSearch.Kind.SHARD.name().equals(kind)) {
+                    playerMenuUtility.setShardToShow(key);
+                    new IndividualShardPageMenu(playerMenuUtility).open();
+                } else if (GuideSearch.Kind.LOOT.name().equals(kind)) {
+                    playerMenuUtility.setLootToShow(key);
+                    new IndividualLootPageMenu(playerMenuUtility).open();
                 } else {
                     playerMenuUtility.setItemRecipeToShow(key);
                     new IndividualItemRecipePageMenu(playerMenuUtility).open();
