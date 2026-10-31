@@ -3,6 +3,7 @@ package com.twistylime.bossLand.selftest;
 import com.twistylime.bossLand.BossLand;
 import com.twistylime.bossLand.core.BossLandItems;
 import com.twistylime.bossLand.core.BossLandLoot;
+import com.twistylime.bossLand.guidebook.GuideBook;
 import com.twistylime.bossLand.core.BossLandRecipes;
 import com.twistylime.bossLand.core.BossLandShrines;
 import com.twistylime.bossLand.core.BossLandShrines.Ritual;
@@ -11,6 +12,7 @@ import com.twistylime.bossLand.utility.CompatibilityResolver;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.BookMeta;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -425,6 +427,20 @@ public final class BossLandSelftest {
                 failed++;
                 lines.add("§c✗ §7в руководстве не показаны предметы дропа: §f" + String.join(", ", missing));
             }
+        }
+
+        // 12) книга руководства не должна быть пустой: иначе игрок открывает её и видит пустоту
+        checks++;
+        ItemStack guide = GuideBook.create();
+        boolean recognized = GuideBook.isGuideBook(guide);
+        boolean readable = guide.getItemMeta() instanceof BookMeta bookMeta
+                && bookMeta.getPageCount() > 0
+                && bookMeta.getTitle() != null && !bookMeta.getTitle().isBlank();
+        if (!recognized || !readable) {
+            failed++;
+            lines.add("§c✗ §7книга руководства " + (!recognized
+                    ? "не распознаётся плагином — правый клик не откроет меню"
+                    : "пустая: ни страниц, ни названия"));
         }
 
         boolean ok = failed == 0;

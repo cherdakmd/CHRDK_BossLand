@@ -5,6 +5,7 @@ import com.twistylime.bossLand.config.BossLandConfiguration;
 import com.twistylime.bossLand.core.BossLandBosses;
 import com.twistylime.bossLand.core.BossLandItems;
 import com.twistylime.bossLand.core.BossLandLoot;
+import com.twistylime.bossLand.guidebook.GuideBook;
 import com.twistylime.bossLand.guidebook.menuutility.PlayerMenuUtilityManager;
 import com.twistylime.bossLand.guidebook.pages.GuideMainMenu;
 import com.twistylime.bossLand.guidebook.search.SearchPromptManager;
@@ -218,16 +219,14 @@ public class BossLandCommandHandler implements CommandExecutor {
         }
         if ((cmd.getName().equals("bossland")) || (cmd.getName().equals("bl"))){
             if (args[0].equals("guide") && args.length == 1) {
-                if (sender instanceof Player) {
-                    Player p = (Player)sender;
-                    ItemStack guideBook = new ItemStack(Material.WRITTEN_BOOK,1);
-                    ItemMeta guideBookMeta = guideBook.getItemMeta();
-                    if(guideBookMeta != null){
-                        guideBookMeta.setDisplayName(config.getLang("items.guidebook"));
-                        guideBookMeta.setLore(List.of(ChatColor.GRAY+"by TwistyLime, плагин от Eliminator"));
+                if (sender instanceof Player p) {
+                    // Раньше команда только выдавала книгу, а та была пустой: игрок открывал
+                    // её и видел пустоту. Теперь книга с оглавлением, а меню открывается сразу.
+                    ItemStack guideBook = GuideBook.create();
+                    if (!p.getInventory().addItem(guideBook).isEmpty()) {
+                        p.getWorld().dropItemNaturally(p.getLocation(), guideBook);
                     }
-                    guideBook.setItemMeta(guideBookMeta);
-                    p.getInventory().addItem(guideBook);
+                    new GuideMainMenu(PlayerMenuUtilityManager.getPlayerMenuUtility(p)).open();
                 }
                 return true;
             } else if (args[0].equalsIgnoreCase("search") && args.length >= 2) {
