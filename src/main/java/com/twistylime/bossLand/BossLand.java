@@ -7,6 +7,7 @@ import java.util.logging.Level;
 import com.twistylime.bossLand.command.BossLandCommandHandler;
 import com.twistylime.bossLand.config.BossLandConfiguration;
 import com.twistylime.bossLand.core.*;
+import com.twistylime.bossLand.guidebook.GuideBook;
 import com.twistylime.bossLand.guidebook.MenuListener;
 import com.twistylime.bossLand.guidebook.search.SearchPromptManager;
 import com.twistylime.bossLand.guidebook.menuutility.PlayerMenuUtilityManager;
@@ -63,6 +64,7 @@ import org.bukkit.entity.Zombie;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityChangeBlockEvent;
@@ -88,6 +90,7 @@ import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.event.world.ChunkLoadEvent;
 import org.bukkit.inventory.CraftingInventory;
 import org.bukkit.inventory.EntityEquipment;
+import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -2821,6 +2824,22 @@ public class BossLand extends JavaPlugin implements Listener {
     @EventHandler(priority = EventPriority.HIGH)
     public void onPlayerInteract(PlayerInteractEvent e) {
         final Player p = e.getPlayer();
+
+        // Книгу руководства проверяем первой и отдельно: внутри цепочки ниже она стояла
+        // последней, из-за чего открытие ломалось кулдауном предметов босса, книгой во
+        // второй руке и любым исключением в цепочке сравнений.
+        Action action = e.getAction();
+        if (action == Action.RIGHT_CLICK_AIR || action == Action.RIGHT_CLICK_BLOCK) {
+            ItemStack used = e.getHand() == EquipmentSlot.OFF_HAND
+                    ? p.getInventory().getItemInOffHand()
+                    : p.getInventory().getItemInMainHand();
+            if (GuideBook.isGuideBook(used)) {
+                e.setCancelled(true);
+                new GuideMainMenu(PlayerMenuUtilityManager.getPlayerMenuUtility(p)).open();
+                return;
+            }
+        }
+
         shrinesManager.detectShrineRecipe(e);
         try {
             // Cool Check
@@ -2906,11 +2925,6 @@ public class BossLand extends JavaPlugin implements Listener {
                 p.sendMessage(config.getLang("deathQ"));
                 deathList.add(p.getUniqueId());
                 cool(p.getUniqueId());
-            }
-            else if (p.getInventory().getItemInMainHand().getItemMeta().getDisplayName()
-                    .equals(config.getLang("items.guidebook"))) {
-                GuideMainMenu menu = new GuideMainMenu(PlayerMenuUtilityManager.getPlayerMenuUtility(p));
-                menu.open();
             }
         } catch (Exception x) {
         }
